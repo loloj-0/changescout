@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .env
 .ipynb_checkpoints/
+
+docs/current_issue.md
+artifacts/
+*.egg-info/

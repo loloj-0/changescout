@@ -5,12 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "changescout"
 version = "0.1.0"
-description = "Deterministic monitoring pipeline for canton scoped change detection"
+description = "Deterministic monitoring pipeline for canton scoped infrastructure change lead generation"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
   "pyyaml>=6.0",
 ]
+
+[project.scripts]
+changescout = "changescout.cli:main"
 
 [project.optional-dependencies]
 dev = [

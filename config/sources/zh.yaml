@@ -1,0 +1,16 @@
+version: 1
+
+# Zürich MVP source registry
+# Included sources are manually curated official canton-level infrastructure pages
+# used to generate leads for potential TLM relevant changes.
+
+sources:
+  - source_id: "zh_tiefbau_projects"
+    name: "Kanton Zürich Tiefbau project pages"
+    base_url: "https://www.zh.ch/de/planen-bauen/tiefbau"
+    crawl_type: "html_pattern"
+    include_patterns:
+      - "/geplante-strassenprojekte/"
+      - "/baustellen/"
+    crawl_frequency_hours: 168
+    active: true
