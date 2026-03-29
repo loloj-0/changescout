@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+src/changescout/__init__.py
+src/changescout.egg-info/PKG-INFO
+src/changescout.egg-info/SOURCES.txt
+src/changescout.egg-info/dependency_links.txt
+src/changescout.egg-info/requires.txt
+src/changescout.egg-info/top_level.txt
+tests/test_config.py

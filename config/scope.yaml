@@ -1,0 +1,7 @@
+version: 1
+canton_id: "uri"
+languages:
+  - "de"
+time_window_days: 30
+source_registry: "uri"
+source_policy: "official_canton_only"

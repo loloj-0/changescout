@@ -1,0 +1,15 @@
+version: 1
+sources:
+  - source_id: "ur_news"
+    name: "Canton Uri News"
+    base_url: "https://www.ur.ch/aktuellesinformationen"
+    crawl_type: "html_list"
+    crawl_frequency_hours: 24
+    active: true
+
+  - source_id: "ur_amtsblatt"
+    name: "Canton Uri Amtsblatt"
+    base_url: "https://amtsblatt.ur.ch"
+    crawl_type: "html_list"
+    crawl_frequency_hours: 24
+    active: true
