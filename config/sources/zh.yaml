@@ -5,12 +5,21 @@ version: 1
 # used to generate leads for potential TLM relevant changes.
 
 sources:
-  - source_id: "zh_tiefbau_projects"
-    name: "Kanton Zürich Tiefbau project pages"
-    base_url: "https://www.zh.ch/de/planen-bauen/tiefbau"
+  - source_id: "zh_geplante_strassenprojekte"
+    name: "Kanton Zürich Geplante Strassenprojekte"
+    base_url: "https://www.zh.ch/de/planen-bauen/tiefbau/geplante-strassenprojekte.html"
     crawl_type: "html_pattern"
-    include_patterns:
-      - "/geplante-strassenprojekte/"
-      - "/baustellen/"
     crawl_frequency_hours: 168
     active: true
+    include_patterns:
+      - "/geplante-strassenprojekte/projekt-"
+      - "/geplante-strassenprojekte/"
+
+  - source_id: "zh_baustellen"
+    name: "Kanton Zürich Baustellen"
+    base_url: "https://www.zh.ch/de/planen-bauen/tiefbau/baustellen.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/baustellen/strassenprojekt-"
