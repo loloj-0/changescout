@@ -59,6 +59,15 @@ Only sources defined in that file are used by the pipeline.
 
 ## Usage
 
+### Environment setup
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
 ### Resolve configured sources and generate a snapshot
 
 ```bash
@@ -89,6 +98,23 @@ This will:
 - exclude common non HTML asset URLs such as PDF, image, Office, and ZIP files
 - deduplicate discovered URLs per source
 - write discovered candidate URLs as JSONL
+
+### Run crawling
+
+```bash
+PYTHONPATH=src python -m changescout.cli crawl --input artifacts/discovery.jsonl --output artifacts/crawl.jsonl --html-base-dir data/crawling --run-id run_001
+```
+
+This will:
+
+- load discovered URLs from JSONL
+- fetch each URL via HTTP
+- compute a deterministic content hash
+- store raw HTML to disk
+- create structured crawl records
+- log success and failure per URL
+- continue processing on failures
+- write crawl output as JSONL
 
 ## Output
 
@@ -139,6 +165,69 @@ Example record:
 }
 ```
 
+### Crawl output
+
+A crawl output file is written to the path provided with `--output`.
+
+Example:
+
+`artifacts/crawl.jsonl`
+
+It contains one JSON record per fetched page.
+
+Each record contains:
+
+- `source_id`
+- `url`
+- `fetched_at`
+- `status_code`
+- `content_hash` for successful fetches
+- `html_path` for successful fetches
+- `error` for failed fetches
+- `discovered_at`
+
+Example success record:
+
+```json
+{
+  "source_id": "zh_tiefbau",
+  "url": "https://example.org",
+  "fetched_at": "2026-04-22T14:55:26.313449+00:00",
+  "status_code": 200,
+  "content_hash": "fb91d75a6bb430787a61b0aec5e374f580030f2878e1613eab5ca6310f7bbb9a",
+  "html_path": "data/crawling/run_001/zh_tiefbau/fb91d75a6bb430787a61b0aec5e374f580030f2878e1613eab5ca6310f7bbb9a.html",
+  "error": null,
+  "discovered_at": "2026-04-22T10:00:00Z"
+}
+```
+
+Example failure record:
+
+```json
+{
+  "source_id": "zh_tiefbau",
+  "url": "https://does-not-exist.invalid",
+  "fetched_at": "2026-04-22T14:55:26.338081+00:00",
+  "status_code": 0,
+  "content_hash": null,
+  "html_path": null,
+  "error": "timeout",
+  "discovered_at": "2026-04-22T10:05:00Z"
+}
+```
+
+### HTML storage
+
+Raw HTML files are stored under:
+
+`data/crawling/<run_id>/<source_id>/<content_hash>.html`
+
+This layout ensures:
+
+- deterministic storage paths
+- no collisions across runs
+- reproducible mapping between records and stored content
+
 ## Current discovery behavior
 
 Discovery currently:
@@ -152,6 +241,19 @@ Discovery currently:
 - writes final discovery records to JSONL
 - logs source level discovery progress and failures
 
+## Current crawling behavior
+
+Crawling currently:
+
+- fetches discovered URLs via HTTP GET
+- stores raw HTML for all successful HTTP responses
+- computes a deterministic SHA256 content hash
+- writes HTML files to a run scoped directory structure
+- creates structured crawl records for each URL
+- logs success and failure per URL
+- continues processing on failures
+- writes crawl output as JSONL
+
 ## Current limitations
 
 Discovery currently does not:
@@ -163,10 +265,19 @@ Discovery currently does not:
 - track known URLs across runs
 - confirm whether a discovered page reflects a finished real world change
 
+Crawling currently does not:
+
+- interpret HTML content
+- extract structured information from pages
+- deduplicate pages across runs
+- retry failed requests
+- normalize HTML content before hashing
+
 ## Project structure
 
 - `src/changescout/` application code
 - `config/` scope and source registry
 - `tests/` automated tests
 - `docs/` architecture and environment notes
-- `artifacts/` generated snapshots and discovery outputs
+- `artifacts/` generated snapshots, discovery outputs, and crawl outputs
+- `data/crawling/` stored raw HTML files

@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 
 from changescout.config import resolve_active_sources
+from changescout.crawling import run_crawling
 from changescout.discovery import discover_urls_from_source, write_discovery_jsonl
 from changescout.snapshot import write_snapshot
 
@@ -54,6 +55,27 @@ def run_discovery(config_dir: Path, output_path: Path) -> None:
     print(f"discovered_records={len(all_records)}")
 
 
+def run_crawl(
+    discovery_input_path: Path,
+    output_path: Path,
+    html_base_dir: Path,
+    run_id: str,
+    timeout_seconds: int,
+) -> None:
+    records = run_crawling(
+        discovery_input_path=discovery_input_path,
+        output_jsonl_path=output_path,
+        html_base_dir=html_base_dir,
+        run_id=run_id,
+        timeout_seconds=timeout_seconds,
+    )
+
+    print(f"crawl_output={output_path}")
+    print(f"crawl_records={len(records)}")
+    print(f"html_base_dir={html_base_dir}")
+    print(f"run_id={run_id}")
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
 
@@ -84,6 +106,34 @@ def main() -> None:
         help="Path to discovery output file",
     )
 
+    crawl_parser = subparsers.add_parser("crawl", help="Run page crawling from discovery output")
+    crawl_parser.add_argument(
+        "--input",
+        default="artifacts/discovery.jsonl",
+        help="Path to discovery input file",
+    )
+    crawl_parser.add_argument(
+        "--output",
+        default="artifacts/crawl.jsonl",
+        help="Path to crawl output file",
+    )
+    crawl_parser.add_argument(
+        "--html-base-dir",
+        default="data/crawling",
+        help="Base directory for stored raw HTML files",
+    )
+    crawl_parser.add_argument(
+        "--run-id",
+        required=True,
+        help="Run identifier used for HTML storage layout",
+    )
+    crawl_parser.add_argument(
+        "--timeout-seconds",
+        type=int,
+        default=10,
+        help="HTTP timeout in seconds",
+    )
+
     args = parser.parse_args()
 
     if args.command == "snapshot":
@@ -95,6 +145,14 @@ def main() -> None:
         run_discovery(
             config_dir=Path(args.config_dir),
             output_path=Path(args.output),
+        )
+    elif args.command == "crawl":
+        run_crawl(
+            discovery_input_path=Path(args.input),
+            output_path=Path(args.output),
+            html_base_dir=Path(args.html_base_dir),
+            run_id=args.run_id,
+            timeout_seconds=args.timeout_seconds,
         )
 
 

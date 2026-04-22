@@ -467,6 +467,294 @@ This introduces an explicit, configuration driven filtering layer.
 
 Pattern selection must be treated as part of the system design and reviewed accordingly.
 
+## Crawling Architecture
+
+### Responsibility
+
+The crawling step is responsible for fetching discovered URLs from discovery output and storing raw HTML plus fetch metadata for later processing.
+
+Crawling operates on discovered project page URLs and does not interpret page content.
+
+### Crawling input contract
+
+Crawling consumes structured discovery output records.
+
+Required fields per discovered URL record:
+
+- `source_id`
+- `url`
+- `discovered_at`
+
+Optional discovery traceability fields may be present:
+
+- `base_url`
+- `matched_pattern`
+
+Crawling uses only the required fields for fetch and persistence behavior.
+
+Optional fields may be preserved for traceability, but they are not required for the crawling contract.
+
+Crawling must fail explicitly if required discovery fields are missing.
+
+### Assumptions and limitations
+
+The MVP crawling model assumes:
+
+- discovered URLs are accessible via standard HTTP GET
+- raw HTML content can be captured without JavaScript rendering
+- redirects may occur and are handled by the HTTP client
+- no authentication is required
+- no retry logic is required
+- each fetched page is handled independently
+
+Pages that do not satisfy these constraints are not fully supported in the MVP.
+
+### What crawling does
+
+- load discovered URL records from structured discovery output
+- fetch each discovered URL via HTTP GET
+- capture HTTP status and fetch timestamp
+- store raw HTML response bodies for successful fetches
+- compute a stable content hash from stored HTML
+- attach fetch metadata to structured crawl records
+- persist crawl records as structured output
+- continue processing when individual page fetches fail
+
+### What crawling does NOT do
+
+- no URL discovery
+- no extraction of page text
+- no HTML cleaning or normalization of content
+- no semantic relevance filtering
+- no scoring or ranking
+- no classification
+- no geographic reasoning
+- no interpretation of whether a page indicates a true change
+- no downstream lead generation
+
+### Page fetch helper
+
+Crawling uses a dedicated page fetch helper to retrieve each discovered URL.
+
+The fetch helper is responsible only for technical HTTP access.
+
+Expected behavior:
+
+- perform an HTTP GET request to the discovered `url`
+- use a defined timeout
+- allow redirects
+- capture response status code
+- return response body for successful fetches
+- surface network and request errors explicitly to the caller
+- preserve non successful HTTP responses as structured outcomes
+
+The fetch helper must not silently suppress failures.
+
+Failure handling and logging remain the responsibility of the crawling step.
+
+### MVP fetch limitations
+
+For the MVP, the fetch helper assumes:
+
+- standard HTTP GET access is sufficient
+- one request per discovered URL is sufficient
+- no JavaScript rendering is required
+- no retry logic is required
+- no authentication is required
+
+### HTML storage layout
+
+Crawling stores raw HTML response content in a deterministic and inspectable file layout.
+
+Expected behavior:
+
+- each stored HTML document is written to a stable path within the crawl run output
+- storage layout separates runs and sources
+- unrelated pages must not overwrite each other
+- stored files remain directly inspectable for debugging and downstream processing
+
+An example layout is:
+
+- `data/crawling/<run_id>/<source_id>/<content_hash>.html`
+
+The exact root path may vary by environment, but the storage structure must remain deterministic within the run context.
+
+### HTML persistence
+
+Crawling persists raw HTML exactly as fetched, without content interpretation.
+
+Expected behavior:
+
+- HTML is stored as UTF 8 text
+- empty or missing bodies are handled explicitly
+- persistence failures are surfaced and logged
+- stored file paths are attached to crawl output records
+
+For the MVP, crawling stores raw page artefacts only.
+Parsed text, extracted metadata, and cleaned content belong to later pipeline steps.
+
+### Content hash generation
+
+Crawling computes a stable content hash for fetched HTML content.
+
+Expected behavior:
+
+- the same HTML content always produces the same hash
+- different HTML content produces a different hash
+- the hash is derived from raw stored HTML content
+- the hash is recorded in the structured crawl output
+
+For the MVP, the content hash acts as a deterministic page identity signal within crawling output.
+It is not a semantic deduplication mechanism.
+
+### Crawl record creation
+
+After fetch and persistence, crawling creates one structured record per attempted page fetch.
+
+Each record contains at least:
+
+- `source_id`
+- `url`
+- `fetched_at`
+- `status_code`
+- `content_hash`
+- `html_path`
+
+Optional fields may be added for traceability and error capture:
+
+- `error`
+- `discovered_at`
+
+If a fetch fails before HTML storage is possible, the record may omit `content_hash` and `html_path` and instead contain an `error` field describing the failure.
+
+### Crawl persistence boundary
+
+Crawling persists only the final structured crawl records of a run plus raw stored HTML files.
+
+The persisted crawl output contains the structured page fetch dataset after:
+
+- discovery input loading
+- page fetch
+- HTML persistence
+- content hash generation
+- metadata attachment
+
+Crawling does not persist downstream parsing, extraction, classification, or lead scoring artefacts as part of the MVP contract.
+
+Expected behavior:
+
+- structured crawl output is written in a structured and inspectable format
+- output path is deterministic within the run context
+- persisted records can be reloaded for downstream processing steps
+
+For the MVP, JSONL is the preferred persistence format.
+CSV may be supported as an additional export format for metadata only.
+
+### MVP persistence assumptions
+
+For the MVP, crawling persistence is limited to raw HTML storage and final crawl records.
+
+Extracted text, page titles, cleaned page content, semantic labels, and lead assessment outputs belong to later pipeline steps and are not part of the crawling persistence contract.
+
+### Crawling logging
+
+Crawling must produce structured and human readable logs at page level and run level.
+
+The purpose of logging is to make crawling behavior traceable and failures diagnosable.
+
+Expected logging includes at least:
+
+- crawl start
+- input record count
+- fetch success or fetch failure per URL
+- HTTP status code for completed responses
+- HTML persistence success including output path
+- final crawl record count
+- run completion summary
+
+Failures must be logged with source context, URL, and error type.
+
+Logging must not stop the full run unless failure handling is explicitly configured otherwise.
+
+### MVP logging assumptions
+
+For the MVP, crawling logging is focused on operational traceability and failure diagnosis.
+
+Logging is aggregated at run level and page level as needed to understand fetch outcomes.
+
+Detailed downstream content inspection logs are not part of the MVP crawling contract.
+
+### Monitoring over time
+
+Crawling logging describes behavior within a single run.
+
+Long term crawl monitoring requires additional state that is outside the MVP crawling contract.
+
+This includes for example:
+
+- last successful fetch time per URL
+- repeated fetch failures for the same URL
+- content hash changes across runs
+- newly failing URLs compared with previous runs
+- unexpected drops in crawl success rate
+
+This cross run monitoring state is not part of the initial crawling implementation.
+It is a later extension for incremental monitoring operation.
+
+### Determinism requirement
+
+Crawling must be deterministic given:
+
+- identical discovery input
+- identical HTTP response behavior for each discovered URL
+
+The same input must always produce the same crawl records and stored HTML artefacts.
+
+### Crawling output schema
+
+Crawling produces one structured record per attempted page fetch.
+
+Each record contains the following required fields for successful fetches:
+
+- `source_id`: stable identifier of the configured source that originally produced the URL
+- `url`: canonical absolute URL of the fetched page
+- `fetched_at`: timestamp of the crawl run in UTC
+- `status_code`: HTTP response status code
+- `content_hash`: stable hash of the fetched raw HTML content
+- `html_path`: persisted path to the stored raw HTML file
+
+Optional fields may be added for traceability and failure handling:
+
+- `discovered_at`: timestamp originally attached during discovery
+- `error`: structured or string error description for failed fetches
+
+The crawling output must not contain downstream interpretation fields such as extracted text, page title, semantic labels, relevance score, or lead decision.
+
+Those belong to later pipeline steps.
+
+The output is stored as a structured dataset in JSONL or CSV format.
+
+### Crawling data model location
+
+The crawling output schema should be implemented as an explicit application level data model.
+
+For the MVP, crawl records may be represented in a dedicated module such as `src/changescout/models.py`.
+
+This avoids implicit dictionary based contracts and makes validation, testing, and persistence more reliable.
+
+### Boundary to downstream processing
+
+Crawling outputs only raw HTML artefacts and fetch metadata.
+
+Later processing steps are responsible for:
+
+- parsing stored HTML
+- extracting text or metadata
+- classifying pages
+- generating or scoring leads
+
+No interpretation logic is allowed in crawling.
+
 ## Lead generation model
 
 The system generates candidate leads from the monitored source set.
