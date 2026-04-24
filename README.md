@@ -8,6 +8,8 @@ The first MVP generates deterministic leads for potential TLM relevant real worl
 
 The system resolves the same active source set from the same config and produces reproducible candidate leads from manually curated official canton level sources.
 
+The MVP focuses on identifying structural infrastructure changes such as new roads, extensions, bridges, or network relevant modifications.
+
 The MVP does not try to automatically confirm whether a lead already corresponds to a finished or visible geometry change.
 Manual validation remains part of the workflow.
 
@@ -17,8 +19,8 @@ The MVP supports manually curated official source definitions in a versioned reg
 
 A source can currently be defined as:
 
-- `html_list` for a concrete list page
-- `html_pattern` for a section root plus URL include patterns used to discover relevant subpages
+* `html_list` for a concrete list page
+* `html_pattern` for a section root plus URL include patterns used to discover relevant subpages
 
 This allows the MVP to monitor official infrastructure project sections even when no clean central list page is available.
 
@@ -30,30 +32,30 @@ Monitoring is controlled entirely via configuration.
 
 `config/scope.yaml` defines:
 
-- `version`
-- `canton_id`
-- `languages`
-- `time_window_days`
-- `source_registry`
-- `source_policy`
+* `version`
+* `canton_id`
+* `languages`
+* `time_window_days`
+* `source_registry`
+* `source_policy`
 
 ### Source registry
 
 `config/sources/<registry>.yaml` defines:
 
-- `source_id`
-- `name`
-- `base_url`
-- `crawl_type`
-- `include_patterns` for `html_pattern`
-- `crawl_frequency_hours`
-- `active`
+* `source_id`
+* `name`
+* `base_url`
+* `crawl_type`
+* `include_patterns` for `html_pattern`
+* `crawl_frequency_hours`
+* `active`
 
 The value of `source_registry` in `config/scope.yaml` maps directly to the registry file name.
 
 Example:
 
-- `source_registry: "zh"` maps to `config/sources/zh.yaml`
+* `source_registry: "zh"` maps to `config/sources/zh.yaml`
 
 Only sources defined in that file are used by the pipeline.
 
@@ -74,210 +76,182 @@ python -m pip install -r requirements.txt
 PYTHONPATH=src python -m changescout.cli snapshot --config-dir config --snapshot-dir artifacts
 ```
 
-This will:
-
-- load the scope configuration
-- load the source registry
-- resolve active sources deterministically
-- write a snapshot JSON file
-
 ### Run discovery
 
 ```bash
 PYTHONPATH=src python -m changescout.cli discover --config-dir config --output artifacts/discovery.jsonl
 ```
 
-This will:
-
-- load the scope configuration
-- load the source registry
-- resolve active sources deterministically
-- fetch configured discovery entry pages
-- extract and normalize links
-- filter discovered URLs by configured include patterns
-- exclude common non HTML asset URLs such as PDF, image, Office, and ZIP files
-- deduplicate discovered URLs per source
-- write discovered candidate URLs as JSONL
-
 ### Run crawling
 
 ```bash
-PYTHONPATH=src python -m changescout.cli crawl --input artifacts/discovery.jsonl --output artifacts/crawl.jsonl --html-base-dir data/crawling --run-id run_001
+PYTHONPATH=src python -m changescout.cli crawl \
+  --input artifacts/discovery.jsonl \
+  --output artifacts/crawl.jsonl \
+  --html-base-dir data/crawling \
+  --run-id run_001
 ```
 
-This will:
+### Run HTML cleaning
 
-- load discovered URLs from JSONL
-- fetch each URL via HTTP
-- compute a deterministic content hash
-- store raw HTML to disk
-- create structured crawl records
-- log success and failure per URL
-- continue processing on failures
-- write crawl output as JSONL
+```bash
+PYTHONPATH=src python -m changescout.html_cleaning
+```
+
+This step:
+
+* loads crawl output
+* reads raw HTML files
+* extracts title and main content using source specific rules
+* removes boilerplate sections
+* normalizes text
+* applies basic filtering
+* writes cleaned documents
+* writes excluded documents
+* generates a report
 
 ## Output
 
 ### Snapshot output
 
-A snapshot file is written to:
-
 `artifacts/resolved_scope_snapshot.json`
 
-It contains:
+Contains:
 
-- scope configuration
-- resolved active sources
-- timestamp
-
-This ensures reproducibility of each run.
+* scope configuration
+* resolved active sources
+* timestamp
 
 ### Discovery output
 
-A discovery output file is written to the path provided with `--output`.
-
-Example:
-
 `artifacts/discovery.jsonl`
-
-It contains one JSON record per discovered candidate URL.
-
-Each record contains at least:
-
-- `source_id`
-- `url`
-- `discovered_at`
-
-Optional traceability fields may include:
-
-- `base_url`
-- `matched_pattern`
-
-Example record:
-
-```json
-{
-  "source_id": "zh_baustellen",
-  "url": "https://www.zh.ch/de/planen-bauen/tiefbau/baustellen/strassenprojekt-buelach-glattfelden.html",
-  "discovered_at": "2026-03-29T15:03:14.538354+00:00",
-  "base_url": "https://www.zh.ch/de/planen-bauen/tiefbau/baustellen.html",
-  "matched_pattern": "/baustellen/strassenprojekt-"
-}
-```
-
-### Crawl output
-
-A crawl output file is written to the path provided with `--output`.
-
-Example:
-
-`artifacts/crawl.jsonl`
-
-It contains one JSON record per fetched page.
 
 Each record contains:
 
-- `source_id`
-- `url`
-- `fetched_at`
-- `status_code`
-- `content_hash` for successful fetches
-- `html_path` for successful fetches
-- `error` for failed fetches
-- `discovered_at`
+* `source_id`
+* `url`
+* `discovered_at`
 
-Example success record:
+Optional:
 
-```json
-{
-  "source_id": "zh_tiefbau",
-  "url": "https://example.org",
-  "fetched_at": "2026-04-22T14:55:26.313449+00:00",
-  "status_code": 200,
-  "content_hash": "fb91d75a6bb430787a61b0aec5e374f580030f2878e1613eab5ca6310f7bbb9a",
-  "html_path": "data/crawling/run_001/zh_tiefbau/fb91d75a6bb430787a61b0aec5e374f580030f2878e1613eab5ca6310f7bbb9a.html",
-  "error": null,
-  "discovered_at": "2026-04-22T10:00:00Z"
-}
-```
+* `base_url`
+* `matched_pattern`
 
-Example failure record:
+### Crawl output
 
-```json
-{
-  "source_id": "zh_tiefbau",
-  "url": "https://does-not-exist.invalid",
-  "fetched_at": "2026-04-22T14:55:26.338081+00:00",
-  "status_code": 0,
-  "content_hash": null,
-  "html_path": null,
-  "error": "timeout",
-  "discovered_at": "2026-04-22T10:05:00Z"
-}
-```
+`artifacts/crawl.jsonl`
+
+Each record contains:
+
+* `source_id`
+* `url`
+* `fetched_at`
+* `status_code`
+* `content_hash`
+* `html_path`
+* `error`
+* `discovered_at`
+
+### Cleaned output
+
+`artifacts/cleaned.jsonl`
+
+Each record contains:
+
+* `document_id`
+* `source_id`
+* `url`
+* `title`
+* `clean_text`
+* `language`
+* `crawl_timestamp`
+* `html_path`
+* `clean_text_length`
+
+### Excluded output
+
+`artifacts/excluded.jsonl`
+
+Contains documents filtered out during cleaning with reasons.
+
+### Cleaning report
+
+`artifacts/html_cleaning_report.json`
+
+Contains:
+
+* total_documents
+* included_documents
+* excluded_documents
+* inclusion_rate
+* avg_clean_text_length
+* exclusion_reasons
 
 ### HTML storage
 
-Raw HTML files are stored under:
+Raw HTML files:
 
 `data/crawling/<run_id>/<source_id>/<content_hash>.html`
 
-This layout ensures:
+## Pipeline stages
 
-- deterministic storage paths
-- no collisions across runs
-- reproducible mapping between records and stored content
+1. Scope definition
+2. Discovery
+3. Crawling
+4. HTML cleaning
+5. Hard filtering
+6. Thematic scoring
+7. Classification
+8. Lead generation
 
 ## Current discovery behavior
 
-Discovery currently:
-
-- fetches source HTML
-- extracts anchor links
-- normalizes links to absolute URLs
-- filters by configured include patterns
-- excludes common non HTML asset URLs such as PDF, image, Office, and ZIP files
-- deduplicates discovered URLs per source and run
-- writes final discovery records to JSONL
-- logs source level discovery progress and failures
+* fetches source HTML
+* extracts anchor links
+* normalizes URLs
+* filters by include patterns
+* excludes non HTML assets
+* deduplicates URLs
+* writes JSONL
 
 ## Current crawling behavior
 
-Crawling currently:
+* fetches URLs via HTTP
+* stores raw HTML
+* computes SHA256 hash
+* writes structured crawl records
+* logs failures
+* continues on errors
 
-- fetches discovered URLs via HTTP GET
-- stores raw HTML for all successful HTTP responses
-- computes a deterministic SHA256 content hash
-- writes HTML files to a run scoped directory structure
-- creates structured crawl records for each URL
-- logs success and failure per URL
-- continues processing on failures
-- writes crawl output as JSONL
+## Current HTML cleaning behavior
+
+* extracts title via fallback logic
+* isolates main content container
+* removes boilerplate elements
+* extracts relevant text blocks
+* normalizes text
+* removes duplicate and low signal fragments
+* applies basic language filtering
+* produces normalized document schema
 
 ## Current limitations
 
-Discovery currently does not:
+The MVP currently does not:
 
-- fetch discovered project pages
-- extract page content
-- score relevance
-- classify change types
-- track known URLs across runs
-- confirm whether a discovered page reflects a finished real world change
+* reliably separate structural vs non structural changes
+* perform relevance scoring
+* classify change types
+* extract geographic entities robustly
+* track documents across runs
+* validate real world geometry changes
 
-Crawling currently does not:
-
-- interpret HTML content
-- extract structured information from pages
-- deduplicate pages across runs
-- retry failed requests
-- normalize HTML content before hashing
+HTML cleaning prioritizes recall over precision.
 
 ## Project structure
 
-- `src/changescout/` application code
-- `config/` scope and source registry
-- `tests/` automated tests
-- `docs/` architecture and environment notes
-- `artifacts/` generated snapshots, discovery outputs, and crawl outputs
-- `data/crawling/` stored raw HTML files
+* `src/changescout/` application code
+* `config/` scope and source registry
+* `tests/` automated tests
+* `docs/` architecture and notes
+* `artifacts/` generated outputs
+* `data/crawling/` raw HTML storage

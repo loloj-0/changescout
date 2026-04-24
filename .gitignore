@@ -5,8 +5,10 @@ __pycache__/
 .ipynb_checkpoints/
 
 docs/current_issue.md
+
+data/
 artifacts/
 
 *.egg-info/
 build/
-dist/data/
+dist/
