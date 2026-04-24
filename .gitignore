@@ -9,4 +9,4 @@ artifacts/
 
 *.egg-info/
 build/
-dist/
+dist/data/
