@@ -84,33 +84,21 @@ def apply_hard_filter(
     document: Dict[str, Any],
     filter_config: Dict[str, Any],
 ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
-    title_blacklist = filter_config.get("title_blacklist", [])
-    url_blacklist = filter_config.get("url_blacklist", [])
-    min_text_length = filter_config.get("min_text_length", 0)
+    hard_exclusion = filter_config.get("hard_exclusion", {})
 
-    if not isinstance(title_blacklist, list):
-        raise ValueError("title_blacklist must be a list")
+    title_keywords = hard_exclusion.get("title_keywords", [])
+    url_keywords = hard_exclusion.get("url_keywords", [])
 
-    if not isinstance(url_blacklist, list):
-        raise ValueError("url_blacklist must be a list")
+    if not isinstance(title_keywords, list):
+        raise ValueError("hard_exclusion.title_keywords must be a list")
 
-    if not isinstance(min_text_length, int):
-        raise ValueError("min_text_length must be an integer")
+    if not isinstance(url_keywords, list):
+        raise ValueError("hard_exclusion.url_keywords must be a list")
 
     title = document.get("title", "")
     url = document.get("url", "")
-    clean_text = document.get("clean_text", "")
-    clean_text_length = document.get("clean_text_length", len(clean_text))
 
-    if clean_text_length < min_text_length:
-        excluded = build_excluded_record(
-            document=document,
-            reason="too_short",
-            matched_rule=str(min_text_length),
-        )
-        return None, excluded
-
-    matched_title_rule = contains_any(title, title_blacklist)
+    matched_title_rule = contains_any(title, title_keywords)
     if matched_title_rule:
         excluded = build_excluded_record(
             document=document,
@@ -119,7 +107,7 @@ def apply_hard_filter(
         )
         return None, excluded
 
-    matched_url_rule = contains_any(url, url_blacklist)
+    matched_url_rule = contains_any(url, url_keywords)
     if matched_url_rule:
         excluded = build_excluded_record(
             document=document,
@@ -129,6 +117,40 @@ def apply_hard_filter(
         return None, excluded
 
     return document, None
+
+
+def compute_signals(
+    document: Dict[str, Any],
+    filter_config: Dict[str, Any],
+) -> Dict[str, Any]:
+    signals_config = filter_config.get("signals", {})
+
+    structural_keywords = signals_config.get("structural_change_keywords", [])
+    soft_keywords = signals_config.get("soft_change_keywords", [])
+    min_text_length = signals_config.get("min_text_length", 0)
+
+    clean_text = normalize_text(document.get("clean_text", ""))
+    title = normalize_text(document.get("title", ""))
+    combined_text = f"{title} {clean_text}"
+
+    structural_hits = [
+        keyword for keyword in structural_keywords
+        if normalize_text(keyword) in combined_text
+    ]
+
+    soft_hits = [
+        keyword for keyword in soft_keywords
+        if normalize_text(keyword) in combined_text
+    ]
+
+    clean_text_length = document.get("clean_text_length", len(clean_text))
+
+    return {
+        "clean_text_length": clean_text_length,
+        "below_min_text_length": clean_text_length < min_text_length,
+        "structural_change_hits": structural_hits,
+        "soft_change_hits": soft_hits,
+    }
 
 
 def run_filtering(
@@ -151,6 +173,11 @@ def run_filtering(
         )
 
         if included is not None:
+            included = dict(included)
+            included["filter_signals"] = compute_signals(
+                document=included,
+                filter_config=filter_config,
+            )
             included_documents.append(included)
 
         if excluded is not None:

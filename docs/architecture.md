@@ -900,6 +900,42 @@ Structural versus non structural distinction belongs to downstream scoring and c
 
 Hard filtering may compute simple rule based signals for later stages, but those signals must not be used as final exclusion logic in the MVP.
 
+### Filtering output
+
+The hard filtering step produces three artefacts:
+
+- `artifacts/filtered.jsonl`: normalized documents that passed the hard filter
+- `artifacts/filtered_excluded.jsonl`: documents excluded by the hard filter including exclusion reason and matched rule
+- `artifacts/filter_report.json`: summary statistics of the filtering run
+
+### Filtered document enrichment
+
+Documents in `filtered.jsonl` may be enriched with a `filter_signals` field.
+
+This field contains simple rule based signals such as:
+
+- keyword hits for structural change indicators
+- keyword hits for soft change indicators
+- text length indicators
+
+These signals are not used for hard exclusion in the MVP.
+
+They serve as input for downstream scoring and ranking.
+
+### Determinism
+
+Given identical input (`cleaned.jsonl`) and identical filter configuration (`config/filter.yaml`), the filtering step must produce identical outputs.
+
+### Boundary
+
+The filtering step:
+
+- does not remove documents based on structural versus non structural interpretation
+- does not perform scoring or ranking
+- does not classify documents
+
+Its sole responsibility is conservative removal of clearly irrelevant documents and generation of simple signals.
+
 ## Lead generation model
 
 The system generates candidate leads from the monitored source set.

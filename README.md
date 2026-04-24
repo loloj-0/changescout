@@ -105,10 +105,30 @@ This step:
 * extracts title and main content using source specific rules
 * removes boilerplate sections
 * normalizes text
-* applies basic filtering
+* applies technical quality filtering
 * writes cleaned documents
 * writes excluded documents
-* generates a report
+* generates a cleaning report
+
+### Run hard filtering
+
+```bash
+PYTHONPATH=src python -m changescout.cli filter \
+  --input artifacts/cleaned.jsonl \
+  --config config/filter.yaml \
+  --output artifacts/filtered.jsonl \
+  --excluded-output artifacts/filtered_excluded.jsonl \
+  --report-output artifacts/filter_report.json
+```
+
+This step:
+
+* removes clearly non domain documents
+* preserves all plausible infrastructure related content
+* enriches documents with simple rule based signals
+* writes filtered documents
+* writes excluded documents with reasons
+* generates a filtering report
 
 ## Output
 

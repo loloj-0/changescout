@@ -1,17 +1,48 @@
 version: 1
 
-title_blacklist:
-  - "veranstaltung"
-  - "event"
-  - "medienmitteilung"
-  - "newsletter"
-  - "stelle"
-  - "job"
-  - "karriere"
+hard_exclusion:
+  title_keywords:
+    - veranstaltung
+    - event
+    - newsletter
+    - job
+    - karriere
 
-url_blacklist:
-  - "/jobs"
-  - "/stellen"
-  - "/karriere"
+  url_keywords:
+    - /jobs
+    - /stellen
+    - /karriere
 
-min_text_length: 200
+signals:
+  min_text_length: 200
+
+  structural_change_keywords:
+    - neubau
+    - ausbau
+    - umbau
+    - sanierung
+    - instandsetzung
+    - brücke
+    - tunnel
+    - strasse
+    - kantonsstrasse
+    - kreisel
+    - kreuzung
+    - unterführung
+    - überführung
+    - bahnhof
+    - tram
+    - busspur
+    - veloweg
+    - fussweg
+
+  soft_change_keywords:
+    - baustelle
+    - bauarbeiten
+    - sperrung
+    - verkehrsführung
+    - verkehr
+    - projekt
+    - planung
+    - auflage
+    - mitwirkung
