@@ -1,0 +1,17 @@
+version: 1
+
+title_blacklist:
+  - "veranstaltung"
+  - "event"
+  - "medienmitteilung"
+  - "newsletter"
+  - "stelle"
+  - "job"
+  - "karriere"
+
+url_blacklist:
+  - "/jobs"
+  - "/stellen"
+  - "/karriere"
+
+min_text_length: 200
