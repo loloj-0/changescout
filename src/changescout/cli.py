@@ -7,8 +7,9 @@ from pathlib import Path
 from changescout.config import resolve_active_sources
 from changescout.crawling import run_crawling
 from changescout.discovery import discover_urls_from_source, write_discovery_jsonl
-from changescout.snapshot import write_snapshot
 from changescout.filtering import run_filtering
+from changescout.scoring import run_scoring
+from changescout.snapshot import write_snapshot
 
 LOGGER = logging.getLogger(__name__)
 
@@ -100,6 +101,27 @@ def run_filter(
     print(f"excluded_documents={report['excluded_documents']}")
 
 
+def run_score(
+    input_path: Path,
+    config_path: Path,
+    output_path: Path,
+    report_output_path: Path,
+) -> None:
+    report = run_scoring(
+        input_path=input_path,
+        config_path=config_path,
+        output_path=output_path,
+        report_output_path=report_output_path,
+    )
+
+    print(f"scored_output={output_path}")
+    print(f"scoring_report={report_output_path}")
+    print(f"total_documents={report['total_documents']}")
+    print(f"min_score={report['min_score']}")
+    print(f"max_score={report['max_score']}")
+    print(f"mean_score={report['mean_score']}")
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
 
@@ -185,6 +207,28 @@ def main() -> None:
         help="Path to filter report file",
     )
 
+    score_parser = subparsers.add_parser("score", help="Run thematic scoring")
+    score_parser.add_argument(
+        "--input",
+        default="artifacts/filtered.jsonl",
+        help="Path to filtered input file",
+    )
+    score_parser.add_argument(
+        "--config",
+        default="config/scoring.yaml",
+        help="Path to scoring config file",
+    )
+    score_parser.add_argument(
+        "--output",
+        default="artifacts/scored.jsonl",
+        help="Path to scored output file",
+    )
+    score_parser.add_argument(
+        "--report-output",
+        default="artifacts/scoring_report.json",
+        help="Path to scoring report file",
+    )
+
     args = parser.parse_args()
 
     if args.command == "snapshot":
@@ -211,6 +255,13 @@ def main() -> None:
             config_path=Path(args.config),
             output_path=Path(args.output),
             excluded_output_path=Path(args.excluded_output),
+            report_output_path=Path(args.report_output),
+        )
+    elif args.command == "score":
+        run_score(
+            input_path=Path(args.input),
+            config_path=Path(args.config),
+            output_path=Path(args.output),
             report_output_path=Path(args.report_output),
         )
 

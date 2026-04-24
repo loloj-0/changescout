@@ -936,6 +936,131 @@ The filtering step:
 
 Its sole responsibility is conservative removal of clearly irrelevant documents and generation of simple signals.
 
+
+## Thematic Scoring
+
+### Responsibility
+
+The thematic scoring step ranks normalized documents by their likelihood of describing structural infrastructure changes.
+
+Scoring is not a filtering step.
+It does not remove documents.
+
+### Scoring policy
+
+The scoring step must preserve all documents from the filtering stage.
+
+Its purpose is to assign a relative score that reflects how strongly a document indicates a structural change in the transport network.
+
+Structural change indicators include for example:
+
+- new construction
+- road expansion
+- junction redesign
+- bridge or tunnel construction
+- network relevant modifications
+
+Soft change indicators include for example:
+
+- maintenance
+- safety improvements
+- noise reduction
+- temporary traffic changes
+
+Soft indicators may reduce the score but must not exclude documents.
+
+### Score computation
+
+The final `thematic_score` is computed as:
+
+`thematic_score = rule_weight * rule_score + retrieval_weight * retrieval_score`
+
+Weights are defined in `config/scoring.yaml` and must sum to 1.
+
+The `rule_score` is normalized using a fixed rule based scale.
+
+The `retrieval_score` is a run relative BM25 score.
+
+Raw BM25 scores are normalized per scoring run using min max normalization across all documents:
+
+`retrieval_score = (bm25_raw_score - min_bm25_raw_score) / (max_bm25_raw_score - min_bm25_raw_score)`
+
+If all BM25 raw scores are identical, all retrieval scores are set to 0.
+
+This means retrieval scores are comparable within one run, but not directly comparable across different corpora, cantons, or source sets.
+
+For the MVP, rule based and retrieval based scoring rely on overlapping vocabularies.
+
+Retrieval scoring mainly introduces weighting by term frequency and document specificity rather than new semantic signals.
+
+### MVP scoring limitation
+
+The initial thematic scoring configuration is calibrated on the selected Zürich Tiefbau source set.
+
+The keyword lists and weights reflect the terminology observed in this MVP corpus.
+
+Scores are therefore suitable for ranking documents within the current MVP scope, but they should not be treated as canton independent relevance scores.
+
+The `thematic_score` is the final hybrid score.
+
+It is computed as a weighted combination of:
+
+- `rule_score`: rule based score derived from structural, soft, and title based signals
+- `retrieval_score`: BM25 based lexical retrieval score derived from configured query terms
+
+For the MVP, BM25 query terms are intentionally aligned with the structural keyword list.
+
+This keeps the initial scoring configuration simple and traceable.
+
+When additional cantons or source types are added, both keyword lists and BM25 query terms must be reviewed and may need to diverge.
+
+Retrieval terms may need to be broader or source specific, while rule based structural keywords should remain precise.
+
+When additional cantons or source types are added, the scoring configuration must be reviewed and recalibrated.
+
+### Boundary to filtering
+
+Filtering removes clearly non domain content.
+
+Scoring operates only on documents that passed filtering and must not remove additional documents.
+
+### Boundary to classification
+
+Scoring does not perform a final semantic decision.
+
+It provides a continuous relevance signal.
+
+The decision whether a document represents a structural change belongs to classification.
+
+### Boundary to lead generation
+
+No fixed relevance threshold is defined in the scoring step.
+
+Scores are used for deterministic ranking only.
+
+Thresholding, top k selection, or lead inclusion decisions are deferred to the lead generation stage.
+
+### Determinism
+
+Given identical input (`filtered.jsonl`) and identical scoring configuration, the scoring step must produce identical scores.
+
+### Output
+
+Each document receives:
+
+- `thematic_score`: final normalized score between 0 and 1
+- `rule_score`: normalized rule based score
+- `retrieval_score`: normalized BM25 retrieval score
+- `scoring_signals`: explanation fields including:
+  - structural keyword hits
+  - soft keyword hits
+  - title based keyword hits
+
+The `thematic_score` is a weighted combination of `rule_score` and `retrieval_score` as defined in the scoring configuration.
+
+The output dataset must preserve all input documents and enrich them with scoring metadata.
+
+
 ## Lead generation model
 
 The system generates candidate leads from the monitored source set.

@@ -1,0 +1,73 @@
+version: 2
+
+method: hybrid_scoring
+
+rule_scoring:
+  weight: 0.6
+
+  weights:
+    structural: 1.0
+    soft: -0.2
+    title_multiplier: 2.5
+
+  structural_keywords:
+    - neubau
+    - ausbau
+    - umfahrung
+    - brücke
+    - tunnel
+    - unterführung
+    - überführung
+    - kreisel
+    - kreuzung
+    - anschluss
+    - fahrspur
+    - radweg
+    - busspur
+    - strassenprojekt
+    - neugestaltung
+    - doppelspurausbau
+
+  soft_keywords:
+    - sanierung
+    - instandsetzung
+    - unterhalt
+    - lärmschutz
+    - sicherheit
+    - bauarbeiten
+    - baustelle
+    - sperrung
+    - verkehrsführung
+    - belag
+    - entwässerung
+
+retrieval_scoring:
+  enabled: true
+  method: bm25
+  weight: 0.4
+
+  query_terms:
+    - neubau
+    - ausbau
+    - umfahrung
+    - brücke
+    - tunnel
+    - unterführung
+    - überführung
+    - kreisel
+    - kreuzung
+    - anschluss
+    - fahrspur
+    - radweg
+    - busspur
+    - strassenprojekt
+    - neugestaltung
+    - doppelspurausbau
+
+  bm25:
+    k1: 1.5
+    b: 0.75
+
+normalization:
+  min_score: 0.0
+  max_score: 1.0

@@ -130,6 +130,24 @@ This step:
 * writes excluded documents with reasons
 * generates a filtering report
 
+### Run thematic scoring
+
+PYTHONPATH=src python -m changescout.cli score \
+  --input artifacts/filtered.jsonl \
+  --config config/scoring.yaml \
+  --output artifacts/scored.jsonl \
+  --report-output artifacts/scoring_report.json
+
+This step:
+
+* computes a thematic relevance score per document
+* increases score for structural signals
+* decreases score for soft change signals
+* normalizes scores to range 0–1
+* enriches documents with scoring signals
+* writes scored documents
+* generates a scoring report
+
 ## Output
 
 ### Snapshot output
@@ -207,6 +225,70 @@ Contains:
 * avg_clean_text_length
 * exclusion_reasons
 
+### Filtered output
+
+`artifacts/filtered.jsonl`
+
+Each record contains:
+
+* all fields from cleaned output
+* `filter_signals`
+
+### Filtered excluded output
+
+`artifacts/filtered_excluded.jsonl`
+
+Contains:
+
+* excluded documents
+* exclusion_reason
+* matched_rule
+
+### Filter report
+
+`artifacts/filter_report.json`
+
+Contains:
+
+* total_documents
+* included_documents
+* excluded_documents
+* exclusion_reasons
+
+### Scored output
+
+`artifacts/scored.jsonl`
+
+Each record contains:
+
+* all fields from filtered output
+* `thematic_score`
+* `scoring_signals`, including:
+  * `rule_score`
+  * `rule_raw_score`
+  * `retrieval_score`
+  * `retrieval_raw_score`
+  * `structural_hits`
+  * `soft_hits`
+  * `title_structural_hits`
+  * `retrieval_query_terms`
+
+### Scoring report
+
+`artifacts/scoring_report.json`
+
+Contains:
+
+* total_documents
+* min_score
+* max_score
+* mean_score
+* mean_rule_score
+* mean_retrieval_score
+* min_retrieval_raw_score
+* max_retrieval_raw_score
+* score_buckets
+
 ### HTML storage
 
 Raw HTML files:
@@ -259,13 +341,17 @@ Raw HTML files:
 The MVP currently does not:
 
 * reliably separate structural vs non structural changes
-* perform relevance scoring
+* perform robust semantic relevance scoring beyond keyword heuristics
 * classify change types
 * extract geographic entities robustly
 * track documents across runs
 * validate real world geometry changes
 
-HTML cleaning prioritizes recall over precision.
+Additional limitations:
+
+* HTML cleaning prioritizes recall over precision
+* The current scoring approach is keyword based and tuned to the MVP canton sources
+* Generalization to other cantons is not guaranteed
 
 ## Project structure
 
