@@ -755,6 +755,151 @@ Later processing steps are responsible for:
 
 No interpretation logic is allowed in crawling.
 
+## HTML Cleaning Architecture
+
+### Responsibility
+
+The HTML cleaning step is responsible for transforming stored raw HTML pages into normalized text documents for downstream processing.
+
+HTML cleaning operates on crawl output records and stored raw HTML files.
+
+### Input contract
+
+HTML cleaning consumes structured crawl records.
+
+Required fields per crawl record:
+
+- `source_id`
+- `url`
+- `fetched_at`
+- `status_code`
+- `content_hash`
+- `html_path`
+
+Only successful crawl records with HTTP status code `200` and a valid `html_path` are eligible for cleaning.
+
+### What HTML cleaning does
+
+- load raw HTML from `html_path`
+- parse HTML content
+- extract a document title
+- isolate the main content area
+- remove obvious boilerplate such as navigation, footer, contact, feedback, breadcrumbs, and related content
+- extract lead text and main content sections
+- normalize whitespace and duplicate text blocks
+- detect document language
+- enforce a minimum text length
+- persist normalized documents as JSONL
+- persist excluded documents with exclusion reasons
+- create a cleaning report
+
+### What HTML cleaning does NOT do
+
+- no semantic relevance filtering
+- no structural change classification
+- no scoring or ranking
+- no geographic reasoning
+- no lead generation
+- no confirmation of real world changes
+
+### Source specific extraction
+
+For the MVP, HTML cleaning uses source specific extraction logic for the selected Zürich sources.
+
+This is acceptable because the MVP source set is manually curated and intentionally narrow.
+
+The extraction logic prioritizes recall over precision.
+It should preserve potentially relevant infrastructure information even if some descriptive or process related text remains.
+
+### Normalized document schema
+
+HTML cleaning produces one normalized document per included crawl record.
+
+Each normalized document contains at least:
+
+- `document_id`
+- `source_id`
+- `url`
+- `title`
+- `clean_text`
+- `language`
+- `crawl_timestamp`
+- `html_path`
+- `clean_text_length`
+
+The normalized document schema is the input contract for downstream filtering, scoring, classification, and lead generation.
+
+### Exclusion reasons
+
+Documents may be excluded during HTML cleaning for technical quality reasons only.
+
+Supported exclusion reasons include:
+
+- `crawl_failed`
+- `missing_html_path`
+- `no_main_text`
+- `extraction_failed`
+- `too_short`
+- `unsupported_language`
+
+These exclusions are not semantic relevance decisions.
+
+### Persistence
+
+HTML cleaning writes:
+
+- `artifacts/cleaned.jsonl`
+- `artifacts/excluded.jsonl`
+- `artifacts/html_cleaning_report.json`
+
+Generated artefacts are not versioned in Git.
+
+## Hard Filtering Boundary
+
+### Responsibility
+
+The hard filtering step removes only clearly irrelevant normalized documents before downstream scoring and classification.
+
+It is a safety filter, not a relevance model.
+
+### Filter policy
+
+Hard filtering must preserve all plausible infrastructure project documents.
+
+This includes soft or ambiguous infrastructure changes such as:
+
+- road renovation
+- safety improvements
+- noise reduction
+- bus stop redesign
+- cycle infrastructure
+- construction phase updates
+
+These documents may later receive a lower score or be classified as non structural, but they must not be removed by hard filtering.
+
+### What hard filtering may remove
+
+Hard filtering may remove documents that are clearly outside the monitored domain, for example:
+
+- cultural events
+- job pages
+- generic administration pages
+- political pages without infrastructure content
+- pure media overview pages
+- unrelated downloads or service pages
+
+### What hard filtering must not remove
+
+Hard filtering must not remove documents merely because they are weak, soft, indirect, or ambiguous infrastructure signals.
+
+In particular, terms such as `Sanierung`, `Sicherheit`, or `Lärmschutz` are not sufficient exclusion reasons.
+
+### Boundary to scoring and classification
+
+Structural versus non structural distinction belongs to downstream scoring and classification.
+
+Hard filtering may compute simple rule based signals for later stages, but those signals must not be used as final exclusion logic in the MVP.
+
 ## Lead generation model
 
 The system generates candidate leads from the monitored source set.
