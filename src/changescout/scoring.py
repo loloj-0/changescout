@@ -7,7 +7,6 @@ from collections import Counter
 
 import yaml
 
-
 def load_jsonl(path: Path) -> List[Dict[str, Any]]:
     records = []
     with path.open("r", encoding="utf-8") as f:
@@ -46,6 +45,30 @@ def tokenize(text: str) -> List[str]:
     return re.findall(r"\b\w+\b", text.casefold())
 
 
+def find_keyword_hits(text: str, keywords: List[str]) -> List[str]:
+    normalized = text.casefold()
+
+    hits = []
+    for keyword in keywords:
+        keyword_text = str(keyword).casefold()
+        if keyword_text in normalized:
+            hits.append(keyword_text)
+
+    return sorted(set(hits))
+
+
+def find_pattern_hits(text: str, patterns: List[str]) -> List[str]:
+    normalized = text.casefold()
+    hits = []
+
+    for pattern in patterns:
+        pattern_text = str(pattern)
+        if re.search(pattern_text, normalized):
+            hits.append(pattern_text)
+
+    return sorted(set(hits))
+
+
 def normalize_score(raw_score: float) -> float:
     if raw_score <= 0:
         return 0.0
@@ -77,6 +100,10 @@ def get_retrieval_config(config: Dict[str, Any]) -> Dict[str, Any]:
     return config.get("retrieval_scoring", {})
 
 
+def get_pattern_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    return config.get("pattern_scoring", {})
+
+
 def find_title_structural_hits(
     document: Dict[str, Any],
     config: Dict[str, Any],
@@ -88,11 +115,7 @@ def find_title_structural_hits(
     if not isinstance(structural_keywords, list):
         raise ValueError("rule_scoring.structural_keywords must be a list")
 
-    return [
-        keyword
-        for keyword in structural_keywords
-        if str(keyword).casefold() in title
-    ]
+    return find_keyword_hits(title, structural_keywords)
 
 
 def compute_rule_raw_score(
@@ -108,36 +131,120 @@ def compute_rule_raw_score(
     soft_weight = float(weights.get("soft", -0.2))
     title_multiplier = float(weights.get("title_multiplier", 2.5))
 
-    structural_score = len(structural_hits) * structural_weight
-    soft_score = len(soft_hits) * soft_weight
-    title_boost = len(title_structural_hits) * structural_weight * title_multiplier
+    unique_structural_hits = set(structural_hits)
+    unique_soft_hits = set(soft_hits)
+    unique_title_hits = set(title_structural_hits)
+
+    structural_score = len(unique_structural_hits) * structural_weight
+    soft_score = len(unique_soft_hits) * soft_weight
+    title_boost = len(unique_title_hits) * structural_weight * title_multiplier
 
     return structural_score + soft_score + title_boost
+
+
+def compute_pattern_raw_score(
+    strong_hits: List[str],
+    weak_hits: List[str],
+    negative_hits: List[str],
+    review_hits: List[str],
+    config: Dict[str, Any],
+) -> float:
+    pattern_config = get_pattern_config(config)
+    weights = pattern_config.get("weights", {})
+
+    strong_weight = float(weights.get("strong_positive", 2.0))
+    weak_weight = float(weights.get("weak_positive", 0.4))
+    negative_weight = float(weights.get("negative", -0.1))
+    review_weight = float(weights.get("review", 0.0))
+
+    strong_score = len(set(strong_hits)) * strong_weight
+    weak_score = len(set(weak_hits)) * weak_weight
+    negative_score = len(set(negative_hits)) * negative_weight
+    review_score = len(set(review_hits)) * review_weight
+
+    raw_score = strong_score + weak_score + negative_score + review_score
+
+    cap = float(pattern_config.get("pattern_score_cap", 5.0))
+    floor = float(pattern_config.get("pattern_score_floor", -2.0))
+
+    return max(floor, min(raw_score, cap))
 
 
 def compute_rule_score(
     document: Dict[str, Any],
     config: Dict[str, Any],
 ) -> Dict[str, Any]:
+    rule_config = get_rule_config(config)
     filter_signals = document.get("filter_signals", {})
+    text = f"{document.get('title', '')} {document.get('clean_text', '')}"
 
-    structural_hits = filter_signals.get("structural_change_hits", [])
-    soft_hits = filter_signals.get("soft_change_hits", [])
+    structural_keywords = rule_config.get("structural_keywords", [])
+    soft_keywords = rule_config.get("soft_keywords", [])
+
+    if not isinstance(structural_keywords, list):
+        raise ValueError("rule_scoring.structural_keywords must be a list")
+
+    if not isinstance(soft_keywords, list):
+        raise ValueError("rule_scoring.soft_keywords must be a list")
+
+    signal_structural_hits = filter_signals.get("structural_change_hits", [])
+    signal_soft_hits = filter_signals.get("soft_change_hits", [])
+
+    text_structural_hits = find_keyword_hits(text, structural_keywords)
+    text_soft_hits = find_keyword_hits(text, soft_keywords)
     title_structural_hits = find_title_structural_hits(document, config)
 
-    raw_score = compute_rule_raw_score(
+    structural_hits = sorted(set(signal_structural_hits) | set(text_structural_hits))
+    soft_hits = sorted(set(signal_soft_hits) | set(text_soft_hits))
+
+    keyword_raw_score = compute_rule_raw_score(
         structural_hits=structural_hits,
         soft_hits=soft_hits,
         title_structural_hits=title_structural_hits,
         config=config,
     )
 
+    pattern_config = get_pattern_config(config)
+
+    strong_hits = find_pattern_hits(
+        text,
+        pattern_config.get("strong_positive_patterns", []),
+    )
+    weak_hits = find_pattern_hits(
+        text,
+        pattern_config.get("weak_positive_patterns", []),
+    )
+    negative_hits = find_pattern_hits(
+        text,
+        pattern_config.get("negative_patterns", []),
+    )
+    review_hits = find_pattern_hits(
+        text,
+        pattern_config.get("review_patterns", []),
+    )
+
+    pattern_raw_score = compute_pattern_raw_score(
+        strong_hits=strong_hits,
+        weak_hits=weak_hits,
+        negative_hits=negative_hits,
+        review_hits=review_hits,
+        config=config,
+    )
+
+    raw_score = keyword_raw_score + pattern_raw_score
+
     return {
         "rule_score": normalize_score(raw_score),
         "rule_raw_score": raw_score,
+        "keyword_raw_score": keyword_raw_score,
+        "pattern_raw_score": pattern_raw_score,
         "structural_hits": structural_hits,
         "soft_hits": soft_hits,
         "title_structural_hits": title_structural_hits,
+        "strong_pattern_hits": strong_hits,
+        "weak_pattern_hits": weak_hits,
+        "negative_pattern_hits": negative_hits,
+        "review_pattern_hits": review_hits,
     }
 
 

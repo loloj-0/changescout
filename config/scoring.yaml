@@ -1,32 +1,30 @@
-version: 2
+version: 8
 
 method: hybrid_scoring
 
 rule_scoring:
-  weight: 0.6
+  weight: 0.5
 
   weights:
-    structural: 1.0
-    soft: -0.2
-    title_multiplier: 2.5
+    structural: 0.8
+    soft: -0.1
+    title_multiplier: 1.2
 
   structural_keywords:
     - neubau
-    - ausbau
     - umfahrung
-    - brücke
-    - tunnel
+    - strassenverlegung
+    - rückbau
     - unterführung
     - überführung
-    - kreisel
-    - kreuzung
-    - anschluss
-    - fahrspur
-    - radweg
-    - busspur
-    - strassenprojekt
-    - neugestaltung
     - doppelspurausbau
+    - kreisel
+    - anschluss
+    - veloweg
+    - radweg
+    - velohauptverbindung
+    - radstreifen
+    - velostreifen
 
   soft_keywords:
     - sanierung
@@ -40,29 +38,141 @@ rule_scoring:
     - verkehrsführung
     - belag
     - entwässerung
+    - signalisiert
+    - markiert
+    - tempo
+
+pattern_scoring:
+  pattern_score_cap: 6.0
+  pattern_score_floor: -2.0
+
+  weights:
+    strong_positive: 2.0
+    weak_positive: 0.6
+    negative: -0.1
+    review: 0.0
+
+  strong_positive_patterns:
+    - "neue\\s+strasse"
+    - "neue\\s+strassen"
+    - "neue\\s+verbindung"
+    - "neuer\\s+anschluss"
+    - "neue\\s+anschlüsse"
+    - "neue\\s+linienführung"
+    - "neue\\s+verkehrsachse"
+    - "strassenverlegung"
+    - "verlegung\\s+der\\s+strasse"
+    - "rückbau\\s+der\\s+strasse"
+    - "umfahrung"
+    - "bahnübergang.*unterführung"
+    - "unterführung.*ersetzt"
+    - "kreuzung.*kreisel"
+    - "kreisel.*kreuzung"
+    - "kreisel.*verschoben"
+    - "kreisel.*neugebaut"
+    - "separater\\s+veloweg"
+    - "separater\\s+radweg"
+    - "durchgehender\\s+veloweg"
+    - "durchgehender\\s+radweg"
+    - "veloweglücke.*geschlossen"
+    - "radweglücke.*geschlossen"
+    - "neuer\\s+radweg"
+    - "neuer\\s+veloweg"
+
+  weak_positive_patterns:
+    - "mittelinsel"
+    - "mittelschutzinsel"
+    - "schutzinsel"
+    - "querungshilfe"
+    - "querung.*insel"
+    - "fussgänger.*insel"
+    - "fussgängerquerung"
+    - "fussgängerübergang"
+    - "neue\\s+fussgängerquerung"
+    - "neuer\\s+fussgängerübergang"
+    - "trottoir.*verbreitert"
+    - "trottoir.*erstellt"
+    - "zusätzliches\\s+trottoir"
+    - "radweg.*erstellt"
+    - "veloweg.*erstellt"
+    - "radwegverbindung"
+    - "veloinfrastruktur"
+    - "velohauptverbindung"
+    - "anforderungen.*velohauptverbindung"
+    - "durchgehende\\s+veloinfrastruktur"
+    - "veloweg.*geschlossen"
+    - "radweg.*geschlossen"
+    - "fahrbahn.*verbreitert"
+    - "fahrbahn.*verschmälert"
+    - "strasse.*verbreitert"
+    - "strasse.*verschmälert"
+    - "strasse.*umgestaltet"
+    - "strassenraum.*umgestaltet"
+    - "kreuzung.*umgebaut"
+    - "knoten.*umgebaut"
+    - "anschlüsse.*neugestaltet"
+    - "anschlüsse.*angepasst"
+    - "einmündung.*angepasst"
+    - "einmündung.*umgebaut"
+    - "neugestaltete\\s+anschlüsse"
+    - "neue\\s+zufahrt"
+    - "neue\\s+stichstrassen"
+    - "verbreitertes\\s+trottoir"
+    - "fussgängerstreifen.*mittel"
+    - "radstreifen"
+    - "velostreifen"
+
+  negative_patterns:
+    - "belag"
+    - "lärmarmer\\s+belag"
+    - "deckbelag"
+    - "tempo\\s+30"
+    - "tempo\\s+50"
+    - "signalisiert"
+    - "markiert"
+    - "werkleitungen"
+    - "beleuchtung"
+    - "entwässerung"
+    - "lärmschutz"
+
+  review_patterns:
+    - "ersatzbau"
+    - "brücke.*ersetzt"
+    - "umgestaltung"
+    - "neugestaltung"
+    - "angepasst"
+    - "vorprojekt"
+    - "unklar"
 
 retrieval_scoring:
   enabled: true
   method: bm25
-  weight: 0.4
+  weight: 0.5
 
   query_terms:
     - neubau
-    - ausbau
     - umfahrung
-    - brücke
-    - tunnel
+    - strassenverlegung
+    - rückbau
     - unterführung
     - überführung
     - kreisel
-    - kreuzung
     - anschluss
-    - fahrspur
+    - anschlüsse
+    - veloweg
     - radweg
-    - busspur
-    - strassenprojekt
-    - neugestaltung
-    - doppelspurausbau
+    - velohauptverbindung
+    - veloinfrastruktur
+    - radwegverbindung
+    - radstreifen
+    - velostreifen
+    - querungshilfe
+    - mittelschutzinsel
+    - mittelinsel
+    - schutzinsel
+    - einmündung
+    - zufahrt
+    - stichstrassen
 
   bm25:
     k1: 1.5
