@@ -1,0 +1,41 @@
+version: 1
+
+# St. Gallen dataset expansion source registry
+
+sources:
+  - source_id: "sg_mitwirkung_kantonsstrassen"
+    name: "Kanton St. Gallen Mitwirkung Kantonsstrassenprojekte"
+    base_url: "https://www.sg.ch/bauen/tiefbau/mitwirkung-kantonsstrassenprojekte.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/bauen/tiefbau/mitwirkung-kantonsstrassenprojekte/"
+
+  - source_id: "sg_planauflagen_kantonsstrassen"
+    name: "Kanton St. Gallen Öffentliche Planauflagen Kantonsstrassenprojekte"
+    base_url: "https://www.sg.ch/bauen/tiefbau/oeffentliche-planauflagen-kantonsstrassenprojekte.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/bauen/tiefbau/oeffentliche-planauflagen-kantonsstrassenprojekte/"
+
+  - source_id: "sg_tiefbau"
+    name: "Kanton St. Gallen Tiefbau Übersicht"
+    base_url: "https://www.sg.ch/bauen/tiefbau.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/bauen/tiefbau/"
+      - "/news/sgch_allgemein/"
+
+  - source_id: "sg_baustellen"
+    name: "Kanton St. Gallen Baustellen"
+    base_url: "https://www.sg.ch/bauen/tiefbau/baustellen.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/bauen/tiefbau/baustellen"

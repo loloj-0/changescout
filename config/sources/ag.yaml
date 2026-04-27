@@ -1,0 +1,40 @@
+version: 1
+
+# Aargau dataset expansion source registry
+
+sources:
+  - source_id: "ag_strassenprojekte"
+    name: "Kanton Aargau Strassenprojekte"
+    base_url: "https://www.ag.ch/de/themen/mobilitaet-verkehr/strasseninfrastruktur/strassenprojekte"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/de/themen/mobilitaet-verkehr/strasseninfrastruktur/strassenprojekte/"
+
+  - source_id: "ag_auflage_strassenprojekte"
+    name: "Kanton Aargau Auflage Strassenprojekte"
+    base_url: "https://www.ag.ch/de/themen/mobilitaet-verkehr/strasseninfrastruktur/auflage-strassenprojekte"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/de/themen/mobilitaet-verkehr/strasseninfrastruktur/auflage-strassenprojekte/"
+
+  - source_id: "ag_strasseninfrastruktur"
+    name: "Kanton Aargau Strasseninfrastruktur"
+    base_url: "https://www.ag.ch/de/themen/mobilitaet-verkehr/strasseninfrastruktur"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/de/themen/mobilitaet-verkehr/strasseninfrastruktur/"
+
+  - source_id: "ag_medien_verkehr"
+    name: "Kanton Aargau Medienmitteilungen Verkehr"
+    base_url: "https://www.ag.ch/de/medien/medienmitteilungen"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "mm="

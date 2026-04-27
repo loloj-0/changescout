@@ -1,0 +1,29 @@
+version: 1
+
+# Zürich source registry
+# Included sources are manually curated official canton-level infrastructure pages
+# used to generate leads for potential TLM relevant changes.
+
+sources:
+  - source_id: "zh_geplante_strassenprojekte"
+    name: "Kanton Zürich Geplante Strassenprojekte"
+    base_url: "https://www.zh.ch/de/planen-bauen/tiefbau/geplante-strassenprojekte.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/geplante-strassenprojekte/projekt-"
+      - "/geplante-strassenprojekte/strassenprojekt-"
+      - "/geplante-strassenprojekte/geplantes-strassenprojekt-"
+      - "/geplante-strassenprojekte/umfahrung-"
+      - "/geplante-strassenprojekte/ortsdurchfahrt"
+      - "/geplante-strassenprojekte/unterfuehrung"
+
+  - source_id: "zh_baustellen"
+    name: "Kanton Zürich Baustellen"
+    base_url: "https://www.zh.ch/de/planen-bauen/tiefbau/baustellen.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/baustellen/strassenprojekt-"

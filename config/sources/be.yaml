@@ -1,0 +1,67 @@
+version: 1
+
+# Bern dataset expansion source registry
+
+sources:
+  - source_id: "be_kantonsstrassen_start"
+    name: "Kanton Bern Kantonsstrassen Projekte Übersicht"
+    base_url: "https://www.kantonsstrassen-projekte.bvd.be.ch/de/start.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/de/start/region-"
+
+  - source_id: "be_kantonsstrassen_planauflagen"
+    name: "Kanton Bern Öffentliche Mitwirkungen und Planauflagen"
+    base_url: "https://www.kantonsstrassen-projekte.bvd.be.ch/de/start/oeffentliche-mitwirkungen-planauflagen-kantonsstrassen-projekte.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/de/start/oeffentliche-mitwirkungen-planauflagen-kantonsstrassen-projekte/"
+
+  - source_id: "be_medienmitteilungen_bvd"
+    name: "Kanton Bern BVD Medienmitteilungen"
+    base_url: "https://www.bvd.be.ch/de/start/ueber-uns/medienmitteilungen.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "newsID="
+
+  - source_id: "be_region_berner_oberland"
+    name: "Kanton Bern Kantonsstrassen Region Berner Oberland"
+    base_url: "https://www.kantonsstrassen-projekte.bvd.be.ch/de/start/region-berner-oberland.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/de/start/region-berner-oberland/"
+
+  - source_id: "be_region_berner_mittelland"
+    name: "Kanton Bern Kantonsstrassen Region Berner Mittelland"
+    base_url: "https://www.kantonsstrassen-projekte.bvd.be.ch/de/start/region-berner-mittelland.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/de/start/region-berner-mittelland/"
+
+  - source_id: "be_region_seeland_berner_jura"
+    name: "Kanton Bern Kantonsstrassen Region Seeland Berner Jura"
+    base_url: "https://www.kantonsstrassen-projekte.bvd.be.ch/de/start/region-seeland-berner-jura.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/de/start/region-seeland-berner-jura/"
+
+  - source_id: "be_region_emmental_oberaargau"
+    name: "Kanton Bern Kantonsstrassen Region Emmental Oberaargau"
+    base_url: "https://www.kantonsstrassen-projekte.bvd.be.ch/de/start/region-emmental-oberaargau.html"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/de/start/region-emmental-oberaargau/"      
