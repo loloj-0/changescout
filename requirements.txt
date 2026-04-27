@@ -4,3 +4,4 @@ pytest
 langdetect
 lxml
 pytest==8.4.2
+PyYAML==6.0.2
