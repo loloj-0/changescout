@@ -15,30 +15,37 @@ def parse_html(html: str) -> BeautifulSoup:
 
 
 def extract_title(soup: BeautifulSoup) -> Optional[str]:
-    # 1. meta tag
     meta = soup.find("meta", attrs={"name": "czhdev.title"})
     if meta and meta.get("content"):
         return meta["content"].strip()
 
-    # 2. h1 fallback
     h1 = soup.select_one("h1.mdl-page-header__title")
     if h1:
         return h1.get_text(strip=True)
 
-    # 3. title fallback
+    h1_generic = soup.select_one("h1")
+    if h1_generic:
+        return h1_generic.get_text(strip=True)
+
     if soup.title and soup.title.string:
         title = soup.title.string.strip()
-        return title.replace(" | Kanton Zürich", "")
+        title = title.replace(" | Kanton Zürich", "")
+        return title
 
     return None
 
 
 def extract_main_text(soup: BeautifulSoup) -> Optional[str]:
-    main = soup.select_one("main#main")
+    main = (
+        soup.select_one("main#main")
+        or soup.select_one("main")
+        or soup.select_one("div#main")
+        or soup.select_one("article")
+    )
+
     if not main:
         return None
 
-    # remove obvious boilerplate sections
     for selector in [
         ".mdl-anchornav",
         ".mdl-feedback",
@@ -46,26 +53,35 @@ def extract_main_text(soup: BeautifulSoup) -> Optional[str]:
         ".mdl-related-content",
         ".mdl-tag-group",
         ".mdl-page-header__breadcrumb",
+        "nav",
+        "footer",
+        "script",
+        "style",
     ]:
         for element in main.select(selector):
             element.decompose()
 
     text_blocks = []
 
-    # lead text
     for element in main.select(".atm-lead"):
         text = element.get_text(separator=" ", strip=True)
         if text:
             text_blocks.append(text)
 
-    # structured rich text content
-    for container in main.select(".mdl-richtext, .mdl-accordion__panel-content"):
-        for element in container.select("h2, h3, h4, p, li"):
+    rich_containers = main.select(".mdl-richtext, .mdl-accordion__panel-content")
+
+    if rich_containers:
+        for container in rich_containers:
+            for element in container.select("h2, h3, h4, p, li"):
+                text = element.get_text(separator=" ", strip=True)
+                if text:
+                    text_blocks.append(text)
+    else:
+        for element in main.select("h1, h2, h3, h4, p, li"):
             text = element.get_text(separator=" ", strip=True)
             if text:
                 text_blocks.append(text)
 
-    # keep download titles for recall, but only semantic title text
     for element in main.select(".mdl-download_list__item .atm-linklist_item__text > span:first-child"):
         text = element.get_text(separator=" ", strip=True)
         if text:
@@ -81,7 +97,6 @@ def clean_text(text: Optional[str]) -> Optional[str]:
     if text is None:
         return None
 
-    # basic normalization
     text = text.replace("\xa0", " ")
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
@@ -94,7 +109,6 @@ def clean_text(text: Optional[str]) -> Optional[str]:
         if not block:
             continue
 
-        # --- remove file / download metadata ---
         if re.search(r"\b(PDF|DOCX|XLSX|XLSM|ZIP|TIF)\b\s*\|", block):
             continue
         if re.search(r"\b\d+\s+Seiten\b", block):
@@ -104,7 +118,6 @@ def clean_text(text: Optional[str]) -> Optional[str]:
         if re.fullmatch(r"Download", block, flags=re.IGNORECASE):
             continue
 
-        # --- remove typical zh list / reference fragments ---
         if block.startswith("Download "):
             continue
         if block.startswith("Medienmitteilung vom"):
@@ -120,7 +133,6 @@ def clean_text(text: Optional[str]) -> Optional[str]:
         if block.startswith("Baustelleninfo vom"):
             continue
 
-        # --- deduplication ---
         if block in seen:
             continue
 
