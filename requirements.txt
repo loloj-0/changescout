@@ -3,3 +3,4 @@ beautifulsoup4
 pytest
 langdetect
 lxml
+pytest==8.4.2
