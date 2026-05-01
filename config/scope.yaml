@@ -1,7 +1,7 @@
 version: 1
-canton_id: "sg"
+canton_id: "zh"
 languages:
   - "de"
 time_window_days: 30
-source_registry: "sg"
+source_registry: "zh"
 source_policy: "official_canton_only"
