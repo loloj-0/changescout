@@ -43,7 +43,7 @@ def export_jsonl_to_excel(input_path: str, output_path: str) -> None:
                     "title": title,
                     "score": round(record.get("thematic_score", 0), 3),
                     "source_id": record.get("source_id"),
-                    "text_preview": clean_text[:500],
+                    "text_full": clean_text,
                     "tlm_relevant": "",
                     "review_required": "",
                     "change_type": "",
@@ -62,6 +62,6 @@ def export_jsonl_to_excel(input_path: str, output_path: str) -> None:
 
 if __name__ == "__main__":
     export_jsonl_to_excel(
-        input_path="data/annotation/candidates/expansion_full_131_sorted_clean.jsonl",
-        output_path="data/annotation/expansion_full_131.xlsx",
+        input_path="data/annotation/candidates/annotation_full_shuffled_clean.jsonl",
+        output_path="data/annotation/annotation_full.xlsx",
     )
