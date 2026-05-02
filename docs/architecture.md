@@ -943,122 +943,43 @@ Its sole responsibility is conservative removal of clearly irrelevant documents 
 
 The thematic scoring step ranks normalized documents by their likelihood of describing a TLM relevant geometry change in the road and path network.
 
+Scoring is not a final classifier.
+
 Scoring is not a filtering step.
-It does not remove documents.
+
+Scoring must preserve all documents that passed hard filtering.
 
 ### Scoring policy
 
-The scoring step must preserve all documents from the filtering stage.
+The purpose of scoring is to assign a relative signal that helps prioritize documents for downstream relevance assessment.
 
-Its purpose is to assign a relative score that reflects how strongly a document indicates a possible TLM geometry update.
+The score is used for candidate ranking and high recall filtering.
 
-Structural change indicators include for example:
+It must not be interpreted as confirmed TLM relevance.
 
-- new construction
-- road expansion
-- junction redesign
-- bridge or tunnel construction
-- network relevant modifications
+Positive scoring signals include terms and patterns that indicate possible TLM geometry changes, for example:
 
-Soft change indicators include for example:
+1. new road or path geometry
+2. changed road alignment
+3. new or changed junctions
+4. new roundabouts
+5. new accesses, ramps, entries, or exits
+6. new tunnels, bridges, or underpasses
+7. new physically separated pedestrian or cycling infrastructure
+8. mapped road related geometry such as traffic islands or protection islands
 
-- maintenance
-- safety improvements
-- noise reduction
-- temporary traffic changes
+Soft or negative scoring signals include terms and patterns that often describe non geometric work, for example:
 
-Soft indicators may reduce the score but must not exclude documents.
+1. maintenance
+2. resurfacing
+3. drainage
+4. lighting
+5. noise protection
+6. temporary traffic management
+7. markings
+8. pure operational or administrative changes
 
-### Score computation
-
-The final `thematic_score` is computed as:
-
-`thematic_score = rule_weight * rule_score + retrieval_weight * retrieval_score`
-
-Weights are defined in `config/scoring.yaml` and must sum to 1.
-
-The `rule_score` is normalized using a fixed rule based scale.
-
-The `retrieval_score` is a run relative BM25 score.
-
-Raw BM25 scores are normalized per scoring run using min max normalization across all documents:
-
-`retrieval_score = (bm25_raw_score - min_bm25_raw_score) / (max_bm25_raw_score - min_bm25_raw_score)`
-
-If all BM25 raw scores are identical, all retrieval scores are set to 0.
-
-This means retrieval scores are comparable within one run, but not directly comparable across different corpora, cantons, or source sets.
-
-For the MVP, rule based and retrieval based scoring rely on overlapping vocabularies.
-
-Retrieval scoring mainly introduces weighting by term frequency and document specificity rather than new semantic signals.
-
-### MVP scoring limitation
-
-The initial thematic scoring configuration is calibrated on the selected Zürich Tiefbau source set.
-
-The keyword lists and weights reflect the terminology observed in this MVP corpus.
-
-Scores are therefore suitable for ranking documents within the current MVP scope, but they should not be treated as canton independent relevance scores.
-
-The `thematic_score` is the final hybrid score.
-
-It is computed as a weighted combination of:
-
-- `rule_score`: rule based score derived from structural, soft, and title based signals
-- `retrieval_score`: BM25 based lexical retrieval score derived from configured query terms
-
-For the MVP, BM25 query terms are intentionally aligned with the structural keyword list.
-
-This keeps the initial scoring configuration simple and traceable.
-
-When additional cantons or source types are added, both keyword lists and BM25 query terms must be reviewed and may need to diverge.
-
-Retrieval terms may need to be broader or source specific, while rule based structural keywords should remain precise.
-
-When additional cantons or source types are added, the scoring configuration must be reviewed and recalibrated.
-
-### Boundary to filtering
-
-Filtering removes clearly non domain content.
-
-Scoring operates only on documents that passed filtering and must not remove additional documents.
-
-### Boundary to classification
-
-Scoring does not perform a final semantic decision.
-
-It provides a continuous relevance signal.
-
-The decision whether a document represents a structural change belongs to classification.
-
-### Boundary to lead generation
-
-No fixed relevance threshold is defined in the scoring step.
-
-Scores are used for deterministic ranking only.
-
-Thresholding, top k selection, or lead inclusion decisions are deferred to the lead generation stage.
-
-### Determinism
-
-Given identical input (`filtered.jsonl`) and identical scoring configuration, the scoring step must produce identical scores.
-
-### Output
-
-Each document receives:
-
-- `thematic_score`: final normalized score between 0 and 1
-- `rule_score`: normalized rule based score
-- `retrieval_score`: normalized BM25 retrieval score
-- `scoring_signals`: explanation fields including:
-  - structural keyword hits
-  - soft keyword hits
-  - title based keyword hits
-
-The `thematic_score` is a weighted combination of `rule_score` and `retrieval_score` as defined in the scoring configuration.
-
-The output dataset must preserve all input documents and enrich them with scoring metadata.
+Soft indicators may reduce the score but must not remove a document.
 
 ### Baseline status
 
@@ -1072,17 +993,178 @@ The current baseline threshold for evaluation is `0.10`.
 
 Evaluation against the reviewed annotation dataset produced the following result, excluding review cases:
 
-- threshold: `0.10`
-- precision: `0.818`
-- recall: `0.973`
-- false positives: `16`
-- false negatives: `2`
+| Metric | Value |
+|---|---:|
+| threshold | `0.10` |
+| precision | `0.818` |
+| recall | `0.973` |
+| false positives | `16` |
+| false negatives | `2` |
 
-This result shows that rule based scoring is useful for prioritizing candidate sources and reducing irrelevant records. It also shows that scoring alone is not sufficient as a final semantic relevance decision.
+This result shows that rule based scoring is useful for prioritizing candidate sources and reducing irrelevant records.
+
+It also shows that scoring alone is not sufficient as a final semantic relevance decision.
 
 Further optimization of the rule based scoring should only address clear generic blind spots. It should not be tuned further to individual examples in the current annotation dataset, because this would risk overfitting to the current source mix.
 
-The next methodological step is to compare this baseline against downstream relevance decision methods, such as supervised classification or LLM assisted review.
+### Score computation
+
+The final `thematic_score` is computed as:
+
+`thematic_score = rule_weight * rule_score + retrieval_weight * retrieval_score`
+
+Weights are defined in `config/scoring.yaml`.
+
+The `rule_score` is based on configured keyword and regex pattern signals.
+
+The `retrieval_score` is based on BM25 term matching using configured query terms.
+
+Raw BM25 scores are normalized per scoring run using min max normalization across all documents:
+
+`retrieval_score = (bm25_raw_score - min_bm25_raw_score) / (max_bm25_raw_score - min_bm25_raw_score)`
+
+If all BM25 raw scores are identical, all retrieval scores are set to `0`.
+
+This means retrieval scores are comparable within one run, but not directly comparable across different corpora, cantons, or source sets.
+
+### MVP scoring limitation
+
+The thematic scoring configuration is calibrated on the current annotated MVP source mix.
+
+Scores are suitable for ranking documents within the current MVP context.
+
+Scores should not be treated as canton independent or source independent relevance probabilities.
+
+When additional cantons or source types are added, the scoring configuration must be reviewed and recalibrated.
+
+### Boundary to filtering
+
+Filtering removes clearly non domain content.
+
+Scoring operates only on documents that passed filtering.
+
+Scoring must not remove additional documents.
+
+### Boundary to classification
+
+Scoring does not perform a final semantic decision.
+
+It provides a continuous relevance signal.
+
+The decision whether a document is TLM relevant belongs to classification or downstream review.
+
+### Boundary to lead generation
+
+Scoring does not generate final leads.
+
+Lead generation may use scoring as one ranking signal together with classifier predictions, probabilities, metadata, and optional geographic hints.
+
+### Determinism
+
+Given identical input and identical scoring configuration, the scoring step must produce identical scores.
+
+### Output
+
+Each scored document receives:
+
+| Field | Meaning |
+|---|---|
+| `thematic_score` | final normalized score between 0 and 1 |
+| `rule_score` | normalized rule based score |
+| `retrieval_score` | normalized BM25 retrieval score |
+| `scoring_signals` | explanation fields for matched terms and patterns |
+
+The output dataset must preserve all input documents and enrich them with scoring metadata.
+
+## Baseline Classification Architecture
+
+### Responsibility
+
+The baseline classification step predicts whether a document is TLM relevant.
+
+The classification target is `tlm_relevant`.
+
+The classifier is trained only on reviewed annotation records where `review_required` is false.
+
+Review cases are excluded from core training and evaluation because they do not represent clean ground truth.
+
+### Input
+
+The classifier consumes the reviewed annotation dataset and the scored document pool.
+
+Required annotation fields:
+
+| Field | Meaning |
+|---|---|
+| `url` | document URL used for joining |
+| `tlm_relevant` | target label |
+| `review_required` | uncertainty flag |
+
+Required scored document fields:
+
+| Field | Meaning |
+|---|---|
+| `document_id` | stable document identifier |
+| `source_id` | source registry identifier |
+| `url` | document URL |
+| `title` | extracted document title |
+| `clean_text` | normalized document text |
+| `thematic_score` | scoring baseline value |
+
+Annotations are joined to scored documents by `url`.
+
+### Baseline model
+
+The first baseline model uses TF IDF text features and Logistic Regression.
+
+The model input text is built from document title and cleaned text.
+
+The model produces:
+
+1. binary prediction
+2. probability for `tlm_relevant`
+3. evaluation metrics on a reproducible train test split
+
+### Baseline result
+
+The first TF IDF Logistic Regression baseline was evaluated against the same test split as the scoring baseline.
+
+Result on the test set:
+
+| Method | Precision | Recall | F1 | FP | FN |
+|---|---:|---:|---:|---:|---:|
+| TF IDF Logistic Regression | `0.857` | `0.800` | `0.828` | `2` | `3` |
+| Scoring v10 at threshold 0.10 | `0.789` | `1.000` | `0.882` | `4` | `0` |
+
+The learned baseline is more precise, but less recall oriented.
+
+It does not outperform the rule based scoring baseline for the current MVP goal.
+
+The main observed classifier errors are missed SG Mitwirkung cases and false positives on process or legal domain pages.
+
+### Boundary to scoring
+
+Classification is evaluated against the rule based scoring baseline.
+
+The scoring baseline remains a ranking and filtering signal.
+
+The classifier is a learned decision baseline.
+
+### Boundary to lead generation
+
+Classification does not generate final leads.
+
+Lead generation consumes classifier predictions, probabilities, thematic scores, and document metadata to produce actionable review candidates.
+
+### Output
+
+The baseline classification script writes:
+
+1. train split
+2. test split
+3. review set
+4. test predictions
+5. metrics comparing classifier and scoring baseline
 
 
 ## Lead generation model
