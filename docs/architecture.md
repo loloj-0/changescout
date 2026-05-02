@@ -941,7 +941,7 @@ Its sole responsibility is conservative removal of clearly irrelevant documents 
 
 ### Responsibility
 
-The thematic scoring step ranks normalized documents by their likelihood of describing structural infrastructure changes.
+The thematic scoring step ranks normalized documents by their likelihood of describing a TLM relevant geometry change in the road and path network.
 
 Scoring is not a filtering step.
 It does not remove documents.
@@ -950,7 +950,7 @@ It does not remove documents.
 
 The scoring step must preserve all documents from the filtering stage.
 
-Its purpose is to assign a relative score that reflects how strongly a document indicates a structural change in the transport network.
+Its purpose is to assign a relative score that reflects how strongly a document indicates a possible TLM geometry update.
 
 Structural change indicators include for example:
 
@@ -1059,6 +1059,30 @@ Each document receives:
 The `thematic_score` is a weighted combination of `rule_score` and `retrieval_score` as defined in the scoring configuration.
 
 The output dataset must preserve all input documents and enrich them with scoring metadata.
+
+### Baseline status
+
+The current scoring configuration is `config/scoring.yaml` version 10.
+
+This configuration is frozen as the rule based scoring baseline.
+
+The scoring is used as a high recall candidate ranking and filtering signal. It is not intended to be the final TLM relevance classifier.
+
+The current baseline threshold for evaluation is `0.10`.
+
+Evaluation against the reviewed annotation dataset produced the following result, excluding review cases:
+
+- threshold: `0.10`
+- precision: `0.818`
+- recall: `0.973`
+- false positives: `16`
+- false negatives: `2`
+
+This result shows that rule based scoring is useful for prioritizing candidate sources and reducing irrelevant records. It also shows that scoring alone is not sufficient as a final semantic relevance decision.
+
+Further optimization of the rule based scoring should only address clear generic blind spots. It should not be tuned further to individual examples in the current annotation dataset, because this would risk overfitting to the current source mix.
+
+The next methodological step is to compare this baseline against downstream relevance decision methods, such as supervised classification or LLM assisted review.
 
 
 ## Lead generation model

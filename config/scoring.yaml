@@ -1,9 +1,17 @@
-version: 8
+# Baseline scoring configuration.
+# Purpose: high recall candidate ranking, not final TLM relevance classification.
+# Frozen after evaluation against reviewed annotation dataset.
+# Baseline threshold: 0.10.
+# Result without review cases: precision 0.818, recall 0.973, FP 16, FN 2.
+# Further optimization should only address generic blind spots, not dataset specific cases.
+
+
+version: 10
 
 method: hybrid_scoring
 
 rule_scoring:
-  weight: 0.5
+  weight: 0.55
 
   weights:
     structural: 0.8
@@ -17,14 +25,44 @@ rule_scoring:
     - rückbau
     - unterführung
     - überführung
-    - doppelspurausbau
+    - tunnel
+    - strassentunnel
+    - brücke
     - kreisel
     - anschluss
+    - anschlüsse
+    - zubringer
+    - anbindung
+    - zufahrt
+    - einmündung
+    - knoten
+    - knotenpunkt
+    - rampe
+    - rampen
+    - auffahrt
+    - ausfahrt
+    - linienführung
+    - trassee
+    - trassierung
+    - strassenachse
+    - achslage
+    - verlegung
     - veloweg
     - radweg
     - velohauptverbindung
-    - radstreifen
-    - velostreifen
+    - veloverbindung
+    - radwegverbindung
+    - fussweg
+    - gehweg
+    - trottoir
+    - wanderweg
+    - lückenschluss
+    - lückenschliessung
+    - netzlücke
+    - mittelinsel
+    - mittelschutzinsel
+    - schutzinsel
+    - querungshilfe
 
   soft_keywords:
     - sanierung
@@ -40,16 +78,24 @@ rule_scoring:
     - entwässerung
     - signalisiert
     - markiert
+    - markierung
     - tempo
+    - werkleitungen
+    - beleuchtung
+    - bushaltestelle
+    - fahrbahnhaltestelle
+    - behindertengerecht
+    - provisorisch
+    - temporär
 
 pattern_scoring:
-  pattern_score_cap: 6.0
+  pattern_score_cap: 8.0
   pattern_score_floor: -2.0
 
   weights:
     strong_positive: 2.0
-    weak_positive: 0.6
-    negative: -0.1
+    weak_positive: 0.5
+    negative: -0.15
     review: 0.0
 
   strong_positive_patterns:
@@ -58,26 +104,120 @@ pattern_scoring:
     - "neue\\s+verbindung"
     - "neuer\\s+anschluss"
     - "neue\\s+anschlüsse"
+    - "neue\\s+zufahrt"
+    - "neuer\\s+zubringer"
+    - "zubringer.*anschluss"
+    - "anschluss.*zubringer"
+    - "zubringer.*tunnel"
+    - "tunnel.*zubringer"
+    - "anschluss.*tunnel"
+    - "tunnel.*anschluss"
     - "neue\\s+linienführung"
-    - "neue\\s+verkehrsachse"
-    - "strassenverlegung"
+    - "direktere\\s+linienführung"
+    - "linienführung.*korrigiert"
+    - "linienführung.*angepasst"
+    - "linienführung.*geändert"
+    - "geänderte\\s+linienführung"
+    - "strassenführung.*geändert"
+    - "neues\\s+trassee"
+    - "trassee.*geändert"
+    - "trassierung.*geändert"
+    - "strassenachse.*geändert"
+    - "achslage.*geändert"
+    - "strasse.*verlegt"
+    - "strasse.*umgelegt"
     - "verlegung\\s+der\\s+strasse"
+    - "strassenverlegung"
     - "rückbau\\s+der\\s+strasse"
     - "umfahrung"
     - "bahnübergang.*unterführung"
     - "unterführung.*ersetzt"
     - "kreuzung.*kreisel"
     - "kreisel.*kreuzung"
+    - "neuer\\s+kreisel"
+    - "neuen\\s+kreisel"
+    - "kreisel.*neu"
     - "kreisel.*verschoben"
     - "kreisel.*neugebaut"
-    - "separater\\s+veloweg"
-    - "separater\\s+radweg"
+    - "knoten.*umgebaut"
+    - "knoten.*neugestaltet"
+    - "kreuzung.*umgebaut"
+    - "einmündung.*umgebaut"
+    - "einmündung.*neu"
+    - "neue\\s+unterführung"
+    - "neue\\s+überführung"
+    - "neuer\\s+tunnel"
+    - "neue\\s+brücke"
+    - "neue\\s+.*brücke"
+    - "neubau\\s+der\\s+.*brücke"
+    - "brücke.*neubau"
+    - "ersatz.*brücke.*neubau"
+    - "brücke.*direktere\\s+linienführung"
+    - "neue\\s+rampen"
+    - "rampen.*erstellt"
+    - "rampen.*gebaut"
+    - "kreuzungsfreie\\s+verbindung"
+    - "direkte.*verbindung"
+    - "neuer\\s+fussweg"
+    - "neuer\\s+gehweg"
+    - "neues\\s+trottoir"
+    - "fussweg.*erstellt"
+    - "gehweg.*erstellt"
+    - "trottoir.*erstellt"
+    - "fussweg.*gebaut"
+    - "gehweg.*gebaut"
+    - "trottoir.*gebaut"
+    - "erstellen\\s+eines\\s+gehwegs"
+    - "erstellen\\s+eines\\s+fusswegs"
+    - "gehweg.*erstellen"
+    - "fussweg.*erstellen"
+    - "gehweg.*erweitert"
+    - "fussweg.*erweitert"
+    - "fussweg.*verlängerung"
+    - "gehweg.*verlängerung"
+    - "fusswegverlängerung"
+    - "gehwegverlängerung"
+    - "fehlendes\\s+teilstück.*geschlossen"
+    - "fehlendes\\s+teilstück.*schliessen"
+    - "fehlendes\\s+teilstück.*schließen"
+    - "lückenschluss"
+    - "lückenschliessung"
+    - "lückenschließung"
+    - "lückenschliessung.*wanderweg"
+    - "lückenschließung.*wanderweg"
+    - "netzlücke.*geschlossen"
+    - "fussweg.*lücke"
+    - "gehweg.*lücke"
+    - "wanderweg.*lücke"
+    - "durchgehende\\s+veloverbindung"
     - "durchgehender\\s+veloweg"
     - "durchgehender\\s+radweg"
-    - "veloweglücke.*geschlossen"
-    - "radweglücke.*geschlossen"
+    - "separater\\s+veloweg"
+    - "separater\\s+radweg"
+    - "baulich\\s+getrennter\\s+veloweg"
+    - "baulich\\s+getrennter\\s+radweg"
+    - "physisch\\s+getrennter\\s+veloweg"
+    - "physisch\\s+getrennter\\s+radweg"
     - "neuer\\s+radweg"
     - "neuer\\s+veloweg"
+    - "radweg.*erstellt"
+    - "veloweg.*erstellt"
+    - "radweg.*gebaut"
+    - "veloweg.*gebaut"
+    - "radweglücke.*geschlossen"
+    - "veloweglücke.*geschlossen"
+    - "veloroute.*linienführung"
+    - "veloroute.*realisiert"
+    - "veloverbindung.*realisiert"
+    - "neue\\s+mittelinsel"
+    - "neue\\s+mittelschutzinsel"
+    - "neue\\s+schutzinsel"
+    - "neue\\s+querungshilfe"
+    - "fussgänger.*schutzinsel"
+    - "fussgänger.*mittelinsel"
+    - "fussgängerstreifen.*mittelinsel"
+    - "fussgängerstreifen.*mittelschutzinsel"
+    - "fussgängerstreifen.*schutzinsel"
 
   weak_positive_patterns:
     - "mittelinsel"
@@ -86,41 +226,28 @@ pattern_scoring:
     - "querungshilfe"
     - "querung.*insel"
     - "fussgänger.*insel"
-    - "fussgängerquerung"
-    - "fussgängerübergang"
-    - "neue\\s+fussgängerquerung"
-    - "neuer\\s+fussgängerübergang"
-    - "trottoir.*verbreitert"
-    - "trottoir.*erstellt"
-    - "zusätzliches\\s+trottoir"
-    - "radweg.*erstellt"
-    - "veloweg.*erstellt"
     - "radwegverbindung"
-    - "veloinfrastruktur"
+    - "veloverbindung"
     - "velohauptverbindung"
-    - "anforderungen.*velohauptverbindung"
+    - "veloinfrastruktur"
     - "durchgehende\\s+veloinfrastruktur"
-    - "veloweg.*geschlossen"
-    - "radweg.*geschlossen"
-    - "fahrbahn.*verbreitert"
-    - "fahrbahn.*verschmälert"
-    - "strasse.*verbreitert"
-    - "strasse.*verschmälert"
-    - "strasse.*umgestaltet"
-    - "strassenraum.*umgestaltet"
-    - "kreuzung.*umgebaut"
-    - "knoten.*umgebaut"
+    - "fussweg"
+    - "gehweg"
+    - "trottoir"
+    - "wanderweg"
+    - "brücke"
+    - "rampe"
+    - "rampen"
+    - "trottoir.*verbreitert"
+    - "verbreitertes\\s+trottoir"
+    - "zusätzliches\\s+trottoir"
+    - "neue\\s+stichstrassen"
+    - "neugestaltete\\s+anschlüsse"
     - "anschlüsse.*neugestaltet"
     - "anschlüsse.*angepasst"
     - "einmündung.*angepasst"
     - "einmündung.*umgebaut"
-    - "neugestaltete\\s+anschlüsse"
-    - "neue\\s+zufahrt"
-    - "neue\\s+stichstrassen"
-    - "verbreitertes\\s+trottoir"
-    - "fussgängerstreifen.*mittel"
-    - "radstreifen"
-    - "velostreifen"
+    - "anforderungen.*velohauptverbindung"
 
   negative_patterns:
     - "belag"
@@ -130,10 +257,21 @@ pattern_scoring:
     - "tempo\\s+50"
     - "signalisiert"
     - "markiert"
+    - "markierung"
     - "werkleitungen"
     - "beleuchtung"
     - "entwässerung"
     - "lärmschutz"
+    - "sperrung"
+    - "baustelle"
+    - "bauphase"
+    - "temporär"
+    - "provisorisch"
+    - "verkehrsführung"
+    - "busverkehr"
+    - "bushaltestelle"
+    - "fahrbahnhaltestelle"
+    - "behindertengerecht"
 
   review_patterns:
     - "ersatzbau"
@@ -147,7 +285,7 @@ pattern_scoring:
 retrieval_scoring:
   enabled: true
   method: bm25
-  weight: 0.5
+  weight: 0.45
 
   query_terms:
     - neubau
@@ -156,22 +294,43 @@ retrieval_scoring:
     - rückbau
     - unterführung
     - überführung
+    - tunnel
+    - brücke
     - kreisel
     - anschluss
     - anschlüsse
+    - zubringer
+    - anbindung
+    - zufahrt
+    - einmündung
+    - knoten
+    - rampe
+    - rampen
+    - auffahrt
+    - ausfahrt
+    - linienführung
+    - trassee
+    - trassierung
+    - achse
+    - achslage
+    - verlegung
     - veloweg
     - radweg
     - velohauptverbindung
     - veloinfrastruktur
+    - veloverbindung
     - radwegverbindung
-    - radstreifen
-    - velostreifen
+    - fussweg
+    - gehweg
+    - trottoir
+    - wanderweg
+    - lückenschluss
+    - lückenschliessung
+    - netzlücke
     - querungshilfe
     - mittelschutzinsel
     - mittelinsel
     - schutzinsel
-    - einmündung
-    - zufahrt
     - stichstrassen
 
   bm25:
