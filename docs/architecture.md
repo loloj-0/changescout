@@ -1141,6 +1141,276 @@ The baseline lead generation script writes:
 2. `artifacts/leads.csv`
 3. `artifacts/lead_generation_report.json`
 
+## Geographic Hinting Architecture
+
+### Responsibility
+
+Geographic hinting attaches optional location hints to generated leads.
+
+The purpose is to help reviewers localize candidate leads more quickly.
+
+Geographic hinting is not geocoding confirmation.
+
+It does not verify whether a detected lead corresponds to a real world geometry change.
+
+It does not validate whether TLM has already been updated.
+
+### Boundary
+
+A location hint is a review aid.
+
+A missing location hint is not an error.
+
+An ambiguous location hint is acceptable if the ambiguity remains visible in the output.
+
+Lead relevance must not depend on location hint availability.
+
+The lead generation threshold and relevance decision remain independent from geographic hinting.
+
+### Staged approach
+
+The MVP uses two hinting stages:
+
+1. local deterministic hinting
+2. optional GeoAdmin Search API enrichment
+
+Local hinting provides an offline baseline.
+
+GeoAdmin enrichment provides broader online lookup through official GeoAdmin search.
+
+The default baseline run remains independent of the online API unless GeoAdmin enrichment is explicitly enabled.
+
+### Local hinting
+
+Local hinting uses a simple reference file.
+
+The reference file is stored under:
+
+`data/reference/location_hints_reference.csv`
+
+The local reference schema contains:
+
+* `name`
+* `hint_type`
+* `canton`
+* `source`
+* `priority`
+
+The current local reference file is intentionally small.
+
+It acts as a deterministic fallback and testable baseline, not as a complete municipality database.
+
+### Local matching behavior
+
+Local matching runs on lead title and text.
+
+Matching uses normalized text and word boundary based exact matching.
+
+Very short names are ignored unless explicitly handled later.
+
+Multiple hints per lead are allowed.
+
+Repeated matches are aggregated.
+
+Local hinting writes structured JSONL output and flat CSV review columns.
+
+### Local output
+
+Local hinting writes:
+
+* `artifacts/leads_with_locations.jsonl`
+* `artifacts/leads_with_locations.csv`
+* `artifacts/location_hinting_report.json`
+
+Local enriched leads may contain:
+
+* `location_hints`
+* `location_hint_count`
+* `location_hint_names`
+* `municipality_hints`
+
+### GeoAdmin enrichment
+
+GeoAdmin enrichment is optional.
+
+It uses the GeoAdmin Search API with `type=locations`.
+
+The current configured origins are:
+
+* `gazetteer`
+* `gg25`
+
+The API is used for lookup only.
+
+The system stores query metadata and API responses in a local cache.
+
+The cache path is:
+
+`data/reference/geoadmin_search_cache.jsonl`
+
+The cache contains:
+
+* cache key
+* timestamp
+* query parameters
+* status
+* error if present
+* response payload
+
+The cache is generated runtime data and should not be versioned in Git.
+
+### GeoAdmin query strategy
+
+GeoAdmin queries are short candidate strings.
+
+Candidates are built from:
+
+1. local municipality hints when available
+2. title fragments and title tokens
+3. limited text fallback candidates when title based candidates are weak
+
+The text fallback uses only the first part of `clean_text` or `text_preview`.
+
+It extracts capitalized name like candidates.
+
+It does not send full document text to the API.
+
+Query candidates are deduplicated and limited.
+
+This reduces API load and avoids uncontrolled geocoding of full source text.
+
+### Text fallback limitation
+
+The text fallback is intentionally conservative.
+
+It may miss locations that appear deep in the document.
+
+This is acceptable for the MVP because location hints are optional.
+
+The fallback is designed to improve recall without turning the module into a full geoparsing system.
+
+### GeoAdmin response parsing
+
+GeoAdmin hits are parsed into structured hints.
+
+Each hint may contain:
+
+* `hint_type`
+* `name`
+* `object_type`
+* `source`
+* `origin`
+* `query`
+* `rank`
+* `x`
+* `y`
+* `detail`
+
+The `object_type` is extracted from the HTML label when the API response contains a label such as `<i>Ort</i>` or `<i>Quartierteil</i>`.
+
+This object type is treated as a heuristic display label.
+
+It is not treated as a stable authoritative enum.
+
+### GeoAdmin ranking
+
+GeoAdmin hints are sorted by heuristic ranking.
+
+The ranking uses:
+
+1. preferred canton inferred from `source_id`
+2. API origin
+3. extracted object type
+4. API rank
+5. name
+
+The preferred canton is inferred from source prefixes such as:
+
+* `ag_`
+* `be_`
+* `sg_`
+* `zh_`
+
+The API origin is treated as a stronger signal than display label object type.
+
+`gg25` is preferred over `gazetteer` because it often represents municipality level results.
+
+Object type is used only as an additional ranking hint.
+
+Known broad or low precision object types such as `Grossregion` are ranked lower.
+
+Unknown object types are retained and ranked neutrally.
+
+### GeoAdmin output
+
+GeoAdmin enrichment writes:
+
+* `artifacts/leads_with_geoadmin_locations.jsonl`
+* `artifacts/leads_with_geoadmin_locations.csv`
+* `artifacts/geoadmin_location_hinting_report.json`
+
+The CSV contains review oriented flattened fields such as:
+
+* `geoadmin_preferred_canton`
+* `geoadmin_location_hint_count`
+* `geoadmin_top_location_name`
+* `geoadmin_location_queries`
+
+The JSONL keeps the full structured `geoadmin_location_hints` list.
+
+### Failure handling
+
+GeoAdmin enrichment must be non blocking.
+
+Timeouts, HTTP errors, empty responses, and malformed responses must not stop lead generation.
+
+If the API call fails, the affected lead receives no GeoAdmin hints or fewer GeoAdmin hints.
+
+The output files should still be written.
+
+### Current result
+
+On the current baseline lead set, GeoAdmin enrichment produced:
+
+* total records: `109`
+* records with GeoAdmin hints: `97`
+* records without GeoAdmin hints: `12`
+* total GeoAdmin hints: `713`
+* total GeoAdmin queries: `296`
+
+These numbers are descriptive for the current corpus and cache state.
+
+They are not fixed acceptance thresholds.
+
+### Limitations
+
+GeoAdmin hints may be missing.
+
+GeoAdmin hints may be ambiguous.
+
+Street names and object names can produce false positives.
+
+Object type labels are extracted from API display labels and are heuristic.
+
+The current output does not yet export a final dedicated `best_location_x` and `best_location_y` field.
+
+Coordinates exist inside structured GeoAdmin hints when returned by the API.
+
+A later enhancement may select a single best coordinate candidate with confidence and reason fields.
+
+### Acceptance status
+
+Issue 9 is considered implemented for the MVP when:
+
+* local hinting runs after lead generation
+* optional GeoAdmin enrichment can be enabled
+* GeoAdmin responses are cached
+* hints are attached to leads
+* JSONL and CSV outputs are written
+* reports are written
+* tests pass
+* documentation states that hints are optional review aids
+
 ## Design rationale
 
 This separation keeps monitoring scope stable while allowing controlled updates to the concrete source list.
