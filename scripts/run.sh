@@ -1,8 +1,124 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+RUN_ID="${RUN_ID:-$(date -u +"%Y%m%dT%H%M%SZ")}"
+RUN_DIR="artifacts/runs/${RUN_ID}"
+RUN_LOG_DIR="${RUN_DIR}/logs"
+RUN_LOG_PATH="${RUN_LOG_DIR}/run.log"
+RUN_METADATA_PATH="${RUN_DIR}/run_metadata.json"
+ENABLE_GEOADMIN_VALUE="${ENABLE_GEOADMIN_ENRICHMENT:-0}"
+
+mkdir -p "${RUN_LOG_DIR}"
+
+exec > >(tee -a "${RUN_LOG_PATH}") 2>&1
+
+write_run_metadata() {
+  local status="$1"
+  local failed_line="${2:-}"
+
+  python - <<PY
+from datetime import datetime, timezone
+from pathlib import Path
+import json
+import subprocess
+
+metadata_path = Path("${RUN_METADATA_PATH}")
+metadata_path.parent.mkdir(parents=True, exist_ok=True)
+
+now = datetime.now(timezone.utc).isoformat()
+
+if metadata_path.exists():
+    with metadata_path.open("r", encoding="utf-8") as f:
+        metadata = json.load(f)
+else:
+    metadata = {
+        "run_id": "${RUN_ID}",
+        "started_at": now,
+    }
+
+try:
+    git_commit = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"],
+        text=True,
+    ).strip()
+except Exception:
+    git_commit = ""
+
+try:
+    git_status_short = subprocess.check_output(
+        ["git", "status", "--short"],
+        text=True,
+    ).strip()
+except Exception:
+    git_status_short = ""
+
+metadata.update(
+    {
+        "run_id": "${RUN_ID}",
+        "status": "${status}",
+        "started_at": metadata.get("started_at", now),
+        "updated_at": now,
+        "ended_at": now if "${status}" in {"success", "failed"} else "",
+        "failed_line": "${failed_line}",
+        "geo_admin_enrichment_enabled": "${ENABLE_GEOADMIN_VALUE}" == "1",
+        "git_commit": git_commit,
+        "git_status_short": git_status_short,
+        "log_path": "${RUN_LOG_PATH}",
+        "config_paths": {
+            "filter_config": "config/filter.yaml",
+            "scoring_config": "config/scoring.yaml",
+            "annotation_dataset": "data/annotation/labeled/annotation_full_reviewed.csv",
+        },
+        "input_paths": {
+            "discovery_ag": "artifacts/discovery_ag.jsonl",
+            "discovery_sg": "artifacts/discovery_sg_sample_final.jsonl",
+            "scored_zh": "artifacts/scored.jsonl",
+            "scored_be": "artifacts/scored_be_unique_final.jsonl",
+        },
+        "report_paths": {
+            "html_cleaning_ag": "artifacts/html_cleaning_report_ag_rerun.json",
+            "html_cleaning_sg": "artifacts/html_cleaning_report_sg_rerun.json",
+            "filter_ag": "artifacts/filter_report_ag_rerun.json",
+            "filter_sg": "artifacts/filter_report_sg_rerun.json",
+            "scoring_ag": "artifacts/scoring_report_ag_rerun.json",
+            "scoring_sg": "artifacts/scoring_report_sg_rerun.json",
+            "lead_generation": "artifacts/lead_generation_report.json",
+            "local_location_hinting": "artifacts/location_hinting_report.json",
+            "geoadmin_location_hinting": "artifacts/geoadmin_location_hinting_report.json",
+        },
+        "output_paths": {
+            "scored_annotation_pool": "artifacts/scored_annotation_pool.jsonl",
+            "leads_jsonl": "artifacts/leads.jsonl",
+            "leads_csv": "artifacts/leads.csv",
+            "local_location_leads_jsonl": "artifacts/leads_with_locations.jsonl",
+            "local_location_leads_csv": "artifacts/leads_with_locations.csv",
+            "geoadmin_location_leads_jsonl": "artifacts/leads_with_geoadmin_locations.jsonl",
+            "geoadmin_location_leads_csv": "artifacts/leads_with_geoadmin_locations.csv",
+        },
+    }
+)
+
+with metadata_path.open("w", encoding="utf-8") as f:
+    json.dump(metadata, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+}
+
+handle_failure() {
+  local line_number="$1"
+  write_run_metadata "failed" "${line_number}"
+}
+
+trap 'handle_failure "$LINENO"' ERR
+
+write_run_metadata "running"
+
 echo "ChangeScout baseline reproduction run"
 echo "====================================="
+echo "Run ID: ${RUN_ID}"
+echo "Run directory: ${RUN_DIR}"
+echo "Run log: ${RUN_LOG_PATH}"
+echo "GeoAdmin enrichment enabled: ${ENABLE_GEOADMIN_VALUE}"
 
 echo
 echo "Step 1: Check required inputs"
@@ -252,6 +368,8 @@ if geoadmin_report_path.exists() and geoadmin_output_path.exists():
         "geoadmin_preferred_canton",
         "geoadmin_location_hint_count",
         "geoadmin_top_location_name",
+        "geoadmin_best_location_x",
+        "geoadmin_best_location_y",
     ]
 
     print()
@@ -272,5 +390,9 @@ else:
 print(leads.head(10)[columns].to_string(index=False, max_colwidth=120))
 PY
 
+write_run_metadata "success"
+
 echo
 echo "Baseline reproduction run completed"
+echo "Run metadata written to ${RUN_METADATA_PATH}"
+echo "Run log written to ${RUN_LOG_PATH}"

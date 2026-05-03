@@ -241,19 +241,31 @@ It reprocesses AG and SG with the current HTML decoding and title extraction log
 
 The script also performs basic quality checks, including expected pool size and encoding marker checks.
 
-GeoAdmin Search API enrichment is optional and only runs when `ENABLE_GEOADMIN_ENRICHMENT=1` is set.
+Each run writes run metadata and a full log to:
 
-### Reproduce current baseline outputs with optional GeoAdmin enrichment
+`artifacts/runs/<run_id>/run_metadata.json`
+
+`artifacts/runs/<run_id>/logs/run.log`
+
+If no run id is provided, the script creates a UTC timestamp based run id.
+
+A custom run id can be set with:
 
 ```bash
-ENABLE_GEOADMIN_ENRICHMENT=1 bash scripts/run.sh
+RUN_ID=my_run_id bash scripts/run.sh
 ```
 
-By default, `scripts/run.sh` runs the offline baseline workflow and local location hinting.
+GeoAdmin Search API enrichment is optional and only runs when `ENABLE_GEOADMIN_ENRICHMENT=1` is set.
 
-GeoAdmin enrichment runs only when `ENABLE_GEOADMIN_ENRICHMENT=1` is set.
+Run baseline reproduction with optional GeoAdmin enrichment:
 
-This keeps the default baseline run reproducible and independent of online API availability.
+```bash
+RUN_ID=my_run_id ENABLE_GEOADMIN_ENRICHMENT=1 bash scripts/run.sh
+```
+
+GeoAdmin enrichment writes additional location hint outputs and best available coordinate candidates.
+
+These coordinates are review aids only and are not verified project geometries.
 
 ## Output
 
@@ -553,6 +565,37 @@ Contains cached GeoAdmin query records with:
 
 The cache is local generated data and should not be versioned in Git.
 
+### Run metadata output
+
+`artifacts/runs/<run_id>/run_metadata.json`
+
+Contains:
+
+* `run_id`
+* `status`
+* `started_at`
+* `updated_at`
+* `ended_at`
+* `failed_line`
+* `geo_admin_enrichment_enabled`
+* `git_commit`
+* `git_status_short`
+* `log_path`
+* `config_paths`
+* `input_paths`
+* `report_paths`
+* `output_paths`
+
+The metadata file is written at run start, updated on success, and updated on failure when the shell failure trap is triggered.
+
+### Run log output
+
+`artifacts/runs/<run_id>/logs/run.log`
+
+Contains the full console output of the MVP reproduction run.
+
+The log is intended for debugging and traceability of a specific run.
+
 ### HTML storage
 
 Raw HTML files:
@@ -570,6 +613,7 @@ Raw HTML files:
 7. Classification
 8. Lead generation
 9. Geographic hinting
+10. MVP reproduction run
 
 ## Current discovery behavior
 
@@ -639,8 +683,21 @@ Raw HTML files:
 * GeoAdmin hits are parsed into structured hints
 * GeoAdmin object types are extracted from API labels when available
 * GeoAdmin hints are ranked using preferred canton, API origin, object type, API rank, and name
+* GeoAdmin best location fields expose the first ranked hint with coordinates
 * GeoAdmin coordinates are stored as optional review hints when available
 * no lead is removed or promoted solely because of a geographic hint
+
+## Current MVP reproduction behavior
+
+* `scripts/run.sh` is the official MVP reproduction entry point
+* the default run reproduces the offline baseline and local location hinting
+* GeoAdmin enrichment is controlled by `ENABLE_GEOADMIN_ENRICHMENT=1`
+* each run receives a `RUN_ID`
+* if no `RUN_ID` is provided, a UTC timestamp based id is generated
+* each run writes metadata to `artifacts/runs/<run_id>/run_metadata.json`
+* each run writes a full log to `artifacts/runs/<run_id>/logs/run.log`
+* failed runs write metadata with status `failed` when the failure trap is triggered
+* the reproduction run coordinates existing stages and does not replace stage specific tests
 
 ## Current limitations
 
@@ -652,6 +709,7 @@ The MVP currently does not:
 * classify detailed change types as a reliable model target
 * provide a production ready relevance classifier
 * treat exported GeoAdmin best location coordinates as verified project geometry
+* provide production grade orchestration, scheduling, retries, or alerting
 
 Additional limitations:
 
