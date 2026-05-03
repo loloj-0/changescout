@@ -1166,6 +1166,100 @@ The baseline classification script writes:
 4. test predictions
 5. metrics comparing classifier and scoring baseline
 
+## Lead Generation Architecture
+
+### Responsibility
+
+The lead generation step creates actionable review candidates from scored and optionally classified documents.
+
+A lead is not a confirmed TLM change.
+
+A lead is a document that should be reviewed because it may describe a TLM relevant geometry update.
+
+### Input
+
+Lead generation consumes scored documents.
+
+Required fields:
+
+| Field | Meaning |
+|---|---|
+| `document_id` | stable document identifier |
+| `source_id` | source registry identifier |
+| `url` | document URL |
+| `title` | document title |
+| `clean_text` | normalized document text |
+| `thematic_score` | scoring baseline value |
+
+If classifier predictions are available, lead generation may also consume:
+
+| Field | Meaning |
+|---|---|
+| `classifier_prediction` | predicted TLM relevance |
+| `classifier_probability` | probability for `tlm_relevant` |
+
+### Baseline inclusion rule
+
+For the MVP baseline, a document is included as a lead if:
+
+`thematic_score >= 0.10`
+
+This threshold follows the scoring v10 baseline evaluation.
+
+The classifier output is not used as the primary inclusion criterion yet, because the first TF IDF baseline had lower recall than scoring v10.
+
+Classifier predictions and probabilities may be attached as additional review signals.
+
+### Lead schema
+
+Each lead contains at least:
+
+| Field | Meaning |
+|---|---|
+| `document_id` | stable document identifier |
+| `source_id` | source registry identifier |
+| `url` | document URL |
+| `title` | document title |
+| `thematic_score` | scoring baseline value |
+| `lead_reason` | reason why the document was included |
+| `text_preview` | shortened text excerpt for review |
+
+Optional fields:
+
+| Field | Meaning |
+|---|---|
+| `classifier_prediction` | predicted TLM relevance |
+| `classifier_probability` | probability for `tlm_relevant` |
+
+### Sorting
+
+Leads are sorted deterministically by:
+
+1. `thematic_score` descending
+2. `title` ascending
+3. `url` ascending
+
+### Boundary to classification
+
+Classification predicts TLM relevance.
+
+Lead generation does not train or evaluate classifiers.
+
+It only consumes classifier outputs when available.
+
+### Boundary to final validation
+
+Lead generation does not confirm whether a real world change exists or whether TLM has already been updated.
+
+Final validation remains a manual or downstream process.
+
+### Output
+
+The baseline lead generation script writes:
+
+1. `artifacts/leads.jsonl`
+2. `artifacts/leads.csv`
+3. `artifacts/lead_generation_report.json`
 
 ## Lead generation model
 
