@@ -14,23 +14,61 @@ def parse_html(html: str) -> BeautifulSoup:
     return BeautifulSoup(html, "html.parser")
 
 
+def is_invalid_title(title: Optional[str]) -> bool:
+    if not title:
+        return True
+
+    normalized = " ".join(title.split()).strip().lower()
+
+    invalid_titles = {
+        "javascript deaktiviert oder nicht unterstützt.",
+        "javascript deaktiviert oder nicht unterstützt",
+    }
+
+    return normalized in invalid_titles
+
+
+def clean_html_title(title: str) -> str:
+    title = title.strip()
+
+    suffixes = [
+        " | Kanton Zürich",
+        " - Kanton Aargau",
+        " | sg.ch",
+        " | Kanton St.Gallen",
+        " | Kanton Bern",
+    ]
+
+    for suffix in suffixes:
+        if title.endswith(suffix):
+            title = title[: -len(suffix)].strip()
+
+    return title
+
+
 def extract_title(soup: BeautifulSoup) -> Optional[str]:
+    candidates = []
+
     meta = soup.find("meta", attrs={"name": "czhdev.title"})
     if meta and meta.get("content"):
-        return meta["content"].strip()
+        candidates.append(meta["content"].strip())
 
-    h1 = soup.select_one("h1.mdl-page-header__title")
-    if h1:
-        return h1.get_text(strip=True)
-
-    h1_generic = soup.select_one("h1")
-    if h1_generic:
-        return h1_generic.get_text(strip=True)
+    for selector in [
+        "h1.mdl-page-header__title",
+        "main h1",
+        "article h1",
+        "h1",
+    ]:
+        h1 = soup.select_one(selector)
+        if h1:
+            candidates.append(h1.get_text(separator=" ", strip=True))
 
     if soup.title and soup.title.string:
-        title = soup.title.string.strip()
-        title = title.replace(" | Kanton Zürich", "")
-        return title
+        candidates.append(clean_html_title(soup.title.string))
+
+    for candidate in candidates:
+        if not is_invalid_title(candidate):
+            return candidate
 
     return None
 

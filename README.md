@@ -8,9 +8,10 @@ The first MVP generates deterministic leads for potential TLM relevant real worl
 
 The system resolves the same active source set from the same config and produces reproducible candidate leads from manually curated official canton level sources.
 
-The MVP focuses on identifying structural infrastructure changes such as new roads, extensions, bridges, or network relevant modifications.
+The MVP focuses on identifying candidate documents that may indicate TLM relevant geometry changes, such as new roads, extensions, bridges, junction redesigns, new paths, or other network relevant modifications.
 
 The MVP does not try to automatically confirm whether a lead already corresponds to a finished or visible geometry change.
+
 Manual validation remains part of the workflow.
 
 ## Current MVP source model
@@ -132,21 +133,57 @@ This step:
 
 ### Run thematic scoring
 
+```bash
 PYTHONPATH=src python -m changescout.cli score \
   --input artifacts/filtered.jsonl \
   --config config/scoring.yaml \
   --output artifacts/scored.jsonl \
   --report-output artifacts/scoring_report.json
+```
 
 This step:
 
 * computes a thematic relevance score per document
-* increases score for structural signals
+* increases score for TLM geometry signals
 * decreases score for soft change signals
-* normalizes scores to range 0–1
+* normalizes scores to range 0 to 1
 * enriches documents with scoring signals
 * writes scored documents
 * generates a scoring report
+
+### Run baseline classification
+
+```bash
+PYTHONPATH=src python scripts/train_baseline_classifier.py
+```
+
+This step:
+
+* loads the reviewed annotation dataset
+* joins annotations with scored documents by URL
+* excludes review cases from core training and evaluation
+* trains a TF IDF Logistic Regression baseline classifier
+* compares the classifier against the scoring baseline
+* writes train and test splits
+* writes predictions
+* writes classifier metrics
+
+### Run baseline lead generation
+
+```bash
+PYTHONPATH=src python scripts/generate_baseline_leads.py
+```
+
+This step:
+
+* loads scored documents
+* optionally joins classifier predictions if available
+* includes documents with `thematic_score >= 0.10`
+* creates reviewable lead records
+* adds a text preview
+* sorts leads deterministically
+* writes lead outputs
+* writes a lead generation report
 
 ## Output
 
@@ -218,12 +255,12 @@ Contains documents filtered out during cleaning with reasons.
 
 Contains:
 
-* total_documents
-* included_documents
-* excluded_documents
-* inclusion_rate
-* avg_clean_text_length
-* exclusion_reasons
+* `total_documents`
+* `included_documents`
+* `excluded_documents`
+* `inclusion_rate`
+* `avg_clean_text_length`
+* `exclusion_reasons`
 
 ### Filtered output
 
@@ -241,8 +278,8 @@ Each record contains:
 Contains:
 
 * excluded documents
-* exclusion_reason
-* matched_rule
+* `exclusion_reason`
+* `matched_rule`
 
 ### Filter report
 
@@ -250,10 +287,10 @@ Contains:
 
 Contains:
 
-* total_documents
-* included_documents
-* excluded_documents
-* exclusion_reasons
+* `total_documents`
+* `included_documents`
+* `excluded_documents`
+* `exclusion_reasons`
 
 ### Scored output
 
@@ -263,15 +300,18 @@ Each record contains:
 
 * all fields from filtered output
 * `thematic_score`
-* `scoring_signals`, including:
-  * `rule_score`
-  * `rule_raw_score`
-  * `retrieval_score`
-  * `retrieval_raw_score`
-  * `structural_hits`
-  * `soft_hits`
-  * `title_structural_hits`
-  * `retrieval_query_terms`
+* `scoring_signals`
+
+`scoring_signals` includes:
+
+* `rule_score`
+* `rule_raw_score`
+* `retrieval_score`
+* `retrieval_raw_score`
+* `structural_hits`
+* `soft_hits`
+* `title_structural_hits`
+* `retrieval_query_terms`
 
 ### Scoring report
 
@@ -279,15 +319,72 @@ Each record contains:
 
 Contains:
 
-* total_documents
-* min_score
-* max_score
-* mean_score
-* mean_rule_score
-* mean_retrieval_score
-* min_retrieval_raw_score
-* max_retrieval_raw_score
-* score_buckets
+* `total_documents`
+* `min_score`
+* `max_score`
+* `mean_score`
+* `mean_rule_score`
+* `mean_retrieval_score`
+* `min_retrieval_raw_score`
+* `max_retrieval_raw_score`
+* `score_buckets`
+
+### Baseline classifier outputs
+
+`data/annotation/evaluation/baseline_classifier_metrics.json`
+
+Contains:
+
+* dataset size
+* missing scored records
+* train and test split sizes
+* classifier precision, recall, F1
+* classifier confusion matrix counts
+* scoring baseline comparison at threshold `0.10`
+
+`data/annotation/evaluation/baseline_classifier_predictions.csv`
+
+Contains test set predictions with:
+
+* `document_id`
+* `source_id`
+* `url`
+* `title`
+* `tlm_relevant`
+* `thematic_score`
+* `classifier_prediction`
+* `classifier_probability`
+
+### Lead outputs
+
+`artifacts/leads.jsonl`
+
+`artifacts/leads.csv`
+
+Each lead contains:
+
+* `document_id`
+* `source_id`
+* `url`
+* `title`
+* `thematic_score`
+* `lead_reason`
+* `classifier_prediction`
+* `classifier_probability`
+* `text_preview`
+
+### Lead generation report
+
+`artifacts/lead_generation_report.json`
+
+Contains:
+
+* `input_documents`
+* `lead_count`
+* `threshold`
+* `min_score`
+* `max_score`
+* `mean_score`
 
 ### HTML storage
 
@@ -319,6 +416,7 @@ Raw HTML files:
 ## Current crawling behavior
 
 * fetches URLs via HTTP
+* decodes response content as UTF 8 when no explicit charset is provided
 * stores raw HTML
 * computes SHA256 hash
 * writes structured crawl records
@@ -328,6 +426,7 @@ Raw HTML files:
 ## Current HTML cleaning behavior
 
 * extracts title via fallback logic
+* ignores technical JavaScript notice titles when better title candidates exist
 * isolates main content container
 * removes boilerplate elements
 * extracts relevant text blocks
@@ -336,22 +435,49 @@ Raw HTML files:
 * applies basic language filtering
 * produces normalized document schema
 
+## Current scoring behavior
+
+* computes rule based signals from keywords and regex patterns
+* computes BM25 retrieval signals
+* combines rule based and retrieval based scores
+* preserves all filtered documents
+* writes explanation fields for inspectability
+* uses `config/scoring.yaml` version 10 as the frozen baseline
+
+## Current classification behavior
+
+* uses `tlm_relevant` as the target label
+* excludes `review_required = true` records from core training and evaluation
+* trains a TF IDF Logistic Regression baseline model
+* compares model metrics against scoring baseline at threshold `0.10`
+* treats records removed before scoring as missing scored records and excludes them from classifier training
+
+## Current lead generation behavior
+
+* includes documents with `thematic_score >= 0.10`
+* attaches classifier prediction and probability if available
+* adds a text preview for manual review
+* sorts leads deterministically
+* writes JSONL, CSV, and report outputs
+
 ## Current limitations
 
 The MVP currently does not:
 
-* reliably separate structural vs non structural changes
-* perform robust semantic relevance scoring beyond keyword heuristics
-* classify change types
+* confirm whether a lead corresponds to a finished or visible real world geometry change
 * extract geographic entities robustly
 * track documents across runs
-* validate real world geometry changes
+* classify detailed change types as a reliable model target
+* provide a production ready relevance classifier
 
 Additional limitations:
 
 * HTML cleaning prioritizes recall over precision
-* The current scoring approach is keyword based and tuned to the MVP canton sources
-* Generalization to other cantons is not guaranteed
+* the current scoring approach is keyword and pattern based and tuned to the MVP source mix
+* the baseline classifier is a first TF IDF Logistic Regression model and does not yet outperform the high recall scoring baseline
+* lead generation currently uses `thematic_score >= 0.10` as a recall oriented inclusion rule
+* lead output is intentionally broad and requires manual review
+* generalization to new cantons or source types is not guaranteed
 
 ## Project structure
 

@@ -242,8 +242,9 @@ def run_baseline_classification(
     joined = join_annotations_with_scores(annotations, scored)
 
     missing_scores = int(joined["thematic_score"].isna().sum())
+
     if missing_scores:
-        raise ValueError(f"{missing_scores} annotated records have no matching score")
+        joined = joined[joined["thematic_score"].notna()].copy()
 
     evaluable, review_set = build_evaluable_dataset(joined)
     train, test = create_train_test_split(
@@ -276,6 +277,7 @@ def run_baseline_classification(
         "metrics": {
             "dataset": {
                 "total_annotations": int(len(annotations)),
+                "missing_scored_records": missing_scores,
                 "evaluable_records": int(len(evaluable)),
                 "review_records": int(len(review_set)),
                 "train_records": int(len(train)),
