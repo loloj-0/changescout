@@ -6,6 +6,7 @@ from changescout.crawling import (
     build_error_crawl_record,
     build_success_crawl_record,
     compute_content_hash,
+    decode_response_text,
     run_crawling,
     store_html,
 )
@@ -49,6 +50,13 @@ def test_compute_content_hash_is_stable() -> None:
     assert h1 == h2
     assert h1 != h3
 
+def test_decode_response_text_defaults_to_utf8_without_charset() -> None:
+    class DummyResponse:
+        headers = {"Content-Type": "text/html"}
+        content = "für Zürich".encode("utf-8")
+        text = "fÃ¼r ZÃ¼rich"
+
+    assert decode_response_text(DummyResponse()) == "für Zürich"
 
 def test_store_html_writes_expected_file(tmp_path: Path) -> None:
     html_path = store_html(

@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 from changescout.discovery import (
     build_discovery_records,
+    decode_response_text,
     deduplicate_urls,
     discover_urls_from_source,
     extract_links,
@@ -123,6 +124,13 @@ def test_write_discovery_jsonl(tmp_path: Path) -> None:
     assert len(lines) == 1
     assert '"source_id": "zh_projects"' in lines[0]
 
+def test_decode_response_text_defaults_to_utf8_without_charset() -> None:
+    response = Mock()
+    response.headers = {"Content-Type": "text/html"}
+    response.content = "für Zürich".encode("utf-8")
+    response.text = "fÃ¼r ZÃ¼rich"
+
+    assert decode_response_text(response) == "für Zürich"
 
 def test_discover_urls_from_source_end_to_end_with_mocked_fetch() -> None:
     source = SourceConfig(
@@ -149,7 +157,11 @@ def test_discover_urls_from_source_end_to_end_with_mocked_fetch() -> None:
     """
 
     mock_response = Mock()
+    mock_response.headers = {"Content-Type": "text/html"}
+    mock_response.content = html.encode("utf-8")
     mock_response.text = html
+    mock_response.status_code = 200
+    mock_response.url = source.base_url
     mock_response.raise_for_status.return_value = None
 
     with patch("changescout.discovery.requests.get", return_value=mock_response) as mock_get:

@@ -32,6 +32,15 @@ class FetchResult:
             raise ValueError("text must be a string")
 
 
+def decode_response_text(response: requests.Response) -> str:
+    content_type = response.headers.get("Content-Type", "").lower()
+
+    if "charset=" in content_type:
+        return response.text
+
+    return response.content.decode("utf-8", errors="replace")
+
+
 def fetch_page(url: str, timeout_seconds: int = 10) -> FetchResult:
     if not isinstance(url, str) or not url:
         raise ValueError("url must be a non-empty string")
@@ -49,7 +58,7 @@ def fetch_page(url: str, timeout_seconds: int = 10) -> FetchResult:
     return FetchResult(
         url=url,
         status_code=response.status_code,
-        text=response.text,
+        text=decode_response_text(response),
     )
 
 

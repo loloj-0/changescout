@@ -31,6 +31,14 @@ EXCLUDED_EXTENSIONS = {
     ".docm",
 }
 
+def decode_response_text(response: requests.Response) -> str:
+    content_type = response.headers.get("Content-Type", "").lower()
+
+    if "charset=" in content_type:
+        return response.text
+
+    return response.content.decode("utf-8", errors="replace")
+
 
 def fetch_html(url: str, timeout: int = DEFAULT_TIMEOUT_SECONDS) -> str:
     response = requests.get(
@@ -54,7 +62,7 @@ def fetch_html(url: str, timeout: int = DEFAULT_TIMEOUT_SECONDS) -> str:
         response.url,
     )
     response.raise_for_status()
-    return response.text
+    return decode_response_text(response)
 
 
 def extract_links(html: str) -> list[str]:
