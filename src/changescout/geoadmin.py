@@ -551,6 +551,19 @@ def sort_geoadmin_hints(
         ),
     )
 
+def select_best_geoadmin_location(
+    hints: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    for hint in hints:
+        x = hint.get("x")
+        y = hint.get("y")
+
+        if x is None or y is None:
+            continue
+
+        return hint
+
+    return {}
 
 def build_geoadmin_queries_for_lead(
     lead: Dict[str, Any],
@@ -788,6 +801,7 @@ def enrich_lead_with_geoadmin_hints(
 
     preferred_canton = infer_canton_from_source_id(enriched.get("source_id"))
     sorted_hints = sort_geoadmin_hints(all_hints, preferred_canton)
+    best_location = select_best_geoadmin_location(sorted_hints)
 
     enriched["geoadmin_preferred_canton"] = preferred_canton
     enriched["geoadmin_location_hints"] = sorted_hints
@@ -795,5 +809,12 @@ def enrich_lead_with_geoadmin_hints(
     enriched["geoadmin_query_count"] = len(queries)
     enriched["geoadmin_cache_hits"] = cache_hits
     enriched["geoadmin_cache_misses"] = cache_misses
+    enriched["geoadmin_best_location_name"] = best_location.get("name", "")
+    enriched["geoadmin_best_location_x"] = best_location.get("x")
+    enriched["geoadmin_best_location_y"] = best_location.get("y")
+    enriched["geoadmin_best_location_origin"] = best_location.get("origin", "")
+    enriched["geoadmin_best_location_object_type"] = best_location.get("object_type", "")
+    enriched["geoadmin_best_location_query"] = best_location.get("query", "")
+    enriched["geoadmin_best_location_rank"] = best_location.get("rank")
 
     return enriched

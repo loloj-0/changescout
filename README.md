@@ -501,6 +501,13 @@ Each GeoAdmin enriched lead contains all local location hint fields plus:
 * `geoadmin_cache_misses`
 * `geoadmin_top_location_name`
 * `geoadmin_location_queries`
+* `geoadmin_best_location_name`
+* `geoadmin_best_location_x`
+* `geoadmin_best_location_y`
+* `geoadmin_best_location_origin`
+* `geoadmin_best_location_object_type`
+* `geoadmin_best_location_query`
+* `geoadmin_best_location_rank`
 
 Structured GeoAdmin hints may include:
 
@@ -644,7 +651,7 @@ The MVP currently does not:
 * track documents across runs
 * classify detailed change types as a reliable model target
 * provide a production ready relevance classifier
-* export a final dedicated `best_location_x` or `best_location_y` field
+* treat exported GeoAdmin best location coordinates as verified project geometry
 
 Additional limitations:
 

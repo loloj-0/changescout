@@ -17,6 +17,7 @@ from changescout.geoadmin import (
     origin_priority,
     parse_geoadmin_location_hints,
     result_matches_query,
+    select_best_geoadmin_location,
     sort_geoadmin_hints,
     strip_html,
     tokenize_query,
@@ -229,6 +230,40 @@ def test_sort_geoadmin_hints_prefers_better_object_type() -> None:
     assert result[0]["name"] == "Stettlen (BE)"
 
 
+def test_select_best_geoadmin_location_returns_first_hint_with_coordinates() -> None:
+    hints = [
+        {
+            "name": "No coordinate",
+            "x": None,
+            "y": None,
+        },
+        {
+            "name": "Suhr (AG)",
+            "x": 2648331.25,
+            "y": 1247502.625,
+            "origin": "gg25",
+        },
+    ]
+
+    result = select_best_geoadmin_location(hints)
+
+    assert result["name"] == "Suhr (AG)"
+
+
+def test_select_best_geoadmin_location_returns_empty_when_no_coordinates() -> None:
+    hints = [
+        {
+            "name": "No coordinate",
+            "x": None,
+            "y": None,
+        }
+    ]
+
+    result = select_best_geoadmin_location(hints)
+
+    assert result == {}
+
+
 def test_parse_geoadmin_location_hints() -> None:
     cache_record = {
         "ok": True,
@@ -431,3 +466,7 @@ def test_enrich_lead_with_geoadmin_hints(tmp_path: Path) -> None:
     assert enriched["geoadmin_cache_hits"] == 0
     assert enriched["geoadmin_cache_misses"] == 1
     assert enriched["geoadmin_location_hints"][0]["name"] == "Buriet"
+    assert enriched["geoadmin_best_location_name"] == "Buriet"
+    assert enriched["geoadmin_best_location_x"] == 2760000
+    assert enriched["geoadmin_best_location_y"] == 1260000
+    assert enriched["geoadmin_best_location_origin"] == "gazetteer"
