@@ -20,6 +20,8 @@ DEFAULT_SR = 2056
 DEFAULT_TIMEOUT_SECONDS = 10
 MAX_QUERY_WORDS = 10
 MAX_QUERY_CANDIDATES = 5
+MAX_TEXT_CHARS = 1500
+MAX_TEXT_QUERY_CANDIDATES = 5
 
 GENERIC_QUERY_TOKENS = {
     "ab",
@@ -61,11 +63,14 @@ GENERIC_QUERY_TOKENS = {
     "kreisel",
     "knoten",
     "lv",
+    "management",
+    "markierung",
     "massnahme",
     "massnahmen",
     "maßnahme",
     "maßnahmen",
     "mitwirkung",
+    "neue",
     "neubau",
     "ortsdurchfahrt",
     "planauflage",
@@ -73,8 +78,10 @@ GENERIC_QUERY_TOKENS = {
     "projekte",
     "radweg",
     "raum",
+    "regeln",
     "sanierung",
     "sbb",
+    "signalisation",
     "strasse",
     "strassen",
     "strassenprojekt",
@@ -89,6 +96,60 @@ GENERIC_QUERY_TOKENS = {
     "verkehr",
     "verkehrsinfrastruktur",
     "veloweg",
+}
+
+TEXT_CANDIDATE_EXCLUSION_TOKENS = GENERIC_QUERY_TOKENS | {
+    "aktuell",
+    "antworten",
+    "bau",
+    "belag",
+    "download",
+    "drucken",
+    "fragen",
+    "gemeinde",
+    "informationen",
+    "kontakt",
+    "konzept",
+    "publiziert",
+    "seite",
+    "stand",
+    "uebersicht",
+    "uhr",
+    "übersicht",
+    "ziele",
+}
+
+GENERIC_QUERY_SUFFIXES = (
+    "strasse",
+    "strassen",
+    "straße",
+    "weg",
+    "platz",
+    "gasse",
+    "allee",
+    "ring",
+    "quai",
+)
+
+PREFERRED_OBJECT_TYPE_PRIORITIES = {
+    "Ort": 1,
+    "Quartierteil": 2,
+    "Gebiet": 3,
+    "Flurname swisstopo": 4,
+    "Strasse": 6,
+    "Brücke": 6,
+    "Tunnel": 6,
+    "Unterführung": 6,
+    "Bahnhof": 6,
+    "Haltestelle": 6,
+    "Turm": 8,
+}
+
+LOW_PRIORITY_OBJECT_TYPES = {
+    "Grossregion",
+    "Gebaeude",
+    "Gebäude",
+    "Schul- und Hochschulareal",
 }
 
 
@@ -139,6 +200,18 @@ def strip_html(value: Any) -> str:
     return text
 
 
+def extract_object_type_from_label(value: Any) -> str:
+    if value is None:
+        return ""
+
+    match = re.search(r"<i>(.*?)</i>", str(value))
+
+    if not match:
+        return ""
+
+    return strip_html(match.group(1))
+
+
 def trim_query_to_word_limit(query: str, max_words: int = MAX_QUERY_WORDS) -> str:
     words = query.split()
 
@@ -173,6 +246,12 @@ def is_useful_query_candidate(candidate: str) -> bool:
         return False
 
     has_generic_tokens = any(token in GENERIC_QUERY_TOKENS for token in all_tokens)
+
+    if len(useful_tokens) == 1:
+        token = useful_tokens[0]
+
+        if any(token.endswith(suffix) for suffix in GENERIC_QUERY_SUFFIXES):
+            return False
 
     if has_generic_tokens and len(useful_tokens) <= 2:
         return False
@@ -275,6 +354,108 @@ def build_title_query_candidates(title: str) -> List[str]:
     return cleaned_candidates[:MAX_QUERY_CANDIDATES]
 
 
+def extract_named_text_candidates(
+    text: Any,
+    max_chars: int = MAX_TEXT_CHARS,
+) -> List[str]:
+    if text is None:
+        return []
+
+    window = str(text)[:max_chars]
+
+    pattern = re.compile(
+        r"\b(?:St\.\s+)?[A-ZÄÖÜ][a-zäöüéèà]+(?:[-\s][A-ZÄÖÜ][a-zäöüéèà]+){0,3}\b"
+    )
+
+    candidates = []
+
+    for match in pattern.finditer(window):
+        candidate = normalize_query_text(match.group(0))
+
+        if not candidate:
+            continue
+
+        tokens = raw_tokens(candidate)
+
+        if not tokens:
+            continue
+
+        useful_tokens = [
+            token
+            for token in tokens
+            if token not in TEXT_CANDIDATE_EXCLUSION_TOKENS
+        ]
+
+        if not useful_tokens:
+            continue
+
+        if len(useful_tokens) == 1 and len(useful_tokens[0]) < 4:
+            continue
+
+        candidates.append(candidate)
+
+    return candidates
+
+
+def score_text_query_candidate(candidate: str) -> int:
+    tokens = tokenize_query(candidate)
+    score = 0
+
+    if len(tokens) >= 2:
+        score += 3
+
+    if "-" in candidate:
+        score += 2
+
+    if candidate.startswith("St. "):
+        score += 2
+
+    if len(candidate) >= 8:
+        score += 1
+
+    return score
+
+
+def build_text_query_candidates(
+    clean_text: Any,
+    max_candidates: int = MAX_TEXT_QUERY_CANDIDATES,
+) -> List[str]:
+    raw_candidates = extract_named_text_candidates(clean_text)
+
+    counted: Dict[str, Dict[str, Any]] = {}
+
+    for candidate in raw_candidates:
+        normalized = normalize_query_text(candidate)
+
+        if not is_useful_query_candidate(normalized):
+            continue
+
+        key = normalized.casefold()
+
+        if key not in counted:
+            counted[key] = {
+                "candidate": normalized,
+                "count": 0,
+                "score": score_text_query_candidate(normalized),
+            }
+
+        counted[key]["count"] += 1
+
+    ranked = sorted(
+        counted.values(),
+        key=lambda item: (
+            -int(item["count"]),
+            -int(item["score"]),
+            str(item["candidate"]),
+        ),
+    )
+
+    return [
+        str(item["candidate"])
+        for item in ranked[:max_candidates]
+    ]
+
+
 def parse_semicolon_values(value: Any) -> List[str]:
     if value is None:
         return []
@@ -328,6 +509,33 @@ def hint_matches_preferred_canton(
     return f"({preferred_canton.casefold()})" in searchable
 
 
+def origin_priority(hint: Dict[str, Any]) -> int:
+    origin = str(hint.get("origin", ""))
+
+    if origin == "gg25":
+        return 0
+
+    if origin == "gazetteer":
+        return 1
+
+    return 5
+
+
+def object_type_priority(hint: Dict[str, Any]) -> int:
+    object_type = str(hint.get("object_type", ""))
+
+    if object_type in PREFERRED_OBJECT_TYPE_PRIORITIES:
+        return PREFERRED_OBJECT_TYPE_PRIORITIES[object_type]
+
+    if object_type in LOW_PRIORITY_OBJECT_TYPES:
+        return 99
+
+    if not object_type:
+        return 50
+
+    return 20
+
+
 def sort_geoadmin_hints(
     hints: List[Dict[str, Any]],
     preferred_canton: str = "",
@@ -336,6 +544,8 @@ def sort_geoadmin_hints(
         hints,
         key=lambda hint: (
             not hint_matches_preferred_canton(hint, preferred_canton),
+            origin_priority(hint),
+            object_type_priority(hint),
             int(hint.get("rank", 999)),
             str(hint.get("name", "")),
         ),
@@ -355,7 +565,12 @@ def build_geoadmin_queries_for_lead(
             candidates.append(municipality)
 
     title = str(lead.get("title") or "")
-    candidates.extend(build_title_query_candidates(title))
+    title_candidates = build_title_query_candidates(title)
+    candidates.extend(title_candidates)
+
+    if len(candidates) < 2:
+        clean_text = lead.get("clean_text") or lead.get("text_preview") or ""
+        candidates.extend(build_text_query_candidates(clean_text, max_candidates=2))
 
     cleaned_candidates = []
     seen = set()
@@ -506,6 +721,7 @@ def parse_geoadmin_location_hints(
 
         raw_label = attrs.get("label") or attrs.get("detail") or attrs.get("name")
         label = strip_html(raw_label)
+        object_type = extract_object_type_from_label(attrs.get("label"))
         origin = attrs.get("origin")
         x = attrs.get("x")
         y = attrs.get("y")
@@ -530,6 +746,7 @@ def parse_geoadmin_location_hints(
             {
                 "hint_type": "geoadmin_location",
                 "name": label,
+                "object_type": object_type,
                 "source": "geoadmin_search",
                 "origin": origin,
                 "query": search_text,
