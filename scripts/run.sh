@@ -189,12 +189,26 @@ echo "Step 10: Generate baseline leads"
 PYTHONPATH=src python scripts/generate_baseline_leads.py
 
 echo
-echo "Step 11: Add location hints to baseline leads"
+echo "Step 11: Add local location hints to baseline leads"
 
 PYTHONPATH=src python scripts/add_location_hints_to_leads.py
 
 echo
-echo "Step 12: Print lead and location hint summary"
+echo "Step 12: Optionally enrich location hints with GeoAdmin Search API"
+
+if [[ "${ENABLE_GEOADMIN_ENRICHMENT:-0}" == "1" ]]; then
+  PYTHONPATH=src python scripts/enrich_location_hints_geoadmin.py
+else
+  echo "Skipping GeoAdmin enrichment. Set ENABLE_GEOADMIN_ENRICHMENT=1 to enable."
+
+  rm -f \
+    artifacts/leads_with_geoadmin_locations.jsonl \
+    artifacts/leads_with_geoadmin_locations.csv \
+    artifacts/geoadmin_location_hinting_report.json
+fi
+
+echo
+echo "Step 13: Print lead and location hint summary"
 
 python - <<'PY'
 import json
@@ -216,21 +230,46 @@ print()
 print("Location hinting report")
 print(json.dumps(hint_report, ensure_ascii=False, indent=2))
 
-leads = pd.read_csv("artifacts/leads_with_locations.csv")
-print()
-print("Top 10 leads with location hints")
-print(
-    leads.head(10)[
-        [
-            "title",
-            "source_id",
-            "thematic_score",
-            "lead_reason",
-            "location_hint_count",
-            "municipality_hints",
-        ]
-    ].to_string(index=False, max_colwidth=120)
-)
+geoadmin_report_path = Path("artifacts/geoadmin_location_hinting_report.json")
+geoadmin_output_path = Path("artifacts/leads_with_geoadmin_locations.csv")
+local_output_path = Path("artifacts/leads_with_locations.csv")
+
+if geoadmin_report_path.exists() and geoadmin_output_path.exists():
+    with geoadmin_report_path.open("r", encoding="utf-8") as f:
+        geoadmin_report = json.load(f)
+
+    print()
+    print("GeoAdmin location hinting report")
+    print(json.dumps(geoadmin_report, ensure_ascii=False, indent=2))
+
+    leads = pd.read_csv(geoadmin_output_path)
+    columns = [
+        "title",
+        "source_id",
+        "thematic_score",
+        "lead_reason",
+        "location_hint_count",
+        "geoadmin_preferred_canton",
+        "geoadmin_location_hint_count",
+        "geoadmin_top_location_name",
+    ]
+
+    print()
+    print("Top 10 leads with GeoAdmin location hints")
+else:
+    leads = pd.read_csv(local_output_path)
+    columns = [
+        "title",
+        "source_id",
+        "thematic_score",
+        "lead_reason",
+        "location_hint_count",
+    ]
+
+    print()
+    print("Top 10 leads with local location hints")
+
+print(leads.head(10)[columns].to_string(index=False, max_colwidth=120))
 PY
 
 echo
