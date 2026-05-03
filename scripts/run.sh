@@ -72,8 +72,8 @@ metadata.update(
         "input_paths": {
             "discovery_ag": "artifacts/discovery_ag.jsonl",
             "discovery_sg": "artifacts/discovery_sg_sample_final.jsonl",
-            "scored_zh": "artifacts/scored.jsonl",
-            "scored_be": "artifacts/scored_be_unique_final.jsonl",
+            "scored_zh_existing": "artifacts/scored.jsonl",
+            "scored_be_existing": "artifacts/scored_be_unique_final.jsonl",
         },
         "report_paths": {
             "html_cleaning_ag": "artifacts/html_cleaning_report_ag_rerun.json",
@@ -85,6 +85,7 @@ metadata.update(
             "lead_generation": "artifacts/lead_generation_report.json",
             "local_location_hinting": "artifacts/location_hinting_report.json",
             "geoadmin_location_hinting": "artifacts/geoadmin_location_hinting_report.json",
+            "monitoring_summary": "artifacts/monitoring_summary.json",
         },
         "output_paths": {
             "scored_annotation_pool": "artifacts/scored_annotation_pool.jsonl",
@@ -94,6 +95,8 @@ metadata.update(
             "local_location_leads_csv": "artifacts/leads_with_locations.csv",
             "geoadmin_location_leads_jsonl": "artifacts/leads_with_geoadmin_locations.jsonl",
             "geoadmin_location_leads_csv": "artifacts/leads_with_geoadmin_locations.csv",
+            "monitoring_summary_json": "artifacts/monitoring_summary.json",
+            "monitoring_summary_markdown": "artifacts/monitoring_summary.md",
         },
     }
 )
@@ -223,7 +226,7 @@ PYTHONPATH=src python -m changescout.cli score \
   --report-output artifacts/scoring_report_sg_rerun.json
 
 echo
-echo "Step 6: Build scored annotation pool"
+echo "Step 6: Build scored annotation pool from existing ZH and BE plus rerun AG and SG"
 
 python - <<'PY'
 from pathlib import Path
@@ -390,9 +393,16 @@ else:
 print(leads.head(10)[columns].to_string(index=False, max_colwidth=120))
 PY
 
+echo
+echo "Step 14: Build monitoring summary"
+
+write_run_metadata "success"
+PYTHONPATH=src python scripts/build_monitoring_summary.py
 write_run_metadata "success"
 
 echo
 echo "Baseline reproduction run completed"
 echo "Run metadata written to ${RUN_METADATA_PATH}"
 echo "Run log written to ${RUN_LOG_PATH}"
+echo "Monitoring summary written to artifacts/monitoring_summary.json"
+echo "Monitoring summary Markdown written to artifacts/monitoring_summary.md"

@@ -596,6 +596,33 @@ Contains the full console output of the MVP reproduction run.
 
 The log is intended for debugging and traceability of a specific run.
 
+### Monitoring summary output
+
+`artifacts/monitoring_summary.json`
+
+Contains a consolidated machine readable summary of the latest MVP reproduction run based on run metadata and available stage reports.
+
+It includes:
+
+* run status and metadata
+* stage report availability
+* cleaning metrics
+* filtering metrics
+* scoring metrics
+* classification metrics
+* lead generation metrics
+* local location hinting metrics
+* optional GeoAdmin hinting metrics
+* warning messages for simple MVP checks
+
+`artifacts/monitoring_summary.md`
+
+Contains the same monitoring summary in a human readable format.
+
+The monitoring summary is MVP observability only.
+
+It is not a production alerting or drift detection system.
+
 ### HTML storage
 
 Raw HTML files:
