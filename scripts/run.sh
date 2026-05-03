@@ -189,23 +189,48 @@ echo "Step 10: Generate baseline leads"
 PYTHONPATH=src python scripts/generate_baseline_leads.py
 
 echo
-echo "Step 11: Print lead summary"
+echo "Step 11: Add location hints to baseline leads"
+
+PYTHONPATH=src python scripts/add_location_hints_to_leads.py
+
+echo
+echo "Step 12: Print lead and location hint summary"
 
 python - <<'PY'
 import json
 import pandas as pd
 from pathlib import Path
 
-report_path = Path("artifacts/lead_generation_report.json")
-with report_path.open("r", encoding="utf-8") as f:
-    report = json.load(f)
+lead_report_path = Path("artifacts/lead_generation_report.json")
+with lead_report_path.open("r", encoding="utf-8") as f:
+    lead_report = json.load(f)
 
-print(json.dumps(report, ensure_ascii=False, indent=2))
+print("Lead generation report")
+print(json.dumps(lead_report, ensure_ascii=False, indent=2))
 
-leads = pd.read_csv("artifacts/leads.csv")
+hint_report_path = Path("artifacts/location_hinting_report.json")
+with hint_report_path.open("r", encoding="utf-8") as f:
+    hint_report = json.load(f)
+
 print()
-print("Top 10 leads")
-print(leads.head(10)[["title", "source_id", "thematic_score", "lead_reason"]].to_string(index=False, max_colwidth=120))
+print("Location hinting report")
+print(json.dumps(hint_report, ensure_ascii=False, indent=2))
+
+leads = pd.read_csv("artifacts/leads_with_locations.csv")
+print()
+print("Top 10 leads with location hints")
+print(
+    leads.head(10)[
+        [
+            "title",
+            "source_id",
+            "thematic_score",
+            "lead_reason",
+            "location_hint_count",
+            "municipality_hints",
+        ]
+    ].to_string(index=False, max_colwidth=120)
+)
 PY
 
 echo
