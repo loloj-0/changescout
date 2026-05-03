@@ -1,8 +1,10 @@
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
 from changescout.crawling import (
+    FetchResult,
     build_error_crawl_record,
     build_success_crawl_record,
     compute_content_hash,
@@ -118,6 +120,8 @@ def test_build_crawl_records_support_success_and_error() -> None:
 
 
 def test_run_crawling_integration(tmp_path: Path) -> None:
+    import requests
+    
     discovery_input_path = tmp_path / "discovery.jsonl"
     discovery_input_path.write_text(
         (
@@ -130,13 +134,24 @@ def test_run_crawling_integration(tmp_path: Path) -> None:
     output_jsonl_path = tmp_path / "output.jsonl"
     html_base_dir = tmp_path / "html"
 
-    records = run_crawling(
-        discovery_input_path=discovery_input_path,
-        output_jsonl_path=output_jsonl_path,
-        html_base_dir=html_base_dir,
-        run_id="test_run_full",
-        timeout_seconds=10,
-    )
+    def fake_fetch_page(url: str, timeout_seconds: int = 10) -> FetchResult:
+        if url == "https://does-not-exist.invalid":
+            raise requests.RequestException("mocked fetch failure")
+
+        return FetchResult(
+            url=url,
+            status_code=200,
+            text="<html>mocked page</html>",
+        )
+
+    with patch("changescout.crawling.fetch_page", side_effect=fake_fetch_page):
+        records = run_crawling(
+            discovery_input_path=discovery_input_path,
+            output_jsonl_path=output_jsonl_path,
+            html_base_dir=html_base_dir,
+            run_id="test_run_full",
+            timeout_seconds=10,
+        )
 
     assert len(records) == 2
 
