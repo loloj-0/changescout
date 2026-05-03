@@ -185,6 +185,18 @@ This step:
 * writes lead outputs
 * writes a lead generation report
 
+### Reproduce current baseline outputs
+
+```bash
+bash scripts/run.sh
+```
+
+This script reproduces the current MVP baseline outputs from existing discovery inputs.
+
+It reprocesses AG and SG with the current HTML decoding and title extraction logic, rebuilds `artifacts/scored_annotation_pool.jsonl`, reruns scoring evaluation, trains the baseline classifier, and regenerates baseline leads.
+
+The script also performs basic quality checks, including expected pool size and encoding marker checks.
+
 ## Output
 
 ### Snapshot output
