@@ -1,0 +1,24 @@
+sources:
+  - source_id: bs_bauprojekte_tiefbau
+    name: Basel-Stadt Bauprojekte Tiefbau
+    base_url: https://www.bs.ch/schwerpunkte/bauprojekte/seiten/tiefbauprojekte
+    crawl_type: html_pattern
+    include_patterns:
+      - "/bauprojekte/tiefbauprojekte/"
+      - "/schwerpunkte/bauprojekte/seiten/bauprojekte-fuer-strassen-gruenanlagen-gewaesser/"
+      - "/bauprojekte/bauprojekte-fuer-strassen-gruenanlagen-gewaesser/"
+      - "/verwaltung/bau-und-verkehrsdepartement/aemter-und-bereiche/tiefbauamt/baustellen-strassen-gewaesser/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: bs_bauprojekte_tiefbau_page_2
+    name: Basel-Stadt Bauprojekte Tiefbau Seite 2
+    base_url: https://www.bs.ch/schwerpunkte/bauprojekte/seiten/tiefbauprojekte?page=2
+    crawl_type: html_pattern
+    include_patterns:
+      - "/bauprojekte/tiefbauprojekte/"
+      - "/schwerpunkte/bauprojekte/seiten/bauprojekte-fuer-strassen-gruenanlagen-gewaesser/"
+      - "/bauprojekte/bauprojekte-fuer-strassen-gruenanlagen-gewaesser/"
+      - "/verwaltung/bau-und-verkehrsdepartement/aemter-und-bereiche/tiefbauamt/baustellen-strassen-gewaesser/"
+    crawl_frequency_hours: 168
+    active: true

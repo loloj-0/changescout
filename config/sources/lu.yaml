@@ -1,0 +1,18 @@
+sources:
+  - source_id: lu_vif_baustellen
+    name: Luzern VIF Aktuelle Baustellen
+    base_url: https://vif.lu.ch/kantonsstrassen/baustellen
+    crawl_type: html_pattern
+    include_patterns:
+      - "/kantonsstrassen/baustellen/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: lu_vif_planung_studien
+    name: Luzern VIF Planung und Studien
+    base_url: https://vif.lu.ch/kantonsstrassen/planung_studien
+    crawl_type: html_pattern
+    include_patterns:
+      - "/kantonsstrassen/planung_studien/"
+    crawl_frequency_hours: 168
+    active: true

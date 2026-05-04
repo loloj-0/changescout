@@ -1,0 +1,9 @@
+sources:
+  - source_id: gr_tba_projekte_strassenbau
+    name: Graubünden Tiefbauamt Projekte Strassenbau
+    base_url: https://www.gr.ch/DE/institutionen/verwaltung/diem/tba/projekte/strassenbau/umfahrung-kueblis/Seiten/UmfahrungKueblis.aspx
+    crawl_type: html_pattern
+    include_patterns:
+      - "/DE/institutionen/verwaltung/diem/tba/projekte/strassenbau/"
+    crawl_frequency_hours: 168
+    active: true

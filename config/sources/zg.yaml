@@ -1,0 +1,9 @@
+sources:
+  - source_id: zg_tba_strassenprojekte
+    name: Zug Tiefbau Strassenprojekte
+    base_url: https://zg.ch/de/planen-bauen/tiefbau/strassenprojekte
+    crawl_type: html_pattern
+    include_patterns:
+      - "/de/planen-bauen/tiefbau/strassenprojekte/"
+    crawl_frequency_hours: 168
+    active: true

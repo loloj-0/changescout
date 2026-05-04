@@ -1,0 +1,10 @@
+sources:
+  - source_id: so_avt_projekte
+    name: Solothurn AVT Projekte
+    base_url: https://so.ch/verwaltung/bau-und-justizdepartement/amt-fuer-verkehr-und-tiefbau/projekte/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/verwaltung/bau-und-justizdepartement/amt-fuer-verkehr-und-tiefbau/projekte/gesamtverkehrsprojekt-oensingen/"
+      - "/verwaltung/bau-und-justizdepartement/amt-fuer-verkehr-und-tiefbau/projekte/trimbacherbruecke/"
+    crawl_frequency_hours: 168
+    active: true

@@ -1,0 +1,369 @@
+sources:
+  - source_id: so_media_2023_januar
+    name: Solothurn Medienarchiv Januar 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/januar/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_februar
+    name: Solothurn Medienarchiv Februar 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/februar/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_maerz
+    name: Solothurn Medienarchiv März 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/maerz/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_april
+    name: Solothurn Medienarchiv April 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/april/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_mai
+    name: Solothurn Medienarchiv Mai 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/mai/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_juni
+    name: Solothurn Medienarchiv Juni 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/juni/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_juli
+    name: Solothurn Medienarchiv Juli 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/juli/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_august
+    name: Solothurn Medienarchiv August 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/august/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_september
+    name: Solothurn Medienarchiv September 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/september/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_oktober
+    name: Solothurn Medienarchiv Oktober 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/oktober/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_november
+    name: Solothurn Medienarchiv November 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/november/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2023_dezember
+    name: Solothurn Medienarchiv Dezember 2023
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2023/dezember/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_januar
+    name: Solothurn Medienarchiv Januar 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/januar/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_februar
+    name: Solothurn Medienarchiv Februar 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/februar/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_maerz
+    name: Solothurn Medienarchiv März 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/maerz/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_april
+    name: Solothurn Medienarchiv April 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/april/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_mai
+    name: Solothurn Medienarchiv Mai 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/mai/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_juni
+    name: Solothurn Medienarchiv Juni 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/juni/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_juli
+    name: Solothurn Medienarchiv Juli 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/juli/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_august
+    name: Solothurn Medienarchiv August 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/august/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_september
+    name: Solothurn Medienarchiv September 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/september/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_oktober
+    name: Solothurn Medienarchiv Oktober 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/oktober/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_november
+    name: Solothurn Medienarchiv November 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/november/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2024_dezember
+    name: Solothurn Medienarchiv Dezember 2024
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2024/dezember/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_januar
+    name: Solothurn Medienarchiv Januar 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/januar/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_februar
+    name: Solothurn Medienarchiv Februar 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/februar/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_maerz
+    name: Solothurn Medienarchiv März 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/maerz/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_april
+    name: Solothurn Medienarchiv April 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/april/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_mai
+    name: Solothurn Medienarchiv Mai 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/mai/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_juni
+    name: Solothurn Medienarchiv Juni 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/juni/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_juli
+    name: Solothurn Medienarchiv Juli 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/juli/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_august
+    name: Solothurn Medienarchiv August 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/august/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_september
+    name: Solothurn Medienarchiv September 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/september/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_oktober
+    name: Solothurn Medienarchiv Oktober 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/oktober/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_november
+    name: Solothurn Medienarchiv November 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/november/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2025_dezember
+    name: Solothurn Medienarchiv Dezember 2025
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2025/dezember/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2026_januar
+    name: Solothurn Medienarchiv Januar 2026
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2026/januar/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2026_februar
+    name: Solothurn Medienarchiv Februar 2026
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2026/februar/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2026_maerz
+    name: Solothurn Medienarchiv März 2026
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2026/maerz/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2026_april
+    name: Solothurn Medienarchiv April 2026
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2026/april/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
+
+  - source_id: so_media_2026_mai
+    name: Solothurn Medienarchiv Mai 2026
+    base_url: https://so.ch/verwaltung/staatskanzlei/medien/medienarchiv-2026/mai/
+    crawl_type: html_pattern
+    include_patterns:
+      - "/news/"
+    crawl_frequency_hours: 168
+    active: true
