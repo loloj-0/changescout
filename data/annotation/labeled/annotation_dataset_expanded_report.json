@@ -1,0 +1,35 @@
+{
+  "input_files": [
+    "data/annotation/labeled/annotation_so_media_sample_001_final_reviewed.xlsx",
+    "data/annotation/labeled/annotation_project_pages_001_final_reviewed.xlsx",
+    "data/annotation/labeled/annotation_full_reviewed.xlsx"
+  ],
+  "row_count_before_dedup": 348,
+  "row_count_after_dedup": 348,
+  "duplicate_url_rows_before_dedup": 0,
+  "duplicate_text_hash_rows_before_dedup": 0,
+  "source_file_counts": {
+    "annotation_full_reviewed.xlsx": 166,
+    "annotation_project_pages_001_final_reviewed.xlsx": 112,
+    "annotation_so_media_sample_001_final_reviewed.xlsx": 70
+  },
+  "tlm_relevant_counts": {
+    "False": 224,
+    "True": 124
+  },
+  "review_required_counts": {
+    "False": 264,
+    "True": 84
+  },
+  "change_type_counts": {
+    "none": 211,
+    "topology": 102,
+    "geometry": 22,
+    "attribute_only": 13
+  },
+  "triage_class_counts": {
+    "not_relevant": 140,
+    "confirmed_relevant": 124,
+    "needs_review": 84
+  }
+}
