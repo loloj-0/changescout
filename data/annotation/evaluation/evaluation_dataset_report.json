@@ -1,0 +1,62 @@
+{
+  "input_path": "data/annotation/labeled/annotation_dataset_expanded.csv",
+  "input_rows": 348,
+  "test_size": 0.2,
+  "random_state": 42,
+  "datasets": {
+    "strict_binary": {
+      "path": "data/annotation/evaluation/strict_binary_dataset.csv",
+      "rows": 264,
+      "target_column": "target_strict_relevant",
+      "class_counts": {
+        "0": 140,
+        "1": 124
+      },
+      "split_counts": {
+        "train": 211,
+        "test": 53
+      },
+      "triage_class_counts": {
+        "not_relevant": 140,
+        "confirmed_relevant": 124
+      }
+    },
+    "actionable_binary": {
+      "path": "data/annotation/evaluation/actionable_binary_dataset.csv",
+      "rows": 348,
+      "target_column": "target_actionable",
+      "class_counts": {
+        "1": 208,
+        "0": 140
+      },
+      "split_counts": {
+        "train": 278,
+        "test": 70
+      },
+      "triage_class_counts": {
+        "not_relevant": 140,
+        "confirmed_relevant": 124,
+        "needs_review": 84
+      }
+    },
+    "triage_3class": {
+      "path": "data/annotation/evaluation/triage_3class_dataset.csv",
+      "rows": 348,
+      "target_column": "target_triage_class",
+      "class_counts": {
+        "not_relevant": 140,
+        "confirmed_relevant": 124,
+        "needs_review": 84
+      },
+      "split_counts": {
+        "train": 278,
+        "test": 70
+      },
+      "triage_class_counts": {
+        "not_relevant": 140,
+        "confirmed_relevant": 124,
+        "needs_review": 84
+      }
+    }
+  }
+}
