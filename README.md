@@ -319,6 +319,20 @@ The classes are `confirmed_relevant`, `needs_review`, and `not_relevant`.
 
 Human readable score baseline evaluation report.
 
+### Classical text classifier evaluation outputs
+
+`data/annotation/evaluation/classical_text_classifier/classical_text_classifier_metrics.json`
+
+Contains TF IDF Logistic Regression metrics for strict binary and actionable binary evaluation.
+
+`data/annotation/evaluation/classical_text_classifier/classical_text_classifier_predictions.csv`
+
+Contains test split predictions, probabilities, labels, scores, and notes.
+
+`data/annotation/evaluation/classical_text_classifier/classical_text_classifier_report.md`
+
+Human readable comparison against the deterministic score baseline.
+
 ### Snapshot output
 
 `artifacts/resolved_scope_snapshot.json`

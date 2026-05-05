@@ -1092,106 +1092,195 @@ The final decision remains with a domain expert.
 
 ### Responsibility
 
-The baseline classification step predicts whether a document is TLM relevant.
+The baseline classification step evaluates learned non LLM text classification methods against the deterministic score baseline.
 
-The classification target is `tlm_relevant`.
+The purpose is not to create an autonomous final relevance authority.
 
-The classifier is trained only on reviewed annotation records where `review_required` is false.
+The purpose is to test whether a simple supervised text model can improve lead prioritization and review support.
 
-Review cases are excluded from core training and evaluation because they do not represent clean ground truth.
+The current baseline classifier predicts binary relevance targets derived from the frozen annotation schema.
+
+It is evaluated on the same frozen train and test splits as the score baseline.
+
+### Evaluation targets
+
+The classifier is evaluated on two binary datasets.
+
+#### strict_binary
+
+The strict binary dataset evaluates confirmed TLM relevance.
+
+Mapping:
+
+| triage_class | target_strict_relevant |
+|---|---:|
+| confirmed_relevant | 1 |
+| not_relevant | 0 |
+| needs_review | excluded |
+
+This task tests whether a method can distinguish confirmed TLM geometry evidence from non relevant sources.
+
+#### actionable_binary
+
+The actionable binary dataset evaluates whether a source should enter the human review queue.
+
+Mapping:
+
+| triage_class | target_actionable |
+|---|---:|
+| confirmed_relevant | 1 |
+| needs_review | 1 |
+| not_relevant | 0 |
+
+This task is closer to the operational ChangeScout workflow because review worthy but not yet confirmed sources are useful leads.
 
 ### Input
 
-The classifier consumes the reviewed annotation dataset and the scored document pool.
+The classifier consumes the frozen evaluation datasets generated from the expanded annotation dataset.
 
-Required annotation fields:
+Current input files:
 
-* `url`: document URL used for joining
-* `tlm_relevant`: target label
-* `review_required`: uncertainty flag
+* `data/annotation/evaluation/strict_binary_dataset.csv`
+* `data/annotation/evaluation/actionable_binary_dataset.csv`
 
-Required scored document fields:
+Required fields:
 
-* `document_id`: stable document identifier
-* `source_id`: source registry identifier
-* `url`: document URL
-* `title`: extracted document title
-* `clean_text`: normalized document text
-* `thematic_score`: scoring baseline value
+* `annotation_id`
+* `url`
+* `source_id`
+* `title`
+* `text_full`
+* `split`
+* `triage_class`
+* target column for the selected dataset
 
-Annotations are joined to scored documents by `url`.
+The model input text is built from:
+
+1. title
+2. full source text
+
+The frozen split column is used directly.
+
+No new random split is created during classifier evaluation.
 
 ### Dataset status
 
-Current dataset status:
+The current frozen expanded annotation dataset contains 348 manually reviewed sources.
 
-* total annotations: `166`
-* missing scored records: `1`
-* evaluable records: `125`
-* review records: `40`
-* train records: `100`
-* test records: `25`
+The derived binary evaluation datasets are:
 
-The missing scored record is a newsletter page that is now correctly removed by hard filtering before scoring.
+| Dataset | Rows | Train | Test | Positive definition |
+|---|---:|---:|---:|---|
+| strict_binary | 264 | 211 | 53 | confirmed_relevant |
+| actionable_binary | 348 | 278 | 70 | confirmed_relevant or needs_review |
+
+The train and test splits are stratified and reproducible.
+
+The split was created during evaluation dataset construction.
 
 ### Baseline model
 
-The first baseline model uses TF IDF text features and Logistic Regression.
+The current learned non LLM baseline uses TF IDF features and Logistic Regression.
 
-The model input text is built from document title and cleaned text.
+Configuration:
 
-The model produces:
+* word ngrams from 1 to 2
+* `max_features = 20000`
+* `sublinear_tf = true`
+* `max_df = 0.95`
+* `class_weight = balanced`
+* Logistic Regression with `liblinear`
+* `random_state = 42`
+
+The model outputs:
 
 1. binary prediction
-2. probability for `tlm_relevant`
-3. evaluation metrics on a reproducible train test split
+2. probability for the positive class
+3. evaluation metrics on the frozen test split
 
-### Baseline result
+### Current result
 
-The first TF IDF Logistic Regression baseline was evaluated against the same test split as the scoring baseline.
+The TF IDF Logistic Regression baseline was evaluated against the same test splits as the deterministic score baseline.
 
-Result on the test set:
+| Dataset | Method | Precision | Recall | F1 | Accuracy | TP | FP | TN | FN |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| strict_binary | thematic_score | 0.864 | 0.760 | 0.809 | 0.830 | 19 | 3 | 25 | 6 |
+| strict_binary | TF IDF Logistic Regression | 0.852 | 0.920 | 0.885 | 0.887 | 23 | 4 | 24 | 2 |
+| actionable_binary | thematic_score | 0.771 | 0.881 | 0.822 | 0.771 | 37 | 11 | 17 | 5 |
+| actionable_binary | TF IDF Logistic Regression | 0.812 | 0.929 | 0.867 | 0.829 | 39 | 9 | 19 | 3 |
 
-* TF IDF Logistic Regression precision: `0.917`
-* TF IDF Logistic Regression recall: `0.733`
-* TF IDF Logistic Regression F1: `0.815`
-* TF IDF Logistic Regression false positives: `1`
-* TF IDF Logistic Regression false negatives: `4`
-* Scoring v10 precision at threshold `0.10`: `0.750`
-* Scoring v10 recall at threshold `0.10`: `1.000`
-* Scoring v10 F1 at threshold `0.10`: `0.857`
-* Scoring v10 false positives at threshold `0.10`: `5`
-* Scoring v10 false negatives at threshold `0.10`: `0`
+The learned classifier outperforms the deterministic score baseline on both strict relevance and actionable lead detection.
 
-The learned baseline is more precise, but less recall oriented.
+The improvement is especially relevant for recall.
 
-It does not outperform the rule based scoring baseline for the current MVP goal.
+For the ChangeScout workflow, recall is important because false negatives can cause relevant or review worthy sources to be missed.
 
-The main observed classifier errors are missed relevant project pages and false positives on domain language without concrete TLM relevance.
+### Error profile
+
+Qualitative inspection shows that the classifier still makes systematic errors.
+
+Observed false positive types include:
+
+* maintenance and resurfacing with strong infrastructure language
+* BehiG bus stop adaptations
+* Lärmschutz or retaining structures without road geometry change
+* urban redesign language without confirmed TLM geometry effect
+* domain heavy project pages where the text does not confirm a mapped road or path change
+
+Observed false negative types include:
+
+* relevant foot and cycle connections embedded in broader planning texts
+* programme or funding texts that contain one concrete relevant geometry signal
+* review worthy concepts where the signal is plausible but not strongly lexicalized
+
+This means the classifier is a stronger non LLM baseline, but it is still not a final decision system.
+
+It improves the lead prioritization baseline but still requires human review.
 
 ### Boundary to scoring
 
-Classification is evaluated against the rule based scoring baseline.
-
-The scoring baseline remains a ranking and filtering signal.
+The deterministic score baseline remains useful because it is transparent, reproducible, and does not require labeled training data.
 
 The classifier is a learned decision baseline.
 
-### Boundary to lead generation
+It requires frozen labels and must be revalidated when the source mix changes.
 
-Classification does not generate final leads.
+Scoring remains a ranking and prioritization signal.
 
-Lead generation consumes classifier predictions, probabilities, thematic scores, and document metadata to produce actionable review candidates.
+Classification remains a review support signal.
+
+Neither component confirms that TLM must be updated.
+
+### Boundary to LLM evaluation
+
+LLM methods must be compared against both non LLM baselines:
+
+1. deterministic thematic score
+2. TF IDF Logistic Regression
+
+A useful LLM method should improve at least one of the following:
+
+1. recall for confirmed relevant sources
+2. recall for actionable review leads
+3. recognition of needs_review cases
+4. precision at useful review depth
+5. evidence quality
+6. explanation quality
+7. reduction of systematic false positives such as Sanierung, BehiG, Lärmschutz, or temporary traffic management
+
+A higher global F1 alone is not sufficient.
+
+The LLM must improve the human review workflow.
 
 ### Output
 
-The baseline classification script writes:
+The classical text classifier evaluation writes:
 
-1. train split
-2. test split
-3. review set
-4. test predictions
-5. metrics comparing classifier and scoring baseline
+1. `data/annotation/evaluation/classical_text_classifier/classical_text_classifier_metrics.json`
+2. `data/annotation/evaluation/classical_text_classifier/classical_text_classifier_predictions.csv`
+3. `data/annotation/evaluation/classical_text_classifier/classical_text_classifier_report.md`
+
+The prediction output contains test split predictions, probabilities, labels, scores, notes, and source metadata.
 
 ## Lead Generation Architecture
 
@@ -1223,23 +1312,38 @@ If classifier predictions are available, lead generation may also consume:
 
 ### Baseline inclusion rule
 
-For the MVP baseline, a document is included as a lead if:
+For the original MVP reproduction run, a document is included as a lead if:
 
 `thematic_score >= 0.10`
 
-This threshold follows the scoring v10 baseline evaluation.
+This threshold is recall oriented and intentionally broad.
 
-The classifier output is not used as the primary inclusion criterion yet, because the first TF IDF baseline had lower recall than scoring v10.
+It remains useful as a simple deterministic lead generation mode.
 
-Classifier predictions and probabilities may be attached as additional review signals.
+The newer frozen evaluation shows that the preferred threshold depends on the workflow goal:
 
-Current baseline output after reprocessing:
+| Evaluation target | Selected score threshold |
+|---|---:|
+| strict_binary | 0.25 |
+| actionable_binary | 0.05 |
+
+For actionable lead detection, the lower score threshold is more suitable because `needs_review` cases should be preserved.
+
+The TF IDF Logistic Regression classifier currently outperforms the score baseline on the frozen binary evaluation datasets.
+
+Classifier predictions and probabilities should therefore be treated as useful additional review signals.
+
+However, lead generation should remain human in the loop.
+
+Neither the score nor the classifier should be interpreted as final confirmation that TLM must be updated.
+
+Current original baseline output after reprocessing:
 
 * input documents: `165`
 * generated leads: `109`
 * threshold: `0.10`
 
-The output is intentionally broad because the threshold is recall oriented.
+This output remains a reproducible MVP baseline, not the final recommended production threshold.
 
 ### Lead schema
 

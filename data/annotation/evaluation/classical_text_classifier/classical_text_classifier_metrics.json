@@ -1,0 +1,87 @@
+{
+  "method": {
+    "model": "TF IDF plus Logistic Regression",
+    "tfidf": {
+      "ngram_range": [
+        1,
+        2
+      ],
+      "min_df": 1,
+      "max_df": 0.95,
+      "sublinear_tf": true,
+      "max_features": 20000
+    },
+    "classifier": {
+      "type": "LogisticRegression",
+      "class_weight": "balanced",
+      "solver": "liblinear",
+      "max_iter": 2000,
+      "random_state": 42
+    }
+  },
+  "datasets": {
+    "strict_binary": {
+      "path": "data/annotation/evaluation/strict_binary_dataset.csv",
+      "target_column": "target_strict_relevant"
+    },
+    "actionable_binary": {
+      "path": "data/annotation/evaluation/actionable_binary_dataset.csv",
+      "target_column": "target_actionable"
+    }
+  },
+  "classifier_metrics": {
+    "strict_binary": {
+      "records": 53,
+      "positive_count": 25,
+      "negative_count": 28,
+      "tp": 23,
+      "fp": 4,
+      "tn": 24,
+      "fn": 2,
+      "precision": 0.8518518518518519,
+      "recall": 0.92,
+      "f1": 0.8846153846153846,
+      "accuracy": 0.8867924528301887
+    },
+    "actionable_binary": {
+      "records": 70,
+      "positive_count": 42,
+      "negative_count": 28,
+      "tp": 39,
+      "fp": 9,
+      "tn": 19,
+      "fn": 3,
+      "precision": 0.8125,
+      "recall": 0.9285714285714286,
+      "f1": 0.8666666666666667,
+      "accuracy": 0.8285714285714286
+    }
+  },
+  "comparison_with_score_baseline": {
+    "strict_binary": {
+      "classifier_precision": 0.8518518518518519,
+      "classifier_recall": 0.92,
+      "classifier_f1": 0.8846153846153846,
+      "classifier_accuracy": 0.8867924528301887,
+      "score_precision": 0.8636363636363636,
+      "score_recall": 0.76,
+      "score_f1": 0.8085106382978724,
+      "score_accuracy": 0.8301886792452831
+    },
+    "actionable_binary": {
+      "classifier_precision": 0.8125,
+      "classifier_recall": 0.9285714285714286,
+      "classifier_f1": 0.8666666666666667,
+      "classifier_accuracy": 0.8285714285714286,
+      "score_precision": 0.7708333333333334,
+      "score_recall": 0.8809523809523809,
+      "score_f1": 0.8222222222222222,
+      "score_accuracy": 0.7714285714285715
+    }
+  },
+  "outputs": {
+    "metrics": "data/annotation/evaluation/classical_text_classifier/classical_text_classifier_metrics.json",
+    "predictions": "data/annotation/evaluation/classical_text_classifier/classical_text_classifier_predictions.csv",
+    "report_md": "data/annotation/evaluation/classical_text_classifier/classical_text_classifier_report.md"
+  }
+}

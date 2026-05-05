@@ -103,6 +103,25 @@ The score can underrate texts where a real TLM relevant signal is described indi
 
 The baseline is therefore evaluated as a lead prioritization mechanism.
 
+## Current baseline results
+
+Two non LLM baselines have been evaluated on the frozen test splits.
+
+| Dataset | Method | Precision | Recall | F1 |
+|---|---|---:|---:|---:|
+| strict_binary | thematic_score | 0.864 | 0.760 | 0.809 |
+| strict_binary | TF IDF Logistic Regression | 0.852 | 0.920 | 0.885 |
+| actionable_binary | thematic_score | 0.771 | 0.881 | 0.822 |
+| actionable_binary | TF IDF Logistic Regression | 0.812 | 0.929 | 0.867 |
+
+The deterministic score baseline already provides practical value as a review queue prioritization mechanism.
+
+The TF IDF Logistic Regression baseline improves recall and F1 on both binary tasks.
+
+This makes it the stronger non LLM baseline for subsequent LLM comparison.
+
+The result also confirms that the project should be evaluated as a lead prioritization workflow, not as an autonomous final classifier.
+
 ## Role of LLM methods
 
 LLM methods are evaluated as potential improvements over the deterministic baseline.
