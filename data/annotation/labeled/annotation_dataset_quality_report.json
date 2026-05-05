@@ -1,0 +1,511 @@
+{
+  "input_path": "data/annotation/labeled/annotation_dataset_expanded.csv",
+  "row_count": 348,
+  "quality_checks": {
+    "invalid_true_review_count": 0,
+    "empty_notes_count": 0,
+    "empty_text_count": 0,
+    "duplicate_url_rows": 0,
+    "duplicate_text_hash_rows": 0
+  },
+  "source_file_counts": {
+    "annotation_full_reviewed.xlsx": 166,
+    "annotation_project_pages_001_final_reviewed.xlsx": 112,
+    "annotation_so_media_sample_001_final_reviewed.xlsx": 70
+  },
+  "source_id_counts": {
+    "bs_bauprojekte_tiefbau": 48,
+    "sg_mitwirkung_kantonsstrassen": 40,
+    "zg_tba_strassenprojekte": 36,
+    "zh_geplante_strassenprojekte": 23,
+    "sg_planauflagen_kantonsstrassen": 20,
+    "ag_strassenprojekte": 13,
+    "zh_baustellen": 12,
+    "lu_vif_planung_studien": 12,
+    "be_region_berner_mittelland": 12,
+    "ag_strasseninfrastruktur": 11,
+    "sg_tiefbau": 10,
+    "lu_vif_baustellen": 9,
+    "be_region_seeland_berner_jura": 8,
+    "be_region_berner_oberland": 7,
+    "be_region_emmental_oberaargau": 6,
+    "so_media_2024_juli": 6,
+    "gr_tba_projekte_strassenbau": 4,
+    "so_media_2023_februar": 4,
+    "so_media_2023_dezember": 4,
+    "so_media_2026_maerz": 4,
+    "so_media_2023_mai": 3,
+    "so_media_2023_august": 3,
+    "so_media_2025_februar": 3,
+    "be_kantonsstrassen_start": 3,
+    "so_media_2023_maerz": 3,
+    "so_media_2024_juni": 3,
+    "so_media_2024_november": 2,
+    "so_media_2025_april": 2,
+    "so_media_2024_oktober": 2,
+    "so_media_2024_januar": 2,
+    "so_media_2025_august": 2,
+    "so_media_2024_september": 2,
+    "so_media_2026_februar": 2,
+    "so_media_2025_november": 2,
+    "so_media_2023_juli": 2,
+    "so_media_2024_august": 2,
+    "so_media_2025_oktober": 2,
+    "so_avt_projekte": 2,
+    "so_media_2023_juni": 2,
+    "so_media_2024_februar": 2,
+    "so_media_2024_mai": 1,
+    "bs_bauprojekte_tiefbau_page_2": 1,
+    "so_media_2023_september": 1,
+    "so_media_2024_maerz": 1,
+    "so_media_2023_november": 1,
+    "so_media_2025_juni": 1,
+    "so_media_2023_april": 1,
+    "so_media_2023_januar": 1,
+    "so_media_2025_januar": 1,
+    "so_media_2025_dezember": 1,
+    "so_media_2025_september": 1,
+    "so_media_2023_oktober": 1,
+    "sg_baustellen": 1
+  },
+  "canton_counts": {
+    "so": 72,
+    "sg": 71,
+    "bs": 49,
+    "zg": 36,
+    "be": 36,
+    "zh": 35,
+    "ag": 24,
+    "lu": 21,
+    "gr": 4
+  },
+  "tlm_relevant_counts": {
+    "False": 224,
+    "True": 124
+  },
+  "review_required_counts": {
+    "False": 264,
+    "True": 84
+  },
+  "change_type_counts": {
+    "none": 211,
+    "topology": 102,
+    "geometry": 22,
+    "attribute_only": 13
+  },
+  "triage_class_counts": {
+    "not_relevant": 140,
+    "confirmed_relevant": 124,
+    "needs_review": 84
+  },
+  "tlm_relevant_by_review_required": {
+    "False": {
+      "False": 140,
+      "True": 84
+    },
+    "True": {
+      "False": 124,
+      "True": 0
+    }
+  },
+  "triage_class_by_source_file": {
+    "annotation_full_reviewed.xlsx": {
+      "confirmed_relevant": 80,
+      "needs_review": 35,
+      "not_relevant": 51
+    },
+    "annotation_project_pages_001_final_reviewed.xlsx": {
+      "confirmed_relevant": 40,
+      "needs_review": 43,
+      "not_relevant": 29
+    },
+    "annotation_so_media_sample_001_final_reviewed.xlsx": {
+      "confirmed_relevant": 4,
+      "needs_review": 6,
+      "not_relevant": 60
+    }
+  },
+  "triage_class_by_canton": {
+    "ag": {
+      "confirmed_relevant": 11,
+      "needs_review": 1,
+      "not_relevant": 12
+    },
+    "be": {
+      "confirmed_relevant": 24,
+      "needs_review": 8,
+      "not_relevant": 4
+    },
+    "bs": {
+      "confirmed_relevant": 11,
+      "needs_review": 20,
+      "not_relevant": 18
+    },
+    "gr": {
+      "confirmed_relevant": 2,
+      "needs_review": 1,
+      "not_relevant": 1
+    },
+    "lu": {
+      "confirmed_relevant": 8,
+      "needs_review": 12,
+      "not_relevant": 1
+    },
+    "sg": {
+      "confirmed_relevant": 21,
+      "needs_review": 18,
+      "not_relevant": 32
+    },
+    "so": {
+      "confirmed_relevant": 5,
+      "needs_review": 7,
+      "not_relevant": 60
+    },
+    "zg": {
+      "confirmed_relevant": 18,
+      "needs_review": 9,
+      "not_relevant": 9
+    },
+    "zh": {
+      "confirmed_relevant": 24,
+      "needs_review": 8,
+      "not_relevant": 3
+    }
+  },
+  "triage_class_by_source_id": {
+    "ag_strasseninfrastruktur": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 11
+    },
+    "ag_strassenprojekte": {
+      "confirmed_relevant": 11,
+      "needs_review": 1,
+      "not_relevant": 1
+    },
+    "be_kantonsstrassen_start": {
+      "confirmed_relevant": 2,
+      "needs_review": 1,
+      "not_relevant": 0
+    },
+    "be_region_berner_mittelland": {
+      "confirmed_relevant": 7,
+      "needs_review": 3,
+      "not_relevant": 2
+    },
+    "be_region_berner_oberland": {
+      "confirmed_relevant": 1,
+      "needs_review": 4,
+      "not_relevant": 2
+    },
+    "be_region_emmental_oberaargau": {
+      "confirmed_relevant": 6,
+      "needs_review": 0,
+      "not_relevant": 0
+    },
+    "be_region_seeland_berner_jura": {
+      "confirmed_relevant": 8,
+      "needs_review": 0,
+      "not_relevant": 0
+    },
+    "bs_bauprojekte_tiefbau": {
+      "confirmed_relevant": 11,
+      "needs_review": 20,
+      "not_relevant": 17
+    },
+    "bs_bauprojekte_tiefbau_page_2": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "gr_tba_projekte_strassenbau": {
+      "confirmed_relevant": 2,
+      "needs_review": 1,
+      "not_relevant": 1
+    },
+    "lu_vif_baustellen": {
+      "confirmed_relevant": 6,
+      "needs_review": 3,
+      "not_relevant": 0
+    },
+    "lu_vif_planung_studien": {
+      "confirmed_relevant": 2,
+      "needs_review": 9,
+      "not_relevant": 1
+    },
+    "sg_baustellen": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "sg_mitwirkung_kantonsstrassen": {
+      "confirmed_relevant": 18,
+      "needs_review": 7,
+      "not_relevant": 15
+    },
+    "sg_planauflagen_kantonsstrassen": {
+      "confirmed_relevant": 2,
+      "needs_review": 11,
+      "not_relevant": 7
+    },
+    "sg_tiefbau": {
+      "confirmed_relevant": 1,
+      "needs_review": 0,
+      "not_relevant": 9
+    },
+    "so_avt_projekte": {
+      "confirmed_relevant": 1,
+      "needs_review": 1,
+      "not_relevant": 0
+    },
+    "so_media_2023_april": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2023_august": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 3
+    },
+    "so_media_2023_dezember": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 4
+    },
+    "so_media_2023_februar": {
+      "confirmed_relevant": 1,
+      "needs_review": 1,
+      "not_relevant": 2
+    },
+    "so_media_2023_januar": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2023_juli": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 2
+    },
+    "so_media_2023_juni": {
+      "confirmed_relevant": 1,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2023_maerz": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 3
+    },
+    "so_media_2023_mai": {
+      "confirmed_relevant": 0,
+      "needs_review": 1,
+      "not_relevant": 2
+    },
+    "so_media_2023_november": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2023_oktober": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2023_september": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2024_august": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 2
+    },
+    "so_media_2024_februar": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 2
+    },
+    "so_media_2024_januar": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 2
+    },
+    "so_media_2024_juli": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 6
+    },
+    "so_media_2024_juni": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 3
+    },
+    "so_media_2024_maerz": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2024_mai": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2024_november": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 2
+    },
+    "so_media_2024_oktober": {
+      "confirmed_relevant": 0,
+      "needs_review": 1,
+      "not_relevant": 1
+    },
+    "so_media_2024_september": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 2
+    },
+    "so_media_2025_april": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 2
+    },
+    "so_media_2025_august": {
+      "confirmed_relevant": 0,
+      "needs_review": 1,
+      "not_relevant": 1
+    },
+    "so_media_2025_dezember": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2025_februar": {
+      "confirmed_relevant": 1,
+      "needs_review": 0,
+      "not_relevant": 2
+    },
+    "so_media_2025_januar": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2025_juni": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2025_november": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 2
+    },
+    "so_media_2025_oktober": {
+      "confirmed_relevant": 1,
+      "needs_review": 1,
+      "not_relevant": 0
+    },
+    "so_media_2025_september": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 1
+    },
+    "so_media_2026_februar": {
+      "confirmed_relevant": 0,
+      "needs_review": 1,
+      "not_relevant": 1
+    },
+    "so_media_2026_maerz": {
+      "confirmed_relevant": 0,
+      "needs_review": 0,
+      "not_relevant": 4
+    },
+    "zg_tba_strassenprojekte": {
+      "confirmed_relevant": 18,
+      "needs_review": 9,
+      "not_relevant": 9
+    },
+    "zh_baustellen": {
+      "confirmed_relevant": 11,
+      "needs_review": 1,
+      "not_relevant": 0
+    },
+    "zh_geplante_strassenprojekte": {
+      "confirmed_relevant": 13,
+      "needs_review": 7,
+      "not_relevant": 3
+    }
+  },
+  "text_length_by_triage_class": {
+    "confirmed_relevant": {
+      "count": 124,
+      "min": 444.0,
+      "max": 21085.0,
+      "mean": 3640.282258064516,
+      "median": 2764.5
+    },
+    "needs_review": {
+      "count": 84,
+      "min": 642.0,
+      "max": 11888.0,
+      "mean": 2728.440476190476,
+      "median": 2099.0
+    },
+    "not_relevant": {
+      "count": 140,
+      "min": 318.0,
+      "max": 14622.0,
+      "mean": 2748.2785714285715,
+      "median": 2410.5
+    }
+  },
+  "notes_length_by_triage_class": {
+    "confirmed_relevant": {
+      "count": 124,
+      "min": 80.0,
+      "max": 162.0,
+      "mean": 112.75,
+      "median": 113.0
+    },
+    "needs_review": {
+      "count": 84,
+      "min": 73.0,
+      "max": 170.0,
+      "mean": 113.98809523809524,
+      "median": 116.0
+    },
+    "not_relevant": {
+      "count": 140,
+      "min": 50.0,
+      "max": 133.0,
+      "mean": 85.62857142857143,
+      "median": 87.0
+    }
+  },
+  "score_by_triage_class": {
+    "confirmed_relevant": {
+      "count": 124,
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.4663951612903226,
+      "median": 0.514
+    },
+    "needs_review": {
+      "count": 84,
+      "min": 0.0,
+      "max": 0.925,
+      "mean": 0.231702380952381,
+      "median": 0.184
+    },
+    "not_relevant": {
+      "count": 140,
+      "min": 0.0,
+      "max": 0.82,
+      "mean": 0.09467142857142856,
+      "median": 0.033
+    }
+  }
+}
