@@ -94,7 +94,7 @@ PY
     --report-output "${REGISTRY_OUTPUT_DIR}/scoring_report.json"
 done
 
-PYTHONPATH=src python scripts/merge_annotation_expansion_scored.py \
+PYTHONPATH=src python tools/annotation/merge_annotation_expansion_scored.py \
   --input-root "$BASE_OUTPUT_DIR" \
   --output "${BASE_OUTPUT_DIR}/scored_annotation_expansion_merged.jsonl"
 
