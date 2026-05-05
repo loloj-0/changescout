@@ -2,17 +2,27 @@
 
 ChangeScout is a deterministic monitoring pipeline for canton scoped observation of official web sources.
 
-## Initial MVP goal
+## Project goal
 
-The first MVP generates deterministic leads for potential TLM relevant real world changes within one canton.
+ChangeScout is a deterministic lead prioritization and review support pipeline for potential TLM relevant changes.
 
-The system resolves the same active source set from the same config and produces reproducible candidate leads from manually curated official canton level sources.
+The system monitors manually curated official canton level web sources, processes source text, ranks candidate documents, and produces reviewable leads.
 
-The MVP focuses on identifying candidate documents that may indicate TLM relevant geometry changes, such as new roads, extensions, bridges, junction redesigns, new paths, or other network relevant modifications.
+ChangeScout is not an automatic TLM update system.
 
-The MVP does not try to automatically confirm whether a lead already corresponds to a finished or visible geometry change.
+ChangeScout does not replace expert judgement.
 
-Manual validation remains part of the workflow.
+The goal is to reduce manual search and screening effort by surfacing potentially relevant official sources earlier and in a reproducible priority order.
+
+A lead is not a confirmed TLM change.
+
+A lead is a source that should be reviewed because it may describe a persistent TLM road or path geometry update.
+
+The main workflow remains human in the loop.
+
+For the detailed project goal and evaluation framing, see:
+
+`docs/project_goal.md`
 
 ## Current MVP source model
 
@@ -268,6 +278,46 @@ GeoAdmin enrichment writes additional location hint outputs and best available c
 These coordinates are review aids only and are not verified project geometries.
 
 ## Output
+
+### Frozen annotation and evaluation outputs
+
+`data/annotation/labeled/annotation_dataset_expanded.csv`
+
+Frozen expanded annotation dataset.
+
+`data/annotation/labeled/annotation_dataset_expanded.jsonl`
+
+Same dataset in JSONL format.
+
+`data/annotation/labeled/annotation_dataset_expanded_report.json`
+
+Machine readable build report for the expanded annotation dataset.
+
+`data/annotation/labeled/annotation_dataset_quality_report.md`
+
+Human readable quality report for the expanded annotation dataset.
+
+`data/annotation/evaluation/strict_binary_dataset.csv`
+
+Evaluation dataset for confirmed TLM relevance.
+
+It excludes `needs_review` cases.
+
+`data/annotation/evaluation/actionable_binary_dataset.csv`
+
+Evaluation dataset for actionable lead detection.
+
+It treats `confirmed_relevant` and `needs_review` as positive.
+
+`data/annotation/evaluation/triage_3class_dataset.csv`
+
+Evaluation dataset for three class triage.
+
+The classes are `confirmed_relevant`, `needs_review`, and `not_relevant`.
+
+`data/annotation/evaluation/score_baseline/score_baseline_report.md`
+
+Human readable score baseline evaluation report.
 
 ### Snapshot output
 
@@ -637,10 +687,13 @@ Raw HTML files:
 4. HTML cleaning
 5. Hard filtering
 6. Thematic scoring
-7. Classification
-8. Lead generation
+7. Lead generation
+8. Optional classification signals
 9. Geographic hinting
-10. MVP reproduction run
+10. Human review
+11. MVP reproduction run
+12. Evaluation dataset construction
+13. Baseline evaluation
 
 ## Current discovery behavior
 

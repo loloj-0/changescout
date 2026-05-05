@@ -1,5 +1,27 @@
 # Architecture
 
+## Product Principle
+
+ChangeScout is a lead prioritization system, not a final relevance authority.
+
+The architecture is designed around a human in the loop review workflow.
+
+The system should identify, rank, and explain candidate sources that may indicate TLM relevant geometry changes.
+
+It should not automatically decide that TLM must be updated.
+
+It should not automatically edit TLM data.
+
+A lead is therefore an actionable review candidate, not a confirmed change.
+
+This principle affects the full architecture:
+
+1. hard filtering must preserve plausible infrastructure content
+2. scoring is a ranking signal, not a final classifier
+3. classification is evaluated as review support
+4. geographic hints are review aids, not verified project locations
+5. LLM methods, if added, must support triage and explanation rather than replacing domain review
+
 ## MVP Scope Decision
 
 The operational MVP monitoring scope is limited to one active canton per run.
@@ -802,7 +824,7 @@ Its sole responsibility is conservative removal of clearly irrelevant documents 
 
 ### Responsibility
 
-The thematic scoring step ranks normalized documents by their likelihood of describing a TLM relevant geometry change in the road and path network.
+The thematic scoring step ranks normalized documents by their likelihood of being useful review leads for potential TLM relevant geometry changes in the road and path network.
 
 Scoring is not a final classifier.
 
@@ -812,7 +834,7 @@ Scoring must preserve all documents that passed hard filtering.
 
 ### Scoring policy
 
-The purpose of scoring is to assign a relative signal that helps prioritize documents for downstream relevance assessment.
+The purpose of scoring is to assign a relative signal that helps prioritize documents for human review.
 
 The score is used for candidate ranking and high recall filtering.
 
@@ -846,33 +868,45 @@ Soft indicators may reduce the score but must not remove a document.
 
 The current scoring configuration is `config/scoring.yaml` version 10.
 
-This configuration is frozen as the rule based scoring baseline.
+This configuration is frozen as the deterministic score baseline.
 
-The scoring is used as a high recall candidate ranking and filtering signal.
+The scoring baseline is evaluated as a lead prioritization method, not as a final semantic relevance classifier.
 
-It is not intended to be the final TLM relevance classifier.
+The frozen expanded annotation dataset contains 348 manually reviewed sources.
 
-The current baseline threshold for evaluation is `0.10`.
+The derived evaluation datasets are:
 
-Evaluation against the reviewed annotation dataset produced the following result, excluding review cases and records removed before scoring by the current hard filtering stage:
+1. strict binary relevance dataset
+2. actionable binary lead dataset
+3. three class triage dataset
 
-* threshold: `0.10`
-* precision: `0.758`
-* recall: `0.932`
-* false positives: `22`
-* false negatives: `5`
+The strict binary dataset excludes `needs_review` cases.
 
-One annotated non relevant newsletter record is currently removed before scoring.
+The actionable binary dataset treats `confirmed_relevant` and `needs_review` as positive review leads.
 
-This is expected because it is clearly outside the lead generation domain.
+On the current test split, the score baseline achieved:
 
-This result shows that rule based scoring is useful for prioritizing candidate sources and reducing irrelevant records.
+| Dataset | Selected threshold | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|
+| strict_binary | 0.25 | 0.864 | 0.760 | 0.809 |
+| actionable_binary | 0.05 | 0.771 | 0.881 | 0.822 |
 
-It also shows that scoring alone is not sufficient as a final semantic relevance decision.
+For actionable lead detection, the score baseline also achieved:
 
-Further optimization of the rule based scoring should only address clear generic blind spots.
+| Dataset | N | Precision at N | Recall at N |
+|---|---:|---:|---:|
+| actionable_binary | 20 | 0.850 | 0.405 |
+| actionable_binary | 50 | 0.740 | 0.881 |
 
-It should not be tuned further to individual examples in the current annotation dataset, because this would risk overfitting to the current source mix.
+This result shows that the deterministic scoring baseline already provides practical value for review queue prioritization.
+
+It also shows that scoring should not be interpreted as confirmed TLM relevance.
+
+The score threshold depends on the workflow goal.
+
+A higher threshold is more suitable for confirmed relevance.
+
+A lower threshold is more suitable for high recall actionable lead detection.
 
 ### Score computation
 
@@ -940,6 +974,119 @@ Each scored document receives:
 * `scoring_signals`: explanation fields for matched terms and patterns
 
 The output dataset must preserve all input documents and enrich them with scoring metadata.
+
+## Evaluation Architecture
+
+### Responsibility
+
+The evaluation layer creates stable datasets and reports for comparing lead prioritization and classification methods.
+
+Evaluation is separated from operational monitoring.
+
+Operational monitoring processes configured source registries.
+
+Evaluation uses the frozen annotation dataset.
+
+### Frozen annotation dataset
+
+The frozen expanded annotation dataset is stored under:
+
+`data/annotation/labeled/annotation_dataset_expanded.csv`
+
+The dataset contains 348 manually reviewed sources.
+
+The annotation schema defines:
+
+1. `tlm_relevant`
+2. `review_required`
+3. `change_type`
+4. `notes`
+5. derived `triage_class`
+
+The valid derived classes are:
+
+1. `confirmed_relevant`
+2. `needs_review`
+3. `not_relevant`
+
+The combination `tlm_relevant = true` and `review_required = true` is invalid.
+
+### Evaluation datasets
+
+The evaluation builder creates three datasets.
+
+#### strict_binary
+
+This dataset evaluates confirmed TLM relevance.
+
+Mapping:
+
+| triage_class | target |
+|---|---:|
+| confirmed_relevant | 1 |
+| not_relevant | 0 |
+| needs_review | excluded |
+
+#### actionable_binary
+
+This dataset evaluates lead usefulness for review.
+
+Mapping:
+
+| triage_class | target |
+|---|---:|
+| confirmed_relevant | 1 |
+| needs_review | 1 |
+| not_relevant | 0 |
+
+#### triage_3class
+
+This dataset evaluates three class review triage.
+
+Classes:
+
+1. `confirmed_relevant`
+2. `needs_review`
+3. `not_relevant`
+
+### Evaluation metrics
+
+The main metrics depend on the task.
+
+For strict relevance:
+
+1. precision
+2. recall
+3. F1
+4. confusion matrix
+
+For actionable lead detection:
+
+1. recall
+2. precision at N
+3. recall at N
+4. review workload reduction
+5. false negative analysis
+
+For three class triage:
+
+1. per class precision
+2. per class recall
+3. per class F1
+4. confusion matrix
+5. qualitative error analysis
+
+Accuracy is not sufficient because the production goal is lead prioritization, not autonomous final classification.
+
+### Human in the loop interpretation
+
+False positives increase review workload.
+
+False negatives can cause missed relevant sources.
+
+Therefore, the system should prefer high recall and useful ranking over aggressive automatic exclusion.
+
+The final decision remains with a domain expert.
 
 ## Baseline Classification Architecture
 
