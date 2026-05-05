@@ -1,0 +1,12 @@
+{
+  "strict_binary": {
+    "threshold": 0.25,
+    "selection_metric": "train_f1",
+    "score_column": "score"
+  },
+  "actionable_binary": {
+    "threshold": 0.05,
+    "selection_metric": "train_f1",
+    "score_column": "score"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "datasets": {
+    "strict_binary": {
+      "path": "data/annotation/evaluation/strict_binary_dataset.csv",
+      "target_column": "target_strict_relevant"
+    },
+    "actionable_binary": {
+      "path": "data/annotation/evaluation/actionable_binary_dataset.csv",
+      "target_column": "target_actionable"
+    }
+  },
+  "thresholds": [
+    0.0,
+    0.02,
+    0.05,
+    0.1,
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9
+  ],
+  "at_n_values": [
+    10,
+    20,
+    50,
+    100
+  ],
+  "selected_thresholds": {
+    "strict_binary": {
+      "threshold": 0.25,
+      "selection_metric": "train_f1",
+      "score_column": "score"
+    },
+    "actionable_binary": {
+      "threshold": 0.05,
+      "selection_metric": "train_f1",
+      "score_column": "score"
+    }
+  },
+  "selected_threshold_test_metrics": [
+    {
+      "dataset": "strict_binary",
+      "split": "test",
+      "selected_threshold": 0.25,
+      "records": 53,
+      "positives": 25,
+      "negatives": 28,
+      "tp": 19,
+      "fp": 3,
+      "tn": 25,
+      "fn": 6,
+      "precision": 0.8636363636363636,
+      "recall": 0.76,
+      "f1": 0.8085106382978724,
+      "accuracy": 0.8301886792452831
+    },
+    {
+      "dataset": "actionable_binary",
+      "split": "test",
+      "selected_threshold": 0.05,
+      "records": 70,
+      "positives": 42,
+      "negatives": 28,
+      "tp": 37,
+      "fp": 11,
+      "tn": 17,
+      "fn": 5,
+      "precision": 0.7708333333333334,
+      "recall": 0.8809523809523809,
+      "f1": 0.8222222222222222,
+      "accuracy": 0.7714285714285715
+    }
+  ],
+  "outputs": {
+    "threshold_report": "data/annotation/evaluation/score_baseline/score_baseline_threshold_report.csv",
+    "at_n_report": "data/annotation/evaluation/score_baseline/score_baseline_at_n_report.csv",
+    "selected_thresholds": "data/annotation/evaluation/score_baseline/score_baseline_selected_thresholds.json",
+    "report_json": "data/annotation/evaluation/score_baseline/score_baseline_report.json",
+    "report_md": "data/annotation/evaluation/score_baseline/score_baseline_report.md"
+  }
+}

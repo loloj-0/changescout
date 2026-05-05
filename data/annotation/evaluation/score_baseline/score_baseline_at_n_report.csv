@@ -1,0 +1,17 @@
+dataset,split,n,effective_n,records,total_positives,true_positives_at_n,precision_at_n,recall_at_n
+strict_binary,train,10,10,211,99,10,1.0,0.10101010101010101
+strict_binary,train,20,20,211,99,19,0.95,0.1919191919191919
+strict_binary,train,50,50,211,99,48,0.96,0.48484848484848486
+strict_binary,train,100,100,211,99,81,0.81,0.8181818181818182
+strict_binary,test,10,10,53,25,8,0.8,0.32
+strict_binary,test,20,20,53,25,17,0.85,0.68
+strict_binary,test,50,50,53,25,24,0.48,0.96
+strict_binary,test,100,53,53,25,25,0.4716981132075472,1.0
+actionable_binary,train,10,10,278,166,10,1.0,0.060240963855421686
+actionable_binary,train,20,20,278,166,19,0.95,0.1144578313253012
+actionable_binary,train,50,50,278,166,48,0.96,0.2891566265060241
+actionable_binary,train,100,100,278,166,95,0.95,0.572289156626506
+actionable_binary,test,10,10,70,42,8,0.8,0.19047619047619047
+actionable_binary,test,20,20,70,42,17,0.85,0.40476190476190477
+actionable_binary,test,50,50,70,42,37,0.74,0.8809523809523809
+actionable_binary,test,100,70,70,42,42,0.6,1.0
