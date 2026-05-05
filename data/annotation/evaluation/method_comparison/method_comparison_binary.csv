@@ -1,0 +1,13 @@
+method,method_type,dataset,precision,recall,f1,accuracy,tp,fp,tn,fn
+thematic_score,deterministic_score,strict_binary,0.8636363636363636,0.76,0.8085106382978724,0.8301886792452831,19,3,25,6
+thematic_score,deterministic_score,actionable_binary,0.7708333333333334,0.8809523809523809,0.8222222222222222,0.7714285714285715,37,11,17,5
+tfidf_logistic_regression,classical_ml,strict_binary,0.8518518518518519,0.92,0.8846153846153846,0.8867924528301887,23,4,24,2
+tfidf_logistic_regression,classical_ml,actionable_binary,0.8125,0.9285714285714286,0.8666666666666667,0.8285714285714286,39,9,19,3
+Qwen/Qwen2.5-14B-Instruct [hierarchical],local_llm,strict_binary,1.0,0.12,0.21428571428571427,0.5849056603773585,3,0,28,22
+Qwen/Qwen2.5-14B-Instruct [hierarchical],local_llm,actionable_binary,0.96875,0.7380952380952381,0.8378378378378378,0.8285714285714286,31,1,27,11
+Qwen/Qwen2.5-7B-Instruct [direct],local_llm,strict_binary,1.0,0.6,0.75,0.8113207547169812,15,0,28,10
+Qwen/Qwen2.5-7B-Instruct [direct],local_llm,actionable_binary,1.0,0.6190476190476191,0.7647058823529411,0.7714285714285715,26,0,28,16
+Qwen/Qwen2.5-7B-Instruct [hierarchical],local_llm,strict_binary,1.0,0.64,0.7804878048780488,0.8301886792452831,16,0,28,9
+Qwen/Qwen2.5-7B-Instruct [hierarchical],local_llm,actionable_binary,1.0,0.5476190476190477,0.7076923076923077,0.7285714285714285,23,0,28,19
+meta-llama/Llama-3.1-8B-Instruct [hierarchical],local_llm,strict_binary,0.9285714285714286,0.52,0.6666666666666666,0.7547169811320755,13,1,27,12
+meta-llama/Llama-3.1-8B-Instruct [hierarchical],local_llm,actionable_binary,0.9230769230769231,0.5714285714285714,0.7058823529411765,0.7142857142857143,24,2,26,18

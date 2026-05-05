@@ -81,6 +81,18 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
+### Optional local LLM environment setup
+
+Local LLM evaluation requires additional dependencies.
+
+```bash
+source .venv/bin/activate
+python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+python -m pip install -r requirements-llm.txt
+```
+
+Torch is intentionally not part of the base `requirements.txt` because CUDA wheels are platform dependent.
+
 ### Resolve configured sources and generate a snapshot
 
 ```bash
@@ -161,22 +173,90 @@ This step:
 * writes scored documents
 * generates a scoring report
 
-### Run baseline classification
+### Build evaluation datasets
 
 ```bash
-PYTHONPATH=src python scripts/train_baseline_classifier.py
+PYTHONPATH=src python scripts/build_evaluation_datasets.py
+```
+
+This step creates:
+
+* strict binary dataset
+* actionable binary dataset
+* three class triage dataset
+
+The split column is frozen and reused by all later evaluations.
+
+### Evaluate deterministic score baseline
+
+```bash
+PYTHONPATH=src python scripts/evaluate_score_baseline.py
 ```
 
 This step:
 
-* loads the reviewed annotation dataset
-* joins annotations with scored documents by URL
-* excludes review cases from core training and evaluation
-* trains a TF IDF Logistic Regression baseline classifier
-* compares the classifier against the scoring baseline
-* writes train and test splits
-* writes predictions
-* writes classifier metrics
+* evaluates the existing `thematic_score`
+* performs threshold sweeps on the train split
+* selects thresholds by train F1
+* reports test metrics
+* computes precision at N and recall at N
+
+### Run classical text classifier evaluation
+
+```bash
+PYTHONPATH=src python scripts/evaluate_classical_text_classifier.py
+```
+
+This step:
+
+* loads the frozen strict binary and actionable binary evaluation datasets
+* uses the frozen train and test splits
+* trains a TF IDF Logistic Regression classifier
+* compares the classifier against the deterministic score baseline
+* writes metrics, predictions, and a Markdown report
+
+The classifier is a learned non LLM baseline.
+
+It is not a final relevance authority.
+
+### Run local LLM triage evaluation
+
+```bash
+PYTHONPATH=src python scripts/run_local_llm_triage.py \
+  --model-id Qwen/Qwen2.5-7B-Instruct \
+  --prompt-variant hierarchical
+
+PYTHONPATH=src python scripts/evaluate_local_llm_triage.py \
+  --predictions data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/hierarchical/llm_triage_predictions.jsonl
+```
+
+This step:
+
+* loads the frozen three class triage test split
+* runs a local Hugging Face instruct model
+* uses the full source text without default truncation
+* writes structured JSON predictions with triage class, labels, notes, and evidence
+* evaluates strict binary, actionable binary, and three class triage metrics
+
+Local LLM evaluation is experimental.
+
+The current results show that local LLMs produce valid structured output, but they are more conservative than the TF IDF classifier.
+
+### Compare local LLM runs
+
+```bash
+PYTHONPATH=src python scripts/compare_local_llm_runs.py
+```
+
+This step collects all local LLM evaluation reports and writes a model comparison table.
+
+### Compare all evaluated methods
+
+```bash
+PYTHONPATH=src python scripts/compare_all_evaluation_methods.py
+```
+
+This step compares deterministic scoring, TF IDF Logistic Regression, and local LLM methods on the same frozen binary evaluation tasks.
 
 ### Run baseline lead generation
 
@@ -315,6 +395,20 @@ Evaluation dataset for three class triage.
 
 The classes are `confirmed_relevant`, `needs_review`, and `not_relevant`.
 
+`data/annotation/evaluation/evaluation_dataset_report.md`
+
+Human readable report for generated evaluation datasets.
+
+### Score baseline evaluation outputs
+
+`data/annotation/evaluation/score_baseline/score_baseline_threshold_report.csv`
+
+Threshold sweep for the deterministic thematic score.
+
+`data/annotation/evaluation/score_baseline/score_baseline_at_n_report.csv`
+
+Precision at N and recall at N report.
+
 `data/annotation/evaluation/score_baseline/score_baseline_report.md`
 
 Human readable score baseline evaluation report.
@@ -327,11 +421,42 @@ Contains TF IDF Logistic Regression metrics for strict binary and actionable bin
 
 `data/annotation/evaluation/classical_text_classifier/classical_text_classifier_predictions.csv`
 
-Contains test split predictions, probabilities, labels, scores, and notes.
+Contains test split predictions, probabilities, labels, scores, notes, and source metadata.
 
 `data/annotation/evaluation/classical_text_classifier/classical_text_classifier_report.md`
 
 Human readable comparison against the deterministic score baseline.
+
+### Local LLM evaluation outputs
+
+`data/annotation/evaluation/local_llm/<model>/<prompt_variant>/llm_triage_predictions.jsonl`
+
+Contains one structured prediction per test source with:
+
+* `triage_class`
+* `tlm_relevant`
+* `review_required`
+* `change_type`
+* `notes`
+* `evidence`
+* parse and schema validation fields
+* runtime and input token metadata
+
+`data/annotation/evaluation/local_llm/<model>/<prompt_variant>/llm_triage_run_report.json`
+
+Contains runtime statistics for the local LLM run.
+
+`data/annotation/evaluation/local_llm/<model>/<prompt_variant>/llm_triage_evaluation_report.md`
+
+Human readable LLM evaluation report.
+
+`data/annotation/evaluation/local_llm/comparison/local_llm_comparison.md`
+
+Comparison of all local LLM runs.
+
+`data/annotation/evaluation/method_comparison/method_comparison_binary.md`
+
+Comparison of deterministic scoring, classical ML, and local LLM methods.
 
 ### Snapshot output
 
@@ -474,32 +599,6 @@ Contains:
 * `min_retrieval_raw_score`
 * `max_retrieval_raw_score`
 * `score_buckets`
-
-### Baseline classifier outputs
-
-`data/annotation/evaluation/baseline_classifier_metrics.json`
-
-Contains:
-
-* dataset size
-* missing scored records
-* train and test split sizes
-* classifier precision, recall, F1
-* classifier confusion matrix counts
-* scoring baseline comparison at threshold `0.10`
-
-`data/annotation/evaluation/baseline_classifier_predictions.csv`
-
-Contains test set predictions with:
-
-* `document_id`
-* `source_id`
-* `url`
-* `title`
-* `tlm_relevant`
-* `thematic_score`
-* `classifier_prediction`
-* `classifier_probability`
 
 ### Lead outputs
 
@@ -708,6 +807,8 @@ Raw HTML files:
 11. MVP reproduction run
 12. Evaluation dataset construction
 13. Baseline evaluation
+14. Local LLM evaluation
+15. Method comparison
 
 ## Current discovery behavior
 
@@ -752,11 +853,48 @@ Raw HTML files:
 
 ## Current classification behavior
 
-* uses `tlm_relevant` as the target label
-* excludes `review_required = true` records from core training and evaluation
-* trains a TF IDF Logistic Regression baseline model
-* compares model metrics against scoring baseline at threshold `0.10`
-* treats records removed before scoring as missing scored records and excludes them from classifier training
+* evaluates TF IDF Logistic Regression as the learned non LLM baseline
+* uses the frozen strict binary and actionable binary evaluation datasets
+* uses frozen train and test splits created during evaluation dataset construction
+* compares results against the deterministic thematic score baseline
+* treats classification as review support, not as final automatic relevance confirmation
+
+Current test split results:
+
+| Dataset | Method | Precision | Recall | F1 |
+|---|---|---:|---:|---:|
+| strict_binary | thematic_score | 0.864 | 0.760 | 0.809 |
+| strict_binary | TF IDF Logistic Regression | 0.852 | 0.920 | 0.885 |
+| actionable_binary | thematic_score | 0.771 | 0.881 | 0.822 |
+| actionable_binary | TF IDF Logistic Regression | 0.812 | 0.929 | 0.867 |
+
+## Current local LLM evaluation behavior
+
+Local LLMs are evaluated on the frozen three class triage test split.
+
+The same LLM output is mapped to:
+
+* strict binary relevance
+* actionable binary lead detection
+* three class triage
+
+Current evaluated local LLM runs:
+
+| Method | Prompt | Strict F1 | Actionable F1 | Triage accuracy |
+|---|---|---:|---:|---:|
+| Qwen2.5 7B Instruct | hierarchical | 0.780 | 0.708 | 0.671 |
+| Qwen2.5 7B Instruct | direct | 0.750 | 0.765 | 0.657 |
+| Llama 3.1 8B Instruct | hierarchical | 0.667 | 0.706 | 0.586 |
+| Qwen2.5 14B Instruct | hierarchical | 0.214 | 0.838 | 0.571 |
+
+Findings:
+
+* all evaluated local LLM runs produced valid structured JSON output
+* Qwen2.5 7B is very precise but too conservative for actionable lead detection
+* Llama 3.1 8B performed below Qwen2.5 7B on this task
+* Qwen2.5 14B improved actionable lead detection but degraded confirmed relevance to needs_review too often
+* no local zero shot LLM run outperformed TF IDF Logistic Regression on the frozen binary evaluation tasks
+* local LLMs are more promising for evidence generation, precision filtering, and hybrid review support than for standalone lead discovery
 
 ## Current lead generation behavior
 
@@ -809,8 +947,10 @@ Additional limitations:
 
 * HTML cleaning prioritizes recall over precision
 * the current scoring approach is keyword and pattern based and tuned to the MVP source mix
-* the baseline classifier is a first TF IDF Logistic Regression model and does not yet outperform the high recall scoring baseline
-* lead generation currently uses `thematic_score >= 0.10` as a recall oriented inclusion rule
+* the TF IDF Logistic Regression classifier currently outperforms the deterministic score baseline and all evaluated local zero shot LLM runs on the frozen binary evaluation tasks
+* lead generation currently uses `thematic_score >= 0.10` as a recall oriented inclusion rule in the original MVP reproduction run
+* local LLMs were evaluated zero shot and should not be interpreted as fine tuned domain models
+* local LLMs are currently too conservative for standalone lead discovery
 * lead output is intentionally broad and requires manual review
 * geographic hints are optional review aids and not confirmed geocoding results
 * GeoAdmin API labels and object types are used heuristically and are not treated as a stable authoritative enum

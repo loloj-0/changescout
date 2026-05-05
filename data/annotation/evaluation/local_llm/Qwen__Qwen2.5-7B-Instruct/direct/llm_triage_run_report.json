@@ -1,0 +1,22 @@
+{
+  "model_id": "Qwen/Qwen2.5-7B-Instruct",
+  "prompt_variant": "direct",
+  "input": "data/annotation/evaluation/triage_3class_dataset.csv",
+  "split": "test",
+  "records": 70,
+  "max_input_chars": 0,
+  "max_new_tokens": 384,
+  "parse_success_count": 70,
+  "parse_success_rate": 1.0,
+  "schema_success_count": 70,
+  "schema_success_rate": 1.0,
+  "missing_evidence_count": 1,
+  "missing_evidence_rate": 0.014285714285714285,
+  "truncated_count": 0,
+  "truncated_rate": 0.0,
+  "min_input_tokens": 974,
+  "max_input_tokens": 6981,
+  "mean_input_tokens": 1873.2714285714285,
+  "total_runtime_seconds": 150.916,
+  "output_path": "data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/direct/llm_triage_predictions.jsonl"
+}

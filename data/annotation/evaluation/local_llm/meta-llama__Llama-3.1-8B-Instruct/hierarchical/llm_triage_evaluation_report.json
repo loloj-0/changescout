@@ -1,0 +1,172 @@
+{
+  "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+  "prompt_variant": "hierarchical",
+  "records": 70,
+  "parse_success_count": 70,
+  "parse_success_rate": 1.0,
+  "strict_binary": {
+    "records": 53,
+    "positives": 25,
+    "negatives": 28,
+    "tp": 13,
+    "fp": 1,
+    "tn": 27,
+    "fn": 12,
+    "precision": 0.9285714285714286,
+    "recall": 0.52,
+    "f1": 0.6666666666666666,
+    "accuracy": 0.7547169811320755
+  },
+  "actionable_binary": {
+    "records": 70,
+    "positives": 42,
+    "negatives": 28,
+    "tp": 24,
+    "fp": 2,
+    "tn": 26,
+    "fn": 18,
+    "precision": 0.9230769230769231,
+    "recall": 0.5714285714285714,
+    "f1": 0.7058823529411765,
+    "accuracy": 0.7142857142857143
+  },
+  "triage_3class": {
+    "labels": [
+      "confirmed_relevant",
+      "needs_review",
+      "not_relevant",
+      "invalid"
+    ],
+    "confusion_matrix": [
+      [
+        13,
+        5,
+        7,
+        0
+      ],
+      [
+        4,
+        2,
+        11,
+        0
+      ],
+      [
+        1,
+        1,
+        26,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "classification_report": {
+      "confirmed_relevant": {
+        "precision": 0.7222222222222222,
+        "recall": 0.52,
+        "f1-score": 0.6046511627906976,
+        "support": 25.0
+      },
+      "needs_review": {
+        "precision": 0.25,
+        "recall": 0.11764705882352941,
+        "f1-score": 0.16,
+        "support": 17.0
+      },
+      "not_relevant": {
+        "precision": 0.5909090909090909,
+        "recall": 0.9285714285714286,
+        "f1-score": 0.7222222222222222,
+        "support": 28.0
+      },
+      "invalid": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.5857142857142857,
+      "macro avg": {
+        "precision": 0.3907828282828283,
+        "recall": 0.3915546218487395,
+        "f1-score": 0.37171834625322997,
+        "support": 70.0
+      },
+      "weighted avg": {
+        "precision": 0.5550144300144301,
+        "recall": 0.5857142857142857,
+        "f1-score": 0.5436928755998522,
+        "support": 70.0
+      }
+    },
+    "accuracy": 0.5857142857142857
+  },
+  "baselines": {
+    "score_baseline": {
+      "strict_binary": {
+        "dataset": "strict_binary",
+        "split": "test",
+        "selected_threshold": 0.25,
+        "records": 53,
+        "positives": 25,
+        "negatives": 28,
+        "tp": 19,
+        "fp": 3,
+        "tn": 25,
+        "fn": 6,
+        "precision": 0.8636363636363636,
+        "recall": 0.76,
+        "f1": 0.8085106382978724,
+        "accuracy": 0.8301886792452831
+      },
+      "actionable_binary": {
+        "dataset": "actionable_binary",
+        "split": "test",
+        "selected_threshold": 0.05,
+        "records": 70,
+        "positives": 42,
+        "negatives": 28,
+        "tp": 37,
+        "fp": 11,
+        "tn": 17,
+        "fn": 5,
+        "precision": 0.7708333333333334,
+        "recall": 0.8809523809523809,
+        "f1": 0.8222222222222222,
+        "accuracy": 0.7714285714285715
+      }
+    },
+    "classical_text_classifier": {
+      "strict_binary": {
+        "records": 53,
+        "positive_count": 25,
+        "negative_count": 28,
+        "tp": 23,
+        "fp": 4,
+        "tn": 24,
+        "fn": 2,
+        "precision": 0.8518518518518519,
+        "recall": 0.92,
+        "f1": 0.8846153846153846,
+        "accuracy": 0.8867924528301887
+      },
+      "actionable_binary": {
+        "records": 70,
+        "positive_count": 42,
+        "negative_count": 28,
+        "tp": 39,
+        "fp": 9,
+        "tn": 19,
+        "fn": 3,
+        "precision": 0.8125,
+        "recall": 0.9285714285714286,
+        "f1": 0.8666666666666667,
+        "accuracy": 0.8285714285714286
+      }
+    }
+  },
+  "prediction_path": "data/annotation/evaluation/local_llm/meta-llama__Llama-3.1-8B-Instruct/hierarchical/llm_triage_predictions.jsonl"
+}

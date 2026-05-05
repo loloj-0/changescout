@@ -20,7 +20,7 @@ This principle affects the full architecture:
 2. scoring is a ranking signal, not a final classifier
 3. classification is evaluated as review support
 4. geographic hints are review aids, not verified project locations
-5. LLM methods, if added, must support triage and explanation rather than replacing domain review
+5. LLM methods must support triage and explanation rather than replacing domain review
 
 ## MVP Scope Decision
 
@@ -1272,6 +1272,10 @@ A higher global F1 alone is not sufficient.
 
 The LLM must improve the human review workflow.
 
+Current local LLM results show that zero shot local LLMs do not outperform the TF IDF Logistic Regression classifier as standalone binary classifiers.
+
+They are therefore treated as candidates for hybrid review support rather than replacements for the classical lead detection baseline.
+
 ### Output
 
 The classical text classifier evaluation writes:
@@ -1281,6 +1285,143 @@ The classical text classifier evaluation writes:
 3. `data/annotation/evaluation/classical_text_classifier/classical_text_classifier_report.md`
 
 The prediction output contains test split predictions, probabilities, labels, scores, notes, and source metadata.
+
+## Local LLM Evaluation Architecture
+
+### Responsibility
+
+The local LLM evaluation layer tests whether instruction tuned Hugging Face models improve lead classification, triage, or explanation quality compared with deterministic scoring and classical ML baselines.
+
+The LLM layer is part of evaluation and review support.
+
+It is not part of automatic TLM update confirmation.
+
+### Input
+
+Local LLM evaluation consumes the frozen three class triage evaluation dataset:
+
+`data/annotation/evaluation/triage_3class_dataset.csv`
+
+Only the test split is used for reported LLM metrics.
+
+Required fields:
+
+* `annotation_id`
+* `url`
+* `source_id`
+* `title`
+* `text_full`
+* `triage_class`
+* `change_type`
+* `notes`
+
+The prompt uses the full source text by default.
+
+No source text character limit is applied unless explicitly configured with `--max-input-chars`.
+
+### Output contract
+
+Each LLM prediction is required to return structured JSON with:
+
+* `triage_class`
+* `tlm_relevant`
+* `review_required`
+* `change_type`
+* `notes`
+* `evidence`
+
+The pipeline parses the JSON output and validates required fields.
+
+The boolean labels are normalized from `triage_class` to enforce the frozen annotation schema.
+
+This prevents inconsistent model output such as `tlm_relevant = true` and `review_required = true`.
+
+### Prompt variants
+
+Two zero shot prompt variants are currently evaluated.
+
+#### direct
+
+The direct prompt asks the model to classify the source directly into one of the three triage classes.
+
+#### hierarchical
+
+The hierarchical prompt mirrors the annotation logic.
+
+It first checks for plausible TLM geometry signals and then checks whether the source confirms the geometry sufficiently.
+
+This is closer to the human annotation workflow, especially for distinguishing confirmed_relevant from needs_review.
+
+### Evaluated models
+
+The current local LLM evaluation includes:
+
+| Model | Prompt |
+|---|---|
+| Qwen2.5 7B Instruct | direct |
+| Qwen2.5 7B Instruct | hierarchical |
+| Llama 3.1 8B Instruct | hierarchical |
+| Qwen2.5 14B Instruct | hierarchical |
+
+All models are loaded locally through Hugging Face Transformers.
+
+No API based LLM calls are used.
+
+### Current local LLM result
+
+| Method | Prompt | Strict precision | Strict recall | Strict F1 | Actionable precision | Actionable recall | Actionable F1 | Triage accuracy |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Qwen2.5 7B Instruct | hierarchical | 1.000 | 0.640 | 0.780 | 1.000 | 0.548 | 0.708 | 0.671 |
+| Qwen2.5 7B Instruct | direct | 1.000 | 0.600 | 0.750 | 1.000 | 0.619 | 0.765 | 0.657 |
+| Llama 3.1 8B Instruct | hierarchical | 0.929 | 0.520 | 0.667 | 0.923 | 0.571 | 0.706 | 0.586 |
+| Qwen2.5 14B Instruct | hierarchical | 1.000 | 0.120 | 0.214 | 0.969 | 0.738 | 0.838 | 0.571 |
+
+### Findings
+
+All evaluated local LLM runs produced valid structured output with parse success rate 1.0.
+
+The tested local LLMs are generally conservative.
+
+They achieve high precision but lower recall than the deterministic score baseline and the TF IDF Logistic Regression classifier.
+
+The most important observed error patterns are:
+
+* confirmed_relevant sources downgraded to needs_review
+* confirmed_relevant sources missed as not_relevant
+* needs_review sources missed as not_relevant
+* strong rejection of not_relevant sources
+
+Qwen2.5 14B improves actionable lead detection compared with smaller local LLMs because many confirmed_relevant cases are at least retained as needs_review.
+
+However, this behavior makes it unsuitable for strict confirmed relevance classification.
+
+### Boundary to classical ML
+
+The current TF IDF Logistic Regression baseline remains the strongest standalone binary classifier on the frozen test split.
+
+The local LLMs do not replace the classical classifier.
+
+They may still add value in hybrid workflows because they provide structured notes and evidence snippets.
+
+### Boundary to hybrid lead selection
+
+The most plausible LLM role is downstream of cheap high recall candidate selection.
+
+Candidate selection can be done by:
+
+1. deterministic score threshold
+2. score rank
+3. TF IDF classifier probability
+4. uncertainty bands
+
+The LLM can then be used for:
+
+1. evidence generation
+2. explanation
+3. precision filtering
+4. triage support
+
+This supports the ChangeScout principle that lead generation remains human in the loop.
 
 ## Lead Generation Architecture
 

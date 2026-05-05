@@ -103,7 +103,7 @@ The score can underrate texts where a real TLM relevant signal is described indi
 
 The baseline is therefore evaluated as a lead prioritization mechanism.
 
-## Current baseline results
+## Current non LLM baseline results
 
 Two non LLM baselines have been evaluated on the frozen test splits.
 
@@ -124,7 +124,7 @@ The result also confirms that the project should be evaluated as a lead prioriti
 
 ## Role of LLM methods
 
-LLM methods are evaluated as potential improvements over the deterministic baseline.
+LLM methods are evaluated as potential improvements over deterministic and classical ML baselines.
 
 The expected value of LLMs is not only binary classification.
 
@@ -137,9 +137,41 @@ The expected value is strongest in:
 5. generating concise evidence based review notes
 6. supporting three class triage
 
-LLMs must be compared against deterministic baselines.
+LLMs must be compared against deterministic scoring and TF IDF Logistic Regression.
 
 A useful LLM result must improve review workflow quality, not only produce a higher global score.
+
+## Current local LLM results
+
+Local Hugging Face instruction tuned LLMs were evaluated on the frozen triage test split.
+
+The same structured model outputs were mapped to strict binary relevance, actionable binary lead detection, and three class triage.
+
+| Method | Prompt | Strict precision | Strict recall | Strict F1 | Actionable precision | Actionable recall | Actionable F1 | Triage accuracy |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Qwen2.5 7B Instruct | hierarchical | 1.000 | 0.640 | 0.780 | 1.000 | 0.548 | 0.708 | 0.671 |
+| Qwen2.5 7B Instruct | direct | 1.000 | 0.600 | 0.750 | 1.000 | 0.619 | 0.765 | 0.657 |
+| Llama 3.1 8B Instruct | hierarchical | 0.929 | 0.520 | 0.667 | 0.923 | 0.571 | 0.706 | 0.586 |
+| Qwen2.5 14B Instruct | hierarchical | 1.000 | 0.120 | 0.214 | 0.969 | 0.738 | 0.838 | 0.571 |
+
+The tested local LLMs produced stable structured output.
+
+However, they did not outperform TF IDF Logistic Regression on the frozen binary evaluation tasks.
+
+The main pattern is high precision and lower recall.
+
+Qwen2.5 7B is very conservative and misses many actionable cases.
+
+Qwen2.5 14B improves actionable lead detection by assigning more cases to needs_review, but it often degrades confirmed_relevant cases to needs_review.
+
+This makes local LLMs less suitable as standalone lead discovery models.
+
+Their more plausible role is hybrid review support:
+
+1. evidence extraction
+2. explanation generation
+3. precision filtering of high ranked leads
+4. triage support for candidates already selected by score or classical ML
 
 ## Production interpretation
 
@@ -189,3 +221,11 @@ This does not change the operational runtime design.
 ChangeScout is successful if it reduces the amount of irrelevant source material that a reviewer must inspect while preserving most confirmed relevant and review worthy cases.
 
 The preferred outcome is a reliable review queue, not a fully automated relevance decision.
+
+The current results support this framing.
+
+The strongest standalone lead detection baseline is the TF IDF Logistic Regression classifier.
+
+The deterministic score baseline remains useful because it is transparent and does not require training data.
+
+Local LLMs are currently more useful as review support components than as standalone lead detectors.

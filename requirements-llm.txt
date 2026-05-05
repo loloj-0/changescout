@@ -1,0 +1,8 @@
+torch
+torchvision
+torchaudio
+transformers>=4.45,<5.0
+accelerate>=0.33,<2.0
+sentencepiece
+protobuf
+safetensors
