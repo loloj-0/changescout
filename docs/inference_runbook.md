@@ -549,6 +549,115 @@ Important columns:
 * `geoadmin_best_location_y`
 * `text_preview`
 
+## Optional scoped LLM explainability
+
+LLM explainability is optional.
+
+It requires local Hugging Face model access and suitable GPU resources.
+
+Run it only after candidate selection.
+
+The LLM explains selected leads.
+
+It does not select or remove leads.
+
+```bash
+PYTHONPATH=src python scripts/run_scoped_llm_explainability.py \
+  --run-dir artifacts/runs/xx_hybrid_geoadmin_001 \
+  --model-id Qwen/Qwen2.5-7B-Instruct \
+  --max-records 10
+```
+
+For a small demo run, limit the number of records:
+
+```bash
+PYTHONPATH=src python scripts/run_scoped_llm_explainability.py \
+  --run-dir artifacts/runs/xx_hybrid_geoadmin_001 \
+  --model-id Qwen/Qwen2.5-7B-Instruct \
+  --max-records 3 \
+  --max-new-tokens 384
+```
+
+This writes:
+
+```text
+artifacts/runs/<run_id>/leads_with_llm_explanations.jsonl
+artifacts/runs/<run_id>/leads_with_llm_explanations.csv
+artifacts/runs/<run_id>/reports/llm_explainability_report.json
+artifacts/runs/<run_id>/reports/llm_explainability_report.md
+```
+
+Then rebuild the review export:
+
+```bash
+PYTHONPATH=src python scripts/build_review_export.py \
+  --run-dir artifacts/runs/xx_hybrid_geoadmin_001 \
+  --top-n 30
+```
+
+The review export prefers `leads_with_llm_explanations.jsonl` when it exists.
+
+LLM output fields include:
+
+* `evidence_type`
+* `explanation_note`
+* `evidence_snippet`
+* `geometry_signal`
+* `audit_warning`
+* `parse_success`
+* `evidence_snippet_found_in_source`
+* `requires_manual_check`
+
+The LLM report includes:
+
+* model id
+* input lead file
+* output lead file
+* record count
+* parse success rate
+* evidence type counts
+* evidence snippets found in source
+* missing evidence snippets
+* records requiring manual check
+
+Weak or unsupported explanations are audit flagged.
+
+LLM outputs are never hard exclusion signals.
+
+## Build inference QA report
+
+After an inference run, build a lightweight QA report before manual review.
+
+```bash
+PYTHONPATH=src python scripts/build_inference_qa_report.py \
+  --run-dir artifacts/runs/xx_hybrid_geoadmin_001
+```
+
+The QA report writes:
+
+```text
+artifacts/runs/<run_id>/reports/inference_qa_report.json
+artifacts/runs/<run_id>/reports/inference_qa_report.md
+```
+
+The QA report checks:
+
+* lead count
+* missing URLs
+* missing titles
+* empty text previews
+* missing TF IDF probabilities in hybrid mode
+* missing `selection_reason`
+* duplicate canonical URLs
+* local location hint counts
+* GeoAdmin hint counts
+
+The QA report is a sanity check.
+
+It does not evaluate model quality.
+
+It does not confirm TLM relevance.
+
 ## 14. Build monitoring summary
 
 ```bash
