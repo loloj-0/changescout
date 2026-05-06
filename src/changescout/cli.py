@@ -11,6 +11,7 @@ from changescout.filtering import run_filtering
 from changescout.scoring import run_scoring
 from changescout.snapshot import write_snapshot
 from changescout.pipeline import run_operational_pipeline
+from changescout.registry_validation import run_registry_validation
 
 LOGGER = logging.getLogger(__name__)
 
@@ -230,6 +231,37 @@ def main() -> None:
         help="Path to scoring report file",
     )
 
+    validate_parser = subparsers.add_parser(
+        "validate-registry",
+        help="Validate a source registry and optionally run discovery smoke test",
+    )
+    validate_parser.add_argument(
+        "--config-dir",
+        default="config",
+        help="Path to config directory",
+    )
+    validate_parser.add_argument(
+        "--source-registry",
+        required=True,
+        help="Source registry id, for example be or zh",
+    )
+    validate_parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Optional output directory for validation reports",
+    )
+    validate_parser.add_argument(
+        "--smoke-discovery",
+        action="store_true",
+        help="Run discovery smoke test after registry validation",
+    )
+    validate_parser.add_argument(
+        "--timeout-seconds",
+        type=int,
+        default=10,
+        help="HTTP timeout in seconds for smoke discovery",
+    )
+
     run_parser = subparsers.add_parser(
         "run",
         help="Run scoped operational pipeline",
@@ -389,6 +421,40 @@ def main() -> None:
             print(f"leads_with_geoadmin_locations_csv={metadata['paths']['leads_with_geoadmin_locations_csv']}")
         print(f"metadata={metadata['paths']['metadata']}")
         print(f"log={metadata['paths']['log']}")
+    elif args.command == "validate-registry":
+        result = run_registry_validation(
+            config_dir=Path(args.config_dir),
+            source_registry=args.source_registry,
+            output_dir=Path(args.output_dir) if args.output_dir else None,
+            smoke_discovery=args.smoke_discovery,
+            timeout_seconds=args.timeout_seconds,
+        )
+
+        validation = result["validation"]
+        smoke = result["smoke_discovery"]
+
+        print(f"registry={validation['registry']}")
+        print(f"valid={validation['valid']}")
+        print(f"errors={validation.get('error_count', 0)}")
+        print(f"warnings={validation.get('warning_count', 0)}")
+
+        if args.output_dir:
+            output_dir = Path(args.output_dir)
+            print(f"validation_report={output_dir / 'registry_validation_report.json'}")
+
+        if smoke is not None:
+            print(f"smoke_status={smoke['status']}")
+            print(f"smoke_records={smoke['total_records']}")
+            print(f"discovery_output={smoke['discovery_output_path']}")
+            if args.output_dir:
+                print(f"discovery_report={Path(args.output_dir) / 'discovery_smoke_report.json'}")
+
+        if not validation["valid"]:
+            raise SystemExit(1)
+
+        if smoke is not None and smoke["status"] != "success":
+            raise SystemExit(1)
+
     elif args.command == "snapshot":
         run_snapshot(
             config_dir=Path(args.config_dir),
