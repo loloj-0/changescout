@@ -1,6 +1,6 @@
 version: 1
 
-# Zürich MVP source registry
+# Zürich source registry
 # Included sources are manually curated official canton-level infrastructure pages
 # used to generate leads for potential TLM relevant changes.
 
@@ -13,7 +13,11 @@ sources:
     active: true
     include_patterns:
       - "/geplante-strassenprojekte/projekt-"
-      - "/geplante-strassenprojekte/"
+      - "/geplante-strassenprojekte/strassenprojekt-"
+      - "/geplante-strassenprojekte/geplantes-strassenprojekt-"
+      - "/geplante-strassenprojekte/umfahrung-"
+      - "/geplante-strassenprojekte/ortsdurchfahrt"
+      - "/geplante-strassenprojekte/unterfuehrung"
 
   - source_id: "zh_baustellen"
     name: "Kanton Zürich Baustellen"
