@@ -1,0 +1,13 @@
+task,method,method_type,records,positives,negatives,tp,fp,tn,fn,precision,recall,f1,accuracy,selected_threshold,train_selection_metrics,missing_predictions
+strict_binary,thematic_score,deterministic_score,53,25,28,22,1,27,3,0.9565217391304348,0.88,0.9166666666666666,0.9245283018867925,0.25,"{'records': 211, 'positives': 99, 'negatives': 112, 'tp': 75, 'fp': 12, 'tn': 100, 'fn': 24, 'precision': 0.8620689655172413, 'recall': 0.7575757575757576, 'f1': 0.8064516129032258, 'accuracy': 0.8293838862559242, 'threshold': 0.25}",
+strict_binary,TF IDF Logistic Regression,classical_ml,53,25,28,22,10,18,3,0.6875,0.88,0.7719298245614035,0.7547169811320755,,,
+strict_binary,Qwen2.5 7B hierarchical,local_llm,53,25,28,16,0,28,9,1.0,0.64,0.7804878048780488,0.8301886792452831,,,0.0
+strict_binary,Qwen2.5 7B direct,local_llm,53,25,28,15,0,28,10,1.0,0.6,0.75,0.8113207547169812,,,0.0
+strict_binary,Llama 3.1 8B hierarchical,local_llm,53,25,28,13,1,27,12,0.9285714285714286,0.52,0.6666666666666666,0.7547169811320755,,,0.0
+strict_binary,Qwen2.5 14B hierarchical,local_llm,53,25,28,3,0,28,22,1.0,0.12,0.21428571428571427,0.5849056603773585,,,0.0
+actionable_binary,thematic_score,deterministic_score,70,42,28,36,12,16,6,0.75,0.8571428571428571,0.8,0.7428571428571429,0.05,"{'records': 278, 'positives': 166, 'negatives': 112, 'tp': 133, 'fp': 47, 'tn': 65, 'fn': 33, 'precision': 0.7388888888888889, 'recall': 0.8012048192771084, 'f1': 0.7687861271676301, 'accuracy': 0.7122302158273381, 'threshold': 0.05}",
+actionable_binary,TF IDF Logistic Regression,classical_ml,70,42,28,37,11,17,5,0.7708333333333334,0.8809523809523809,0.8222222222222222,0.7714285714285715,,,
+actionable_binary,Qwen2.5 7B hierarchical,local_llm,70,42,28,23,0,28,19,1.0,0.5476190476190477,0.7076923076923077,0.7285714285714285,,,0.0
+actionable_binary,Qwen2.5 7B direct,local_llm,70,42,28,26,0,28,16,1.0,0.6190476190476191,0.7647058823529411,0.7714285714285715,,,0.0
+actionable_binary,Llama 3.1 8B hierarchical,local_llm,70,42,28,24,2,26,18,0.9230769230769231,0.5714285714285714,0.7058823529411765,0.7142857142857143,,,0.0
+actionable_binary,Qwen2.5 14B hierarchical,local_llm,70,42,28,31,1,27,11,0.96875,0.7380952380952381,0.8378378378378378,0.8285714285714286,,,0.0

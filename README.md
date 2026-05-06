@@ -179,13 +179,38 @@ This step:
 PYTHONPATH=src python scripts/build_evaluation_datasets.py
 ```
 
-This step creates:
+This step creates three frozen evaluation datasets from the expanded annotation dataset.
 
-* strict binary dataset
-* actionable binary dataset
-* three class triage dataset
+The expanded annotation dataset contains 348 manually reviewed sources.
 
-The split column is frozen and reused by all later evaluations.
+The annotation labels are mapped to the derived `triage_class` field:
+
+| tlm_relevant | review_required | triage_class |
+|---|---|---|
+| true | false | confirmed_relevant |
+| false | true | needs_review |
+| false | false | not_relevant |
+| true | true | invalid |
+
+The combination `tlm_relevant = true` and `review_required = true` is invalid.
+
+Generated datasets:
+
+| Dataset | Rows | Train | Test | Positive class | Excluded class |
+|---|---:|---:|---:|---|---|
+| strict_binary | 264 | 211 | 53 | confirmed_relevant | needs_review |
+| actionable_binary | 348 | 278 | 70 | confirmed_relevant or needs_review | none |
+| triage_3class | 348 | 278 | 70 | three class target | none |
+
+The split column is frozen in each dataset.
+
+The splits are stratified per target definition.
+
+This means the task specific binary datasets and the triage dataset have stable splits, but their test rows are not guaranteed to be identical across all tasks.
+
+For direct binary model evaluation, use the task specific binary datasets.
+
+For fair method comparison across score, TF IDF, and LLM predictions, use the aligned comparison on the `triage_3class` test split.
 
 ### Evaluate deterministic score baseline
 
@@ -250,13 +275,39 @@ PYTHONPATH=src python scripts/compare_local_llm_runs.py
 
 This step collects all local LLM evaluation reports and writes a model comparison table.
 
-### Compare all evaluated methods
+### Compare all evaluated methods on task specific binary splits
 
 ```bash
 PYTHONPATH=src python scripts/compare_all_evaluation_methods.py
 ```
 
-This step compares deterministic scoring, TF IDF Logistic Regression, and local LLM methods on the same frozen binary evaluation tasks.
+This step compares deterministic scoring, TF IDF Logistic Regression, and local LLM methods using their existing evaluation reports.
+
+This report is useful for checking each task specific evaluation output.
+
+It should not be used as the final cross method comparison if the underlying test records differ.
+
+### Compare all evaluated methods on aligned triage test records
+
+```bash
+PYTHONPATH=src python scripts/evaluate_aligned_method_comparison.py
+```
+
+This step removes split alignment issues.
+
+It evaluates all methods on the same frozen `triage_3class` test records.
+
+For strict binary evaluation, `needs_review` records are excluded from the triage test split.
+
+For actionable binary evaluation, `confirmed_relevant` and `needs_review` are mapped to positive.
+
+The score threshold is selected on the corresponding triage train split.
+
+The TF IDF classifier is trained on the corresponding triage train split.
+
+Local LLM predictions are evaluated on the same triage test split without additional inference.
+
+The aligned comparison is the preferred method comparison for reporting final findings.
 
 ### Run baseline lead generation
 
@@ -454,9 +505,27 @@ Human readable LLM evaluation report.
 
 Comparison of all local LLM runs.
 
+`data/annotation/evaluation/local_llm/error_analysis/llm_triage_error_analysis.md`
+
+Qualitative and quantitative error analysis of local LLM triage failures.
+
+`data/annotation/evaluation/local_llm/error_analysis/llm_triage_error_summary.csv`
+
+Aggregated counts of LLM triage error types by model and prompt variant.
+
+`data/annotation/evaluation/local_llm/error_analysis/llm_triage_errors.csv`
+
+Record level export of all LLM triage errors with gold labels, predictions, notes, evidence, and source metadata.
+
 `data/annotation/evaluation/method_comparison/method_comparison_binary.md`
 
-Comparison of deterministic scoring, classical ML, and local LLM methods.
+Comparison of deterministic scoring, classical ML, and local LLM methods based on existing task specific reports.
+
+`data/annotation/evaluation/aligned_method_comparison/aligned_method_comparison.md`
+
+Aligned comparison of deterministic scoring, TF IDF Logistic Regression, and local LLM methods on the same frozen triage test records.
+
+This is the preferred report for final method comparison.
 
 ### Snapshot output
 
@@ -808,7 +877,8 @@ Raw HTML files:
 12. Evaluation dataset construction
 13. Baseline evaluation
 14. Local LLM evaluation
-15. Method comparison
+15. Task specific method comparison
+16. Aligned method comparison
 
 ## Current discovery behavior
 
@@ -854,12 +924,13 @@ Raw HTML files:
 ## Current classification behavior
 
 * evaluates TF IDF Logistic Regression as the learned non LLM baseline
-* uses the frozen strict binary and actionable binary evaluation datasets
+* uses title and full source text as model input
+* does not use `notes`, `change_type`, `triage_class`, labels, `thematic_score`, or scoring signals as model input
 * uses frozen train and test splits created during evaluation dataset construction
 * compares results against the deterministic thematic score baseline
 * treats classification as review support, not as final automatic relevance confirmation
 
-Current test split results:
+Task specific binary split results:
 
 | Dataset | Method | Precision | Recall | F1 |
 |---|---|---:|---:|---:|
@@ -867,6 +938,21 @@ Current test split results:
 | strict_binary | TF IDF Logistic Regression | 0.852 | 0.920 | 0.885 |
 | actionable_binary | thematic_score | 0.771 | 0.881 | 0.822 |
 | actionable_binary | TF IDF Logistic Regression | 0.812 | 0.929 | 0.867 |
+
+Aligned triage test split results:
+
+| Task | Method | Precision | Recall | F1 |
+|---|---|---:|---:|---:|
+| strict_binary | thematic_score | 0.957 | 0.880 | 0.917 |
+| strict_binary | TF IDF Logistic Regression | 0.688 | 0.880 | 0.772 |
+| actionable_binary | thematic_score | 0.750 | 0.857 | 0.800 |
+| actionable_binary | TF IDF Logistic Regression | 0.771 | 0.881 | 0.822 |
+
+The task specific binary split and aligned triage split answer different questions.
+
+The task specific split is the original binary evaluation for each target.
+
+The aligned split is the fairer cross method comparison because all methods are evaluated on the same test records.
 
 ## Current local LLM evaluation behavior
 
@@ -878,7 +964,7 @@ The same LLM output is mapped to:
 * actionable binary lead detection
 * three class triage
 
-Current evaluated local LLM runs:
+Current evaluated local LLM runs on the triage test split:
 
 | Method | Prompt | Strict F1 | Actionable F1 | Triage accuracy |
 |---|---|---:|---:|---:|
@@ -887,13 +973,27 @@ Current evaluated local LLM runs:
 | Llama 3.1 8B Instruct | hierarchical | 0.667 | 0.706 | 0.586 |
 | Qwen2.5 14B Instruct | hierarchical | 0.214 | 0.838 | 0.571 |
 
+Aligned method comparison on the same triage test records:
+
+| Task | Best method by F1 | Precision | Recall | F1 | Interpretation |
+|---|---|---:|---:|---:|---|
+| strict_binary | thematic_score | 0.957 | 0.880 | 0.917 | strongest confirmed relevance baseline on aligned records |
+| actionable_binary | Qwen2.5 14B hierarchical | 0.969 | 0.738 | 0.838 | highest actionable F1, but lower recall than TF IDF and score |
+| actionable_binary | TF IDF Logistic Regression | 0.771 | 0.881 | 0.822 | better recall for review queue coverage |
+| actionable_binary | thematic_score | 0.750 | 0.857 | 0.800 | transparent high recall deterministic baseline |
+
 Findings:
 
 * all evaluated local LLM runs produced valid structured JSON output
 * Qwen2.5 7B is very precise but too conservative for actionable lead detection
 * Llama 3.1 8B performed below Qwen2.5 7B on this task
-* Qwen2.5 14B improved actionable lead detection but degraded confirmed relevance to needs_review too often
-* no local zero shot LLM run outperformed TF IDF Logistic Regression on the frozen binary evaluation tasks
+* Qwen2.5 14B improved actionable lead detection by assigning more positive cases to `needs_review`
+* Qwen2.5 14B often degraded `confirmed_relevant` cases to `needs_review`, which hurts strict confirmed relevance
+* on the aligned triage test split, Qwen2.5 14B achieved the highest actionable F1 among evaluated methods, but with lower actionable recall than TF IDF Logistic Regression and thematic_score
+* on the aligned triage test split, thematic_score achieved the strongest strict binary F1
+* the main LLM triage errors are `needs_review` mapped to `not_relevant`, `confirmed_relevant` mapped to `needs_review`, and `confirmed_relevant` mapped to `not_relevant`
+* no evaluated local zero shot LLM is stable enough as a standalone three class triage classifier
+* LLM predictions should not be used as hard exclusion signals
 * local LLMs are more promising for evidence generation, precision filtering, and hybrid review support than for standalone lead discovery
 
 ## Current lead generation behavior
@@ -947,10 +1047,13 @@ Additional limitations:
 
 * HTML cleaning prioritizes recall over precision
 * the current scoring approach is keyword and pattern based and tuned to the MVP source mix
-* the TF IDF Logistic Regression classifier currently outperforms the deterministic score baseline and all evaluated local zero shot LLM runs on the frozen binary evaluation tasks
+* the task specific binary split and aligned triage split produce different method rankings and must not be mixed without explanation
+* on the aligned triage test split, thematic_score is strongest for strict confirmed relevance by F1
+* on the aligned triage test split, Qwen2.5 14B has the highest actionable F1 but lower actionable recall than TF IDF Logistic Regression and thematic_score
 * lead generation currently uses `thematic_score >= 0.10` as a recall oriented inclusion rule in the original MVP reproduction run
 * local LLMs were evaluated zero shot and should not be interpreted as fine tuned domain models
-* local LLMs are currently too conservative for standalone lead discovery
+* local LLMs are currently not stable enough for standalone three class triage
+* LLM predictions of `not_relevant` should downgrade priority but should not remove candidates when score or TF IDF signals indicate actionable relevance
 * lead output is intentionally broad and requires manual review
 * geographic hints are optional review aids and not confirmed geocoding results
 * GeoAdmin API labels and object types are used heuristically and are not treated as a stable authoritative enum

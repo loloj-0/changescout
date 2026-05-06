@@ -1272,9 +1272,15 @@ A higher global F1 alone is not sufficient.
 
 The LLM must improve the human review workflow.
 
-Current local LLM results show that zero shot local LLMs do not outperform the TF IDF Logistic Regression classifier as standalone binary classifiers.
+Current local LLM results are split sensitive.
 
-They are therefore treated as candidates for hybrid review support rather than replacements for the classical lead detection baseline.
+On task specific binary splits, TF IDF Logistic Regression is the strongest learned baseline.
+
+On the aligned triage test split, thematic_score achieves the strongest strict binary F1, while Qwen2.5 14B hierarchical achieves the strongest actionable F1 but with lower actionable recall than TF IDF Logistic Regression and thematic_score.
+
+No evaluated local zero shot LLM is stable enough as a standalone three class triage classifier.
+
+They are therefore treated as candidates for hybrid review support rather than replacements for high recall candidate selection.
 
 ### Output
 
@@ -1394,6 +1400,22 @@ The most important observed error patterns are:
 Qwen2.5 14B improves actionable lead detection compared with smaller local LLMs because many confirmed_relevant cases are at least retained as needs_review.
 
 However, this behavior makes it unsuitable for strict confirmed relevance classification.
+
+### Error analysis finding
+
+The error analysis shows that the dominant local LLM failure modes are:
+
+* `needs_review` mapped to `not_relevant`
+* `confirmed_relevant` mapped to `needs_review`
+* `confirmed_relevant` mapped to `not_relevant`
+
+This supports a hybrid architecture.
+
+LLM predictions can enrich, explain, and reprioritize leads.
+
+They should not be used as hard exclusion signals because false negatives remain too frequent.
+
+An LLM prediction of `not_relevant` may downgrade a candidate, but it should not remove a candidate if deterministic score or TF IDF signals indicate actionable relevance.
 
 ### Boundary to classical ML
 
