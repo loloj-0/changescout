@@ -184,6 +184,57 @@ The source registry value maps to:
 
 `config/sources/xx.yaml`
 
+## 7. Validate the source registry
+
+Before running discovery or full inference, validate the registry.
+
+```bash
+PYTHONPATH=src python -m changescout.cli validate-registry \
+  --config-dir config \
+  --source-registry xx
+```
+
+To write validation artifacts:
+
+```bash
+PYTHONPATH=src python -m changescout.cli validate-registry \
+  --config-dir config \
+  --source-registry xx \
+  --output-dir artifacts/registry_validation/xx_001
+```
+
+To validate and run a discovery smoke test:
+
+```bash
+PYTHONPATH=src python -m changescout.cli validate-registry \
+  --config-dir config \
+  --source-registry xx \
+  --smoke-discovery \
+  --output-dir artifacts/registry_validation/xx_001 \
+  --timeout-seconds 10
+```
+
+The command writes:
+
+```text
+artifacts/registry_validation/<run_id>/
+  registry_validation_report.json
+  discovery_smoke.jsonl
+  discovery_smoke_report.json
+```
+
+Validation checks include:
+
+* registry file exists
+* `sources` is a non empty list
+* required source fields exist
+* `source_id` values are unique
+* `base_url` is a valid HTTP or HTTPS URL
+* `crawl_type` is supported
+* `html_pattern` sources define `include_patterns`
+* active sources exist
+* overly broad include patterns are reported as warnings
+
 ## 7. Snapshot check
 
 Run:
@@ -289,6 +340,41 @@ Inspect metadata:
 ```bash
 cat data/models/tfidf_actionable/tfidf_actionable_v1/metadata.json
 ```
+
+## Standard inference preset
+
+For regular inference, use the concise preset command.
+
+It runs the recommended high recall setup:
+
+* scoped operational run
+* `score_or_tfidf` candidate selection
+* default TF IDF artifact
+* local location hinting
+* optional GeoAdmin enrichment
+
+```bash
+PYTHONPATH=src python -m changescout.cli infer \
+  --source-registry be \
+  --canton-id be \
+  --run-id be_infer_001
+```
+
+With GeoAdmin enrichment:
+
+```bash
+PYTHONPATH=src python -m changescout.cli infer \
+  --source-registry be \
+  --canton-id be \
+  --run-id be_infer_geoadmin_001 \
+  --enable-geoadmin-enrichment
+```
+
+The preset still writes only to:
+
+`artifacts/runs/<run_id>/`
+
+Use the full `run` command when custom thresholds, custom filter config, custom scoring config, or debugging options are needed.
 
 ## 10. Run score only inference
 
@@ -612,6 +698,25 @@ git push
 If you changed docs or source code, commit them separately from the source registry.
 
 ## 19. Existing registry example
+
+Bern standard preset inference:
+
+```bash
+PYTHONPATH=src python -m changescout.cli infer \
+  --source-registry be \
+  --canton-id be \
+  --run-id be_infer_geoadmin_001 \
+  --enable-geoadmin-enrichment
+
+PYTHONPATH=src python scripts/build_review_export.py \
+  --run-dir artifacts/runs/be_infer_geoadmin_001 \
+  --top-n 30
+
+PYTHONPATH=src python scripts/build_monitoring_summary.py \
+  --run-id be_infer_geoadmin_001
+```
+
+Full command equivalent:
 
 Bern hybrid GeoAdmin inference:
 

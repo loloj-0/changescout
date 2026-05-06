@@ -43,21 +43,22 @@ For adding a new canton or source registry and running inference, see:
 
 ## Current operational capability
 
-The current scoped operational pipeline supports:
+The current scoped operational workflow supports:
 
-1. source registry resolution
-2. discovery
-3. crawling
-4. HTML cleaning
-5. hard filtering
-6. thematic scoring
-7. optional operational TF IDF inference
-8. candidate selection with `score_only` or `score_or_tfidf`
-9. local location hinting on selected leads
-10. optional GeoAdmin enrichment on selected leads
-11. scoped review export package
-12. scoped monitoring summary
-13. run metadata and logs
+1. source registry validation and discovery smoke tests
+2. source registry resolution
+3. discovery
+4. crawling
+5. HTML cleaning
+6. hard filtering
+7. thematic scoring
+8. optional operational TF IDF inference
+9. candidate selection with `score_only` or `score_or_tfidf`
+10. local location hinting on selected leads
+11. optional GeoAdmin enrichment on selected leads
+12. scoped review export package
+13. scoped monitoring summary
+14. run metadata and logs
 
 Operational outputs are written under:
 
@@ -155,6 +156,38 @@ For detailed instructions, see:
 
 `docs/inference_runbook.md`
 
+## Validate source registry
+
+Before running a new source registry, validate its configuration.
+
+```bash
+PYTHONPATH=src python -m changescout.cli validate-registry \
+  --config-dir config \
+  --source-registry be
+```
+
+With discovery smoke test and scoped validation outputs:
+
+```bash
+PYTHONPATH=src python -m changescout.cli validate-registry \
+  --config-dir config \
+  --source-registry be \
+  --smoke-discovery \
+  --output-dir artifacts/registry_validation/be_001 \
+  --timeout-seconds 10
+```
+
+This writes:
+
+```text
+artifacts/registry_validation/<run_id>/
+  registry_validation_report.json
+  discovery_smoke.jsonl
+  discovery_smoke_report.json
+```
+
+The validation command checks required fields, duplicate `source_id`, active sources, supported `crawl_type`, required `include_patterns`, valid URLs, and broad include patterns.
+
 ## Resolve configured sources
 
 ```bash
@@ -164,6 +197,43 @@ PYTHONPATH=src python -m changescout.cli snapshot \
 ```
 
 This writes a resolved scope snapshot with the active sources.
+
+## Standard inference preset
+
+For regular inference, use the concise preset command.
+
+The preset runs the recommended high recall setup:
+
+* scoped operational run
+* `score_or_tfidf` candidate selection
+* default TF IDF artifact at `data/models/tfidf_actionable/tfidf_actionable_v1`
+* local location hinting
+* optional GeoAdmin enrichment
+
+Minimal example:
+
+```bash
+PYTHONPATH=src python -m changescout.cli infer \
+  --source-registry be \
+  --canton-id be \
+  --run-id be_infer_001
+```
+
+With optional GeoAdmin enrichment:
+
+```bash
+PYTHONPATH=src python -m changescout.cli infer \
+  --source-registry be \
+  --canton-id be \
+  --run-id be_infer_geoadmin_001 \
+  --enable-geoadmin-enrichment
+```
+
+The preset still writes only to:
+
+`artifacts/runs/<run_id>/`
+
+Use the full `run` command when custom thresholds, custom filter config, custom scoring config, or debugging options are needed.
 
 ## Run scoped operational inference
 
@@ -629,7 +699,13 @@ Script responsibilities are documented in:
 
 `docs/script_inventory.md`
 
-Current operational entry point:
+Current standard inference entry point:
+
+```bash
+PYTHONPATH=src python -m changescout.cli infer
+```
+
+Full operational entry point:
 
 ```bash
 PYTHONPATH=src python -m changescout.cli run
