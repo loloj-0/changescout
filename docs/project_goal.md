@@ -215,6 +215,72 @@ An LLM prediction of `not_relevant` should not be used as a hard exclusion signa
 
 The remaining false negatives at top 50 are mostly broad or aggregated government communication pages where the relevant TLM signal is not prominent enough for the current score, TF IDF, or LLM signals.
 
+
+## Current LLM explainability results
+
+LLM explainability was evaluated as a downstream review support layer for already selected leads.
+
+The evaluation used the recommended `score_or_tfidf` top 50 review queue from the Qwen2.5 7B direct hybrid setup.
+
+Two approaches were compared qualitatively:
+
+1. reusing existing LLM triage outputs as explanation fields
+2. using a dedicated explanation prompt for selected leads
+
+Reusing triage outputs was not sufficient for explainability.
+
+It produced many selected leads where the LLM triage class was `not_relevant`, even though the lead had been selected by score or TF IDF.
+
+This made the explanation layer inconsistent with the high recall review queue.
+
+A dedicated explanation prompt was therefore evaluated.
+
+The prompt does not select or remove leads.
+
+It only produces review support fields:
+
+1. `evidence_type`
+2. `explanation_note`
+3. `evidence_snippet`
+4. `geometry_signal`
+5. `audit_warning`
+
+The JSON keys and evidence type enum remain stable and English.
+
+The review note and audit warning are written in German.
+
+The evidence snippet should stay in the original source wording.
+
+Current top 50 result with Qwen2.5 7B Instruct:
+
+| Metric | Value |
+|---|---:|
+| records | 50 |
+| parse success rate | 1.000 |
+| missing evidence snippets | 0 |
+| evidence snippets found exactly in source | 45 |
+| explanations requiring manual check | 19 |
+
+Evidence type distribution:
+
+| Evidence type | Count |
+|---|---:|
+| confirmed_geometry | 22 |
+| plausible_review_signal | 14 |
+| no_geometry_evidence | 14 |
+
+The dedicated explanation prompt substantially improves review usability compared with reusing triage outputs.
+
+However, generated explanations are not trusted automation.
+
+Some snippets are close paraphrases rather than exact source substrings.
+
+Some explanations extract a useful snippet but assign an overly conservative evidence type.
+
+Some failures are caused by weak extracted source text.
+
+The explanation layer is therefore useful as auditable review support, but every explanation with weak evidence, non exact source match, or `no_geometry_evidence` remains flagged for manual checking.
+
 ## Production interpretation
 
 A productive ChangeScout workflow should remain human in the loop.
@@ -276,4 +342,6 @@ The deterministic score baseline remains useful because it is transparent and do
 
 Local LLMs are currently more useful as review support components than as standalone lead detectors.
 
-The preferred production oriented design is therefore a hybrid workflow: high recall candidate selection by score and TF IDF, followed by LLM based evidence generation and optional priority support.
+The preferred production oriented design is therefore a hybrid workflow: high recall candidate selection by score and TF IDF, followed by LLM based evidence generation, explanation output, and optional priority support.
+
+The explanation output should improve review usability, but it should remain audit flagged and should not be treated as an authoritative justification layer.

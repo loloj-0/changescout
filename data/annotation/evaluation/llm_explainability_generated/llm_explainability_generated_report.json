@@ -1,0 +1,16 @@
+{
+  "model_id": "Qwen/Qwen2.5-7B-Instruct",
+  "mode": "score_or_tfidf",
+  "top_n": 50,
+  "records": 50,
+  "parse_success_count": 50,
+  "parse_success_rate": 1.0,
+  "evidence_type_counts": {
+    "confirmed_geometry": 22,
+    "plausible_review_signal": 14,
+    "no_geometry_evidence": 14
+  },
+  "evidence_snippet_found_in_source_count": 45,
+  "missing_evidence_snippet_count": 0,
+  "requires_manual_explanation_check_count": 19
+}

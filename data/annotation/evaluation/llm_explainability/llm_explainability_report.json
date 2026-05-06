@@ -1,0 +1,24 @@
+{
+  "mode": "score_or_tfidf",
+  "top_n": 50,
+  "records": 50,
+  "evidence_type_counts": {
+    "no_geometry_evidence": 24,
+    "confirmed_geometry": 18,
+    "plausible_review_signal": 8
+  },
+  "llm_triage_counts": {
+    "not_relevant": 24,
+    "confirmed_relevant": 18,
+    "needs_review": 8
+  },
+  "gold_triage_counts": {
+    "confirmed_relevant": 24,
+    "needs_review": 15,
+    "not_relevant": 11
+  },
+  "missing_evidence_snippet_count": 1,
+  "llm_gold_disagreement_count": 21,
+  "llm_predicted_not_relevant_for_selected_lead_count": 24,
+  "requires_manual_explanation_check_count": 32
+}

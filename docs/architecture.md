@@ -1266,7 +1266,8 @@ A useful LLM method should improve at least one of the following:
 4. precision at useful review depth
 5. evidence quality
 6. explanation quality
-7. reduction of systematic false positives such as Sanierung, BehiG, Lärmschutz, or temporary traffic management
+7. auditability of generated evidence snippets
+8. reduction of systematic false positives such as Sanierung, BehiG, Lärmschutz, or temporary traffic management
 
 A higher global F1 alone is not sufficient.
 
@@ -1550,6 +1551,155 @@ Hybrid lead selection currently belongs to the evaluation layer.
 It identifies the preferred strategy for future production lead generation.
 
 Operational lead generation can later consume the selected strategy, but it should preserve the human in the loop boundary.
+
+
+## LLM Explainability Architecture
+
+### Responsibility
+
+The LLM explainability layer generates concise, auditable review explanations for already selected leads.
+
+It supports human review.
+
+It does not select leads.
+
+It does not remove leads.
+
+It does not confirm that TLM must be updated.
+
+### Input
+
+The explainability layer consumes selected leads from hybrid lead selection.
+
+The current evaluation input is the top 50 `score_or_tfidf` review queue from the Qwen2.5 7B direct hybrid setup.
+
+Required input fields include:
+
+* `annotation_id`
+* `source_id`
+* `url`
+* `title`
+* `text_full`
+* `thematic_score_eval`
+* `tfidf_actionable_probability`
+* `llm_triage_class` when available
+
+### Explanation output contract
+
+The dedicated explanation prompt returns structured JSON with these fields:
+
+* `evidence_type`
+* `explanation_note`
+* `evidence_snippet`
+* `geometry_signal`
+* `audit_warning`
+
+The allowed `evidence_type` values are:
+
+* `confirmed_geometry`
+* `plausible_review_signal`
+* `no_geometry_evidence`
+* `unclear`
+
+The JSON keys and evidence type enum are stable and English.
+
+The reviewer note and audit warning are generated in German.
+
+The evidence snippet should stay in the original source wording.
+
+### Explanation policy
+
+The model must use only the provided source text.
+
+It must not infer geometry changes that are not stated.
+
+It must not invent locations, objects, or project details.
+
+The explanation must distinguish confirmed geometry evidence from plausible but unconfirmed review signals.
+
+If no geometry evidence is found, the output should use `no_geometry_evidence` and explain the limitation.
+
+### Audit fields
+
+The evaluation layer validates generated explanations with audit fields.
+
+Current audit fields include:
+
+* parse success
+* evidence snippet found in source
+* missing evidence snippet
+* requires manual explanation check
+
+A manual check is required when evidence is missing, not exactly found in source, weak, negative, or unclear.
+
+### Current evaluation result
+
+Reusing local LLM triage outputs as explanations was evaluated first.
+
+This approach was not sufficient because many selected leads received `not_relevant` explanations despite being selected by score or TF IDF.
+
+A dedicated explanation prompt was then evaluated on the top 50 `score_or_tfidf` leads.
+
+Current Qwen2.5 7B result:
+
+| Metric | Value |
+|---|---:|
+| records | 50 |
+| parse success rate | 1.000 |
+| missing evidence snippets | 0 |
+| evidence snippets found exactly in source | 45 |
+| explanations requiring manual check | 19 |
+
+Evidence type distribution:
+
+| Evidence type | Count |
+|---|---:|
+| confirmed_geometry | 22 |
+| plausible_review_signal | 14 |
+| no_geometry_evidence | 14 |
+
+### Interpretation
+
+The dedicated explanation prompt substantially improves review usability compared with reusing triage outputs.
+
+However, explanation output remains auditable support, not trusted automation.
+
+Some generated evidence snippets are close paraphrases rather than exact source substrings.
+
+Some explanations extract a useful snippet but assign an overly conservative evidence type.
+
+Some explanation failures are caused by weak extracted source text.
+
+Therefore, explanations should be attached to lead exports together with audit flags.
+
+They should not be treated as authoritative proof that a source is or is not TLM relevant.
+
+### Boundary to hybrid lead selection
+
+Hybrid lead selection determines which records enter the review queue.
+
+The explainability layer explains selected leads after selection.
+
+It must not be used as a hard exclusion stage.
+
+### Output
+
+LLM explainability evaluation writes:
+
+* `data/annotation/evaluation/llm_explainability/llm_explainability_leads.csv`
+* `data/annotation/evaluation/llm_explainability/llm_explainability_report.md`
+* `data/annotation/evaluation/llm_explainability_generated/llm_explainability_generated.jsonl`
+* `data/annotation/evaluation/llm_explainability_generated/llm_explainability_generated.csv`
+* `data/annotation/evaluation/llm_explainability_generated/llm_explainability_generated_report.md`
+* `data/annotation/evaluation/llm_explainability_generated/explainability_manual_review_notes.md`
+
+### Future prompt refinement
+
+The current explanation prompt should be treated as version 1.
+
+Future prompt versions may incorporate guideline aligned refinements from manual error analysis.
+
+Those refinements should be evaluated separately to avoid optimizing on the current test examples.
 
 ## Lead Generation Architecture
 

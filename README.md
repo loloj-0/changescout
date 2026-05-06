@@ -336,6 +336,42 @@ The preferred current production oriented strategy is `score_or_tfidf` for high 
 
 LLM predictions are not used as hard exclusion signals.
 
+
+### Run LLM explainability output evaluation
+
+First build explanation fields from existing LLM triage outputs.
+
+```bash
+PYTHONPATH=src python scripts/build_llm_explainability_leads.py
+```
+
+This step tests whether existing triage outputs are sufficient as explanation fields.
+
+The current result shows that reusing triage outputs is not sufficient for reliable explanations.
+
+Then run the dedicated explanation prompt on the selected top 50 `score_or_tfidf` leads.
+
+```bash
+PYTHONPATH=src python scripts/run_llm_explainability.py \
+  --model-id Qwen/Qwen2.5-7B-Instruct
+```
+
+This step does not select or remove leads.
+
+It generates review support fields for already selected leads:
+
+* `evidence_type`
+* `explanation_note`
+* `evidence_snippet`
+* `geometry_signal`
+* `audit_warning`
+
+The JSON keys and evidence type enum are stable machine readable fields.
+
+The reviewer note and audit warning are generated in German.
+
+The evidence snippet should stay in the original source wording.
+
 ### Run baseline lead generation
 
 ```bash
@@ -581,6 +617,52 @@ This is the preferred report for Issue 20.
 `data/annotation/evaluation/hybrid_lead_selection_comparison/score_or_tfidf_top50_false_negatives.md`
 
 False negative inspection for the recommended top 50 high recall strategy.
+
+
+### LLM explainability outputs
+
+`data/annotation/evaluation/llm_explainability/llm_explainability_leads.csv`
+
+Lead export using existing local LLM triage outputs as explanation fields.
+
+`data/annotation/evaluation/llm_explainability/llm_explainability_report.md`
+
+Human readable report showing that existing triage outputs are not sufficient as a reliable explanation layer.
+
+`data/annotation/evaluation/llm_explainability_generated/llm_explainability_generated.jsonl`
+
+Generated explanation output for selected leads using the dedicated explanation prompt.
+
+Each record contains:
+
+* `evidence_type`
+* `explanation_note`
+* `evidence_snippet`
+* `geometry_signal`
+* `audit_warning`
+* parse status
+* audit fields
+
+`data/annotation/evaluation/llm_explainability_generated/llm_explainability_generated.csv`
+
+CSV version of the generated explanation output for manual inspection.
+
+`data/annotation/evaluation/llm_explainability_generated/llm_explainability_generated_report.md`
+
+Human readable report for the dedicated explanation prompt.
+
+Current top 50 result:
+
+| Metric | Value |
+|---|---:|
+| parse success rate | 1.000 |
+| missing evidence snippets | 0 |
+| evidence snippets found exactly in source | 45 |
+| explanations requiring manual check | 19 |
+
+`data/annotation/evaluation/llm_explainability_generated/explainability_manual_review_notes.md`
+
+Manual inspection notes for the generated explanations.
 
 ### Snapshot output
 
@@ -935,6 +1017,7 @@ Raw HTML files:
 15. Task specific method comparison
 16. Aligned method comparison
 17. Hybrid lead selection evaluation
+18. LLM explainability output evaluation
 
 ## Current discovery behavior
 
@@ -1087,6 +1170,49 @@ Findings:
 * LLM `not_relevant` predictions should not be used as hard exclusion signals
 * the recommended current strategy is `score_or_tfidf` candidate selection plus LLM based evidence and review support
 
+
+## Current LLM explainability behavior
+
+LLM explainability is evaluated downstream of hybrid lead selection.
+
+It is applied to the top 50 `score_or_tfidf` leads from the production oriented Qwen2.5 7B direct setup.
+
+The explanation layer does not select or remove leads.
+
+It generates auditable review support fields.
+
+Reusing existing LLM triage outputs as explanations was not sufficient.
+
+It produced too many selected leads with `not_relevant` explanations and many records requiring manual checking.
+
+A dedicated explanation prompt performs better.
+
+Current top 50 generated explanation result:
+
+| Metric | Value |
+|---|---:|
+| records | 50 |
+| parse success rate | 1.000 |
+| missing evidence snippets | 0 |
+| evidence snippets found exactly in source | 45 |
+| explanations requiring manual check | 19 |
+
+Evidence type counts:
+
+| Evidence type | Count |
+|---|---:|
+| confirmed_geometry | 22 |
+| plausible_review_signal | 14 |
+| no_geometry_evidence | 14 |
+
+Findings:
+
+* the dedicated explanation prompt is more useful than reusing triage outputs
+* explanations improve lead reviewability but remain audit support
+* non exact snippets, weak evidence, and `no_geometry_evidence` outputs are flagged for manual checking
+* explanation output must not be treated as authoritative proof that TLM must be updated
+* future prompt refinements should be evaluated separately to avoid optimizing on current test examples
+
 ## Current lead generation behavior
 
 * includes documents with `thematic_score >= 0.10`
@@ -1145,6 +1271,7 @@ Additional limitations:
 * local LLMs were evaluated zero shot and should not be interpreted as fine tuned domain models
 * local LLMs are currently not stable enough for standalone three class triage
 * LLM predictions of `not_relevant` should downgrade priority but should not remove candidates when score or TF IDF signals indicate actionable relevance
+* LLM explanations improve reviewability but require audit flags and manual checking when evidence is weak or not exactly source matched
 * lead output is intentionally broad and requires manual review
 * geographic hints are optional review aids and not confirmed geocoding results
 * GeoAdmin API labels and object types are used heuristically and are not treated as a stable authoritative enum
