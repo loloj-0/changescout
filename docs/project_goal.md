@@ -173,6 +173,48 @@ Their more plausible role is hybrid review support:
 3. precision filtering of high ranked leads
 4. triage support for candidates already selected by score or classical ML
 
+## Current hybrid lead selection results
+
+Hybrid lead selection was evaluated on the aligned triage test split.
+
+The target is actionable lead detection.
+
+Positive actionable leads are `confirmed_relevant` and `needs_review`.
+
+The evaluated modes include:
+
+1. `score_only`
+2. `tfidf_only`
+3. `llm_only`
+4. `score_or_tfidf`
+5. `hybrid_weighted`
+6. `hybrid_recall_guard`
+
+The comparison was run with Qwen2.5 14B hierarchical as an upper bound LLM signal and Qwen2.5 7B variants as more production oriented LLM signals.
+
+Main results by review depth:
+
+| Review depth | Best mode | Precision at N | Recall at N | False negatives | Interpretation |
+|---:|---|---:|---:|---:|---|
+| 10 | `tfidf_only` | 1.000 | 0.238 | 32 | small high precision queue, no hybrid advantage |
+| 20 | `hybrid_recall_guard` | 1.000 | 0.476 | 22 | best small review queue prioritization |
+| 50 | `score_or_tfidf` | 0.780 | 0.929 | 3 | best high recall review strategy |
+| 70 | `score_or_tfidf` | 0.600 | 1.000 | 0 | full test set, no workload reduction |
+
+The recommended current hybrid strategy is:
+
+1. use `score_or_tfidf` as the high recall candidate selection layer
+2. use a production feasible local LLM such as Qwen2.5 7B for evidence generation, triage notes, and optional priority support
+3. treat Qwen2.5 14B as an upper bound evaluation signal, not as the default production model
+
+The high recall gain at broader review depth mainly comes from combining the deterministic thematic score and TF IDF probability.
+
+The LLM adds most value as evidence and prioritization support.
+
+An LLM prediction of `not_relevant` should not be used as a hard exclusion signal.
+
+The remaining false negatives at top 50 are mostly broad or aggregated government communication pages where the relevant TLM signal is not prominent enough for the current score, TF IDF, or LLM signals.
+
 ## Production interpretation
 
 A productive ChangeScout workflow should remain human in the loop.
@@ -224,8 +266,14 @@ The preferred outcome is a reliable review queue, not a fully automated relevanc
 
 The current results support this framing.
 
-The strongest standalone lead detection baseline is the TF IDF Logistic Regression classifier.
+On task specific binary splits, TF IDF Logistic Regression is the strongest learned non LLM baseline.
+
+On the aligned triage test split, thematic_score is strongest for strict confirmed relevance by F1.
+
+For actionable lead selection at broader review depth, the strongest current strategy is the `score_or_tfidf` union.
 
 The deterministic score baseline remains useful because it is transparent and does not require training data.
 
 Local LLMs are currently more useful as review support components than as standalone lead detectors.
+
+The preferred production oriented design is therefore a hybrid workflow: high recall candidate selection by score and TF IDF, followed by LLM based evidence generation and optional priority support.

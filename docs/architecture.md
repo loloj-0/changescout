@@ -1445,6 +1445,112 @@ The LLM can then be used for:
 
 This supports the ChangeScout principle that lead generation remains human in the loop.
 
+## Hybrid Lead Selection Architecture
+
+### Responsibility
+
+The hybrid lead selection layer evaluates practical review queue strategies that combine cheap high recall candidate selection with optional LLM based triage, notes, and evidence.
+
+Hybrid lead selection is not a final TLM relevance authority.
+
+It creates ranked review candidates and explains why they should be inspected.
+
+### Input
+
+Hybrid lead selection evaluation consumes aligned evaluation artefacts:
+
+* `data/annotation/evaluation/triage_3class_dataset.csv`
+* `data/annotation/evaluation/aligned_method_comparison/aligned_tfidf_predictions.csv`
+* `data/annotation/evaluation/local_llm/<model>/<prompt_variant>/llm_triage_predictions.jsonl`
+
+The target is actionable lead detection.
+
+Positive actionable leads are:
+
+1. `confirmed_relevant`
+2. `needs_review`
+
+### Evaluated modes
+
+The current evaluation supports these modes:
+
+| Mode | Meaning |
+|---|---|
+| `score_only` | rank by deterministic thematic score |
+| `tfidf_only` | rank by TF IDF actionable probability |
+| `llm_only` | rank by LLM triage signal |
+| `score_or_tfidf` | rank by the maximum of thematic score and TF IDF probability |
+| `hybrid_weighted` | weighted combination of thematic score, TF IDF probability, and LLM signal |
+| `hybrid_recall_guard` | weighted hybrid score with recall oriented boosts for strong score or TF IDF signals |
+
+### LLM boundary
+
+LLM predictions are enrichment and reprioritization signals.
+
+They are not hard exclusion signals.
+
+An LLM prediction of `not_relevant` may downgrade a candidate, but it must not remove a candidate when deterministic score or TF IDF signals indicate actionable relevance.
+
+This boundary follows directly from the observed LLM false negative behavior.
+
+### Current result
+
+Hybrid lead selection was evaluated across Qwen2.5 14B hierarchical, Qwen2.5 7B direct, and Qwen2.5 7B hierarchical LLM outputs.
+
+Qwen2.5 14B is treated as an upper bound signal because it is computationally heavier and required CPU offload in the current environment.
+
+Qwen2.5 7B variants are treated as more production oriented local LLM signals.
+
+Best modes by review depth:
+
+| Review depth | Best mode | LLM dependency | Precision at N | Recall at N | False negatives |
+|---:|---|---|---:|---:|---:|
+| 10 | `tfidf_only` | not applicable | 1.000 | 0.238 | 32 |
+| 20 | `hybrid_recall_guard` | Qwen2.5 7B or 14B signal | 1.000 | 0.476 | 22 |
+| 50 | `score_or_tfidf` | not applicable | 0.780 | 0.929 | 3 |
+| 70 | `score_or_tfidf` | not applicable | 0.600 | 1.000 | 0 |
+
+### Interpretation
+
+For very small review queues, LLM based ranking can improve precision preserving prioritization.
+
+For broader review queues, the measurable high recall gain mainly comes from combining the deterministic thematic score and TF IDF probability.
+
+The recommended production oriented strategy is therefore:
+
+1. use `score_or_tfidf` as the high recall candidate selection layer
+2. use a production feasible local LLM such as Qwen2.5 7B for evidence generation, triage notes, and optional priority support
+3. use Qwen2.5 14B only as an upper bound evaluation signal, not as the default production model
+
+### False negative profile
+
+At top 50, the recommended `score_or_tfidf` strategy missed 3 actionable records.
+
+These remaining false negatives are mainly broad or aggregated government communication pages.
+
+Their relevant TLM signal is not prominent enough for the current score, TF IDF, or LLM signals.
+
+This supports keeping ChangeScout human in the loop and treating LLM `not_relevant` as a downgrade signal rather than a hard exclusion.
+
+### Output
+
+Hybrid lead selection evaluation writes:
+
+* `data/annotation/evaluation/hybrid_lead_selection_<llm_variant>/hybrid_lead_selection_metrics.csv`
+* `data/annotation/evaluation/hybrid_lead_selection_<llm_variant>/hybrid_leads.csv`
+* `data/annotation/evaluation/hybrid_lead_selection_<llm_variant>/hybrid_eval_records.csv`
+* `data/annotation/evaluation/hybrid_lead_selection_<llm_variant>/hybrid_lead_selection_report.md`
+* `data/annotation/evaluation/hybrid_lead_selection_comparison/hybrid_lead_selection_comparison.md`
+* `data/annotation/evaluation/hybrid_lead_selection_comparison/score_or_tfidf_top50_false_negatives.md`
+
+### Boundary to lead generation
+
+Hybrid lead selection currently belongs to the evaluation layer.
+
+It identifies the preferred strategy for future production lead generation.
+
+Operational lead generation can later consume the selected strategy, but it should preserve the human in the loop boundary.
+
 ## Lead Generation Architecture
 
 ### Responsibility

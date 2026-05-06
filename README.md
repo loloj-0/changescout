@@ -309,6 +309,33 @@ Local LLM predictions are evaluated on the same triage test split without additi
 
 The aligned comparison is the preferred method comparison for reporting final findings.
 
+### Run hybrid lead selection evaluation
+
+```bash
+PYTHONPATH=src python scripts/evaluate_hybrid_lead_selection.py   --llm-predictions data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/direct/llm_triage_predictions.jsonl   --output-dir data/annotation/evaluation/hybrid_lead_selection_qwen7b_direct
+
+PYTHONPATH=src python scripts/compare_hybrid_lead_selection_runs.py
+```
+
+This step evaluates practical lead selection strategies on the aligned triage test split.
+
+The target is actionable lead detection.
+
+Positive actionable leads are `confirmed_relevant` and `needs_review`.
+
+Evaluated modes include:
+
+* `score_only`
+* `tfidf_only`
+* `llm_only`
+* `score_or_tfidf`
+* `hybrid_weighted`
+* `hybrid_recall_guard`
+
+The preferred current production oriented strategy is `score_or_tfidf` for high recall candidate selection plus a production feasible local LLM such as Qwen2.5 7B for evidence generation, triage notes, and optional priority support.
+
+LLM predictions are not used as hard exclusion signals.
+
 ### Run baseline lead generation
 
 ```bash
@@ -526,6 +553,34 @@ Comparison of deterministic scoring, classical ML, and local LLM methods based o
 Aligned comparison of deterministic scoring, TF IDF Logistic Regression, and local LLM methods on the same frozen triage test records.
 
 This is the preferred report for final method comparison.
+
+### Hybrid lead selection evaluation outputs
+
+`data/annotation/evaluation/hybrid_lead_selection_<llm_variant>/hybrid_lead_selection_metrics.csv`
+
+Precision at N, recall at N, false negatives, and workload reduction for each evaluated lead selection mode.
+
+`data/annotation/evaluation/hybrid_lead_selection_<llm_variant>/hybrid_leads.csv`
+
+Ranked lead exports for each evaluated lead selection mode.
+
+`data/annotation/evaluation/hybrid_lead_selection_<llm_variant>/hybrid_eval_records.csv`
+
+Merged evaluation records with thematic score, TF IDF probability, LLM triage output, and derived ranking signals.
+
+`data/annotation/evaluation/hybrid_lead_selection_<llm_variant>/hybrid_lead_selection_report.md`
+
+Human readable report for one hybrid lead selection run.
+
+`data/annotation/evaluation/hybrid_lead_selection_comparison/hybrid_lead_selection_comparison.md`
+
+Cross run comparison of hybrid lead selection strategies across evaluated LLM variants.
+
+This is the preferred report for Issue 20.
+
+`data/annotation/evaluation/hybrid_lead_selection_comparison/score_or_tfidf_top50_false_negatives.md`
+
+False negative inspection for the recommended top 50 high recall strategy.
 
 ### Snapshot output
 
@@ -879,6 +934,7 @@ Raw HTML files:
 14. Local LLM evaluation
 15. Task specific method comparison
 16. Aligned method comparison
+17. Hybrid lead selection evaluation
 
 ## Current discovery behavior
 
@@ -995,6 +1051,41 @@ Findings:
 * no evaluated local zero shot LLM is stable enough as a standalone three class triage classifier
 * LLM predictions should not be used as hard exclusion signals
 * local LLMs are more promising for evidence generation, precision filtering, and hybrid review support than for standalone lead discovery
+
+## Current hybrid lead selection behavior
+
+Hybrid lead selection is evaluated on the aligned triage test split.
+
+The target is actionable lead detection.
+
+Positive actionable leads are `confirmed_relevant` and `needs_review`.
+
+Current evaluated modes:
+
+* `score_only`
+* `tfidf_only`
+* `llm_only`
+* `score_or_tfidf`
+* `hybrid_weighted`
+* `hybrid_recall_guard`
+
+Best modes by review depth:
+
+| Review depth | Best mode | LLM dependency | Precision at N | Recall at N | False negatives |
+|---:|---|---|---:|---:|---:|
+| 10 | `tfidf_only` | not applicable | 1.000 | 0.238 | 32 |
+| 20 | `hybrid_recall_guard` | Qwen2.5 7B or 14B signal | 1.000 | 0.476 | 22 |
+| 50 | `score_or_tfidf` | not applicable | 0.780 | 0.929 | 3 |
+| 70 | `score_or_tfidf` | not applicable | 0.600 | 1.000 | 0 |
+
+Findings:
+
+* small review queues can benefit from LLM based prioritization
+* broader high recall review queues benefit most from combining thematic_score and TF IDF probability
+* Qwen2.5 14B is useful as an upper bound signal, but it is not the preferred production default
+* Qwen2.5 7B variants are more production oriented and remain useful for evidence generation, triage notes, and optional priority support
+* LLM `not_relevant` predictions should not be used as hard exclusion signals
+* the recommended current strategy is `score_or_tfidf` candidate selection plus LLM based evidence and review support
 
 ## Current lead generation behavior
 
