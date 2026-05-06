@@ -15,6 +15,11 @@ from changescout.discovery import discover_urls_from_source, write_discovery_jso
 from changescout.filtering import run_filtering
 from changescout.html_cleaning import process_crawl_records
 from changescout.leads import run_lead_generation
+from changescout.lead_enrichment import (
+    run_geoadmin_lead_location_enrichment,
+    run_local_lead_location_hinting,
+    write_geoadmin_failure_report,
+)
 from changescout.models import DiscoveredUrlRecord
 from changescout.scoring import run_scoring, score_documents
 
@@ -39,12 +44,18 @@ class OperationalRunPaths:
     scored_path: Path
     leads_jsonl_path: Path
     leads_csv_path: Path
+    leads_with_locations_jsonl_path: Path
+    leads_with_locations_csv_path: Path
+    leads_with_geoadmin_locations_jsonl_path: Path
+    leads_with_geoadmin_locations_csv_path: Path
     discovery_report_path: Path
     crawl_report_path: Path
     cleaning_report_path: Path
     filter_report_path: Path
     scoring_report_path: Path
     lead_generation_report_path: Path
+    location_hinting_report_path: Path
+    geoadmin_location_hinting_report_path: Path
     run_metadata_path: Path
     run_log_path: Path
 
@@ -83,12 +94,18 @@ def build_operational_run_paths(
         scored_path=run_dir / "scored.jsonl",
         leads_jsonl_path=run_dir / "leads.jsonl",
         leads_csv_path=run_dir / "leads.csv",
+        leads_with_locations_jsonl_path=run_dir / "leads_with_locations.jsonl",
+        leads_with_locations_csv_path=run_dir / "leads_with_locations.csv",
+        leads_with_geoadmin_locations_jsonl_path=run_dir / "leads_with_geoadmin_locations.jsonl",
+        leads_with_geoadmin_locations_csv_path=run_dir / "leads_with_geoadmin_locations.csv",
         discovery_report_path=reports_dir / "discovery_report.json",
         crawl_report_path=reports_dir / "crawl_report.json",
         cleaning_report_path=reports_dir / "cleaning_report.json",
         filter_report_path=reports_dir / "filter_report.json",
         scoring_report_path=reports_dir / "scoring_report.json",
         lead_generation_report_path=reports_dir / "lead_generation_report.json",
+        location_hinting_report_path=reports_dir / "location_hinting_report.json",
+        geoadmin_location_hinting_report_path=reports_dir / "geoadmin_location_hinting_report.json",
         run_metadata_path=metadata_dir / "run_metadata.json",
         run_log_path=logs_dir / "run.log",
     )
@@ -225,6 +242,10 @@ def write_run_metadata(
             "scored": str(paths.scored_path),
             "leads_jsonl": str(paths.leads_jsonl_path),
             "leads_csv": str(paths.leads_csv_path),
+            "leads_with_locations_jsonl": str(paths.leads_with_locations_jsonl_path),
+            "leads_with_locations_csv": str(paths.leads_with_locations_csv_path),
+            "leads_with_geoadmin_locations_jsonl": str(paths.leads_with_geoadmin_locations_jsonl_path),
+            "leads_with_geoadmin_locations_csv": str(paths.leads_with_geoadmin_locations_csv_path),
             "reports_dir": str(paths.reports_dir),
             "metadata": str(paths.run_metadata_path),
             "log": str(paths.run_log_path),
@@ -236,6 +257,8 @@ def write_run_metadata(
             "filter": str(paths.filter_report_path),
             "scoring": str(paths.scoring_report_path),
             "lead_generation": str(paths.lead_generation_report_path),
+            "local_location_hinting": str(paths.location_hinting_report_path),
+            "geoadmin_location_hinting": str(paths.geoadmin_location_hinting_report_path),
         },
     }
     write_json(paths.run_metadata_path, metadata)
@@ -324,6 +347,11 @@ def run_operational_pipeline(
     min_text_length: int = 300,
     allowed_languages: Optional[list[str]] = None,
     timeout_seconds: int = 10,
+    enable_location_hinting: bool = True,
+    enable_geoadmin_enrichment: bool = False,
+    location_reference_path: Path = Path("data/reference/location_hints_reference.csv"),
+    geoadmin_cache_path: Path = Path("data/reference/geoadmin_search_cache.jsonl"),
+    geoadmin_max_queries: int = 3,
 ) -> Dict[str, Any]:
     if allowed_languages is None:
         allowed_languages = ["de"]
@@ -409,6 +437,39 @@ def run_operational_pipeline(
             preview_length=preview_length,
         )
 
+        location_hinting_report: Dict[str, Any] | None = None
+        geoadmin_location_hinting_report: Dict[str, Any] | None = None
+
+        should_run_local_location_hinting = (
+            enable_location_hinting or enable_geoadmin_enrichment
+        )
+
+        if should_run_local_location_hinting:
+            location_hinting_report = run_local_lead_location_hinting(
+                input_jsonl_path=paths.leads_jsonl_path,
+                reference_path=location_reference_path,
+                output_jsonl_path=paths.leads_with_locations_jsonl_path,
+                output_csv_path=paths.leads_with_locations_csv_path,
+                report_output_path=paths.location_hinting_report_path,
+            )
+
+        if enable_geoadmin_enrichment:
+            try:
+                geoadmin_location_hinting_report = run_geoadmin_lead_location_enrichment(
+                    input_jsonl_path=paths.leads_with_locations_jsonl_path,
+                    output_jsonl_path=paths.leads_with_geoadmin_locations_jsonl_path,
+                    output_csv_path=paths.leads_with_geoadmin_locations_csv_path,
+                    report_output_path=paths.geoadmin_location_hinting_report_path,
+                    cache_path=geoadmin_cache_path,
+                    max_queries=geoadmin_max_queries,
+                )
+            except Exception as exc:
+                LOGGER.exception("GeoAdmin enrichment failed non_blocking")
+                geoadmin_location_hinting_report = write_geoadmin_failure_report(
+                    report_output_path=paths.geoadmin_location_hinting_report_path,
+                    error=str(exc),
+                )
+
         ended_at = utc_now_iso()
         metadata = write_run_metadata(
             paths=paths,
@@ -426,6 +487,8 @@ def run_operational_pipeline(
             "filter_report": filter_report,
             "scoring_report": scoring_report,
             "lead_generation_report": lead_generation_report,
+            "location_hinting_report": location_hinting_report,
+            "geoadmin_location_hinting_report": geoadmin_location_hinting_report,
         }
 
     except Exception as exc:

@@ -70,6 +70,10 @@ def test_build_operational_run_paths_are_run_scoped():
     assert paths.scored_path == Path("artifacts/runs/issue24_test/scored.jsonl")
     assert paths.leads_jsonl_path == Path("artifacts/runs/issue24_test/leads.jsonl")
     assert paths.leads_csv_path == Path("artifacts/runs/issue24_test/leads.csv")
+    assert paths.leads_with_locations_jsonl_path == Path("artifacts/runs/issue24_test/leads_with_locations.jsonl")
+    assert paths.leads_with_locations_csv_path == Path("artifacts/runs/issue24_test/leads_with_locations.csv")
+    assert paths.leads_with_geoadmin_locations_jsonl_path == Path("artifacts/runs/issue24_test/leads_with_geoadmin_locations.jsonl")
+    assert paths.leads_with_geoadmin_locations_csv_path == Path("artifacts/runs/issue24_test/leads_with_geoadmin_locations.csv")
     assert paths.reports_dir == Path("artifacts/runs/issue24_test/reports")
     assert paths.metadata_dir == Path("artifacts/runs/issue24_test/metadata")
     assert paths.logs_dir == Path("artifacts/runs/issue24_test/logs")
@@ -101,6 +105,8 @@ def test_operational_run_paths_do_not_point_to_evaluation_outputs():
         paths.filter_report_path,
         paths.scoring_report_path,
         paths.lead_generation_report_path,
+        paths.location_hinting_report_path,
+        paths.geoadmin_location_hinting_report_path,
         paths.run_metadata_path,
         paths.run_log_path,
     ]

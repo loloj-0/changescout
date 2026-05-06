@@ -304,6 +304,32 @@ def main() -> None:
         default=10,
         help="HTTP timeout in seconds",
     )
+    run_parser.add_argument(
+        "--disable-location-hinting",
+        action="store_true",
+        help="Disable local location hinting after lead generation",
+    )
+    run_parser.add_argument(
+        "--location-reference",
+        default="data/reference/location_hints_reference.csv",
+        help="Path to local location hint reference CSV",
+    )
+    run_parser.add_argument(
+        "--enable-geoadmin-enrichment",
+        action="store_true",
+        help="Enable optional GeoAdmin enrichment after local location hinting",
+    )
+    run_parser.add_argument(
+        "--geoadmin-cache",
+        default="data/reference/geoadmin_search_cache.jsonl",
+        help="Path to GeoAdmin search cache JSONL",
+    )
+    run_parser.add_argument(
+        "--geoadmin-max-queries",
+        type=int,
+        default=3,
+        help="Maximum GeoAdmin queries per lead",
+    )
 
     args = parser.parse_args()
 
@@ -322,6 +348,11 @@ def main() -> None:
             min_text_length=args.min_text_length,
             allowed_languages=args.allowed_languages,
             timeout_seconds=args.timeout_seconds,
+            enable_location_hinting=not args.disable_location_hinting,
+            enable_geoadmin_enrichment=args.enable_geoadmin_enrichment,
+            location_reference_path=Path(args.location_reference),
+            geoadmin_cache_path=Path(args.geoadmin_cache),
+            geoadmin_max_queries=args.geoadmin_max_queries,
         )
         metadata = result["metadata"]
         print(f"run_id={metadata['run_id']}")
@@ -329,6 +360,11 @@ def main() -> None:
         print(f"run_dir={metadata['paths']['run_dir']}")
         print(f"leads_jsonl={metadata['paths']['leads_jsonl']}")
         print(f"leads_csv={metadata['paths']['leads_csv']}")
+        print(f"leads_with_locations_jsonl={metadata['paths']['leads_with_locations_jsonl']}")
+        print(f"leads_with_locations_csv={metadata['paths']['leads_with_locations_csv']}")
+        if args.enable_geoadmin_enrichment:
+            print(f"leads_with_geoadmin_locations_jsonl={metadata['paths']['leads_with_geoadmin_locations_jsonl']}")
+            print(f"leads_with_geoadmin_locations_csv={metadata['paths']['leads_with_geoadmin_locations_csv']}")
         print(f"metadata={metadata['paths']['metadata']}")
         print(f"log={metadata['paths']['log']}")
     elif args.command == "snapshot":
