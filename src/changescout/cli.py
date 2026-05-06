@@ -10,6 +10,7 @@ from changescout.discovery import discover_urls_from_source, write_discovery_jso
 from changescout.filtering import run_filtering
 from changescout.scoring import run_scoring
 from changescout.snapshot import write_snapshot
+from changescout.pipeline import run_operational_pipeline
 
 LOGGER = logging.getLogger(__name__)
 
@@ -229,9 +230,108 @@ def main() -> None:
         help="Path to scoring report file",
     )
 
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Run scoped operational pipeline",
+    )
+    run_parser.add_argument(
+        "--config-dir",
+        default="config",
+        help="Path to config directory",
+    )
+    run_parser.add_argument(
+        "--run-id",
+        required=True,
+        help="Run identifier used for scoped operational outputs",
+    )
+    run_parser.add_argument(
+        "--output-root",
+        default="artifacts/runs",
+        help="Root directory for scoped run outputs",
+    )
+    run_parser.add_argument(
+        "--html-root",
+        default="data/crawling",
+        help="Root directory for stored raw HTML files",
+    )
+    run_parser.add_argument(
+        "--source-registry",
+        default=None,
+        help="Optional source registry override, for example zh or sg",
+    )
+    run_parser.add_argument(
+        "--canton-id",
+        default=None,
+        help="Optional canton id override stored in the run scope snapshot",
+    )
+    run_parser.add_argument(
+        "--filter-config",
+        default="config/filter.yaml",
+        help="Path to filter config file",
+    )
+    run_parser.add_argument(
+        "--scoring-config",
+        default="config/scoring.yaml",
+        help="Path to scoring config file",
+    )
+    run_parser.add_argument(
+        "--lead-threshold",
+        type=float,
+        default=0.10,
+        help="Thematic score threshold for lead generation",
+    )
+    run_parser.add_argument(
+        "--preview-length",
+        type=int,
+        default=500,
+        help="Maximum lead text preview length",
+    )
+    run_parser.add_argument(
+        "--min-text-length",
+        type=int,
+        default=300,
+        help="Minimum cleaned text length",
+    )
+    run_parser.add_argument(
+        "--allowed-languages",
+        nargs="+",
+        default=["de"],
+        help="Allowed document languages for HTML cleaning",
+    )
+    run_parser.add_argument(
+        "--timeout-seconds",
+        type=int,
+        default=10,
+        help="HTTP timeout in seconds",
+    )
+
     args = parser.parse_args()
 
-    if args.command == "snapshot":
+    if args.command == "run":
+        result = run_operational_pipeline(
+            config_dir=Path(args.config_dir),
+            run_id=args.run_id,
+            output_root=Path(args.output_root),
+            html_root=Path(args.html_root),
+            source_registry=args.source_registry,
+            canton_id=args.canton_id,
+            filter_config_path=Path(args.filter_config),
+            scoring_config_path=Path(args.scoring_config),
+            lead_threshold=args.lead_threshold,
+            preview_length=args.preview_length,
+            min_text_length=args.min_text_length,
+            allowed_languages=args.allowed_languages,
+            timeout_seconds=args.timeout_seconds,
+        )
+        metadata = result["metadata"]
+        print(f"run_id={metadata['run_id']}")
+        print(f"status={metadata['status']}")
+        print(f"run_dir={metadata['paths']['run_dir']}")
+        print(f"leads_jsonl={metadata['paths']['leads_jsonl']}")
+        print(f"leads_csv={metadata['paths']['leads_csv']}")
+        print(f"metadata={metadata['paths']['metadata']}")
+        print(f"log={metadata['paths']['log']}")
+    elif args.command == "snapshot":
         run_snapshot(
             config_dir=Path(args.config_dir),
             snapshot_dir=Path(args.snapshot_dir),
