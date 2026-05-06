@@ -262,6 +262,103 @@ def main() -> None:
         help="HTTP timeout in seconds for smoke discovery",
     )
 
+    infer_parser = subparsers.add_parser(
+        "infer",
+        help="Run standard scoped inference preset",
+    )
+    infer_parser.add_argument(
+        "--config-dir",
+        default="config",
+        help="Path to config directory",
+    )
+    infer_parser.add_argument(
+        "--source-registry",
+        required=True,
+        help="Source registry id, for example be or zh",
+    )
+    infer_parser.add_argument(
+        "--canton-id",
+        required=True,
+        help="Canton id stored in the run scope snapshot",
+    )
+    infer_parser.add_argument(
+        "--run-id",
+        required=True,
+        help="Run identifier used for scoped inference outputs",
+    )
+    infer_parser.add_argument(
+        "--output-root",
+        default="artifacts/runs",
+        help="Root directory for scoped run outputs",
+    )
+    infer_parser.add_argument(
+        "--html-root",
+        default="data/crawling",
+        help="Root directory for stored raw HTML files",
+    )
+    infer_parser.add_argument(
+        "--tfidf-model-artifact",
+        default="data/models/tfidf_actionable/tfidf_actionable_v1",
+        help="TF IDF actionable model artifact directory",
+    )
+    infer_parser.add_argument(
+        "--lead-threshold",
+        type=float,
+        default=0.10,
+        help="Thematic score threshold for candidate selection",
+    )
+    infer_parser.add_argument(
+        "--tfidf-threshold",
+        type=float,
+        default=0.50,
+        help="TF IDF actionable probability threshold",
+    )
+    infer_parser.add_argument(
+        "--enable-geoadmin-enrichment",
+        action="store_true",
+        help="Enable optional GeoAdmin enrichment",
+    )
+    infer_parser.add_argument(
+        "--timeout-seconds",
+        type=int,
+        default=10,
+        help="HTTP timeout in seconds",
+    )
+    infer_parser.add_argument(
+        "--preview-length",
+        type=int,
+        default=500,
+        help="Maximum lead text preview length",
+    )
+    infer_parser.add_argument(
+        "--min-text-length",
+        type=int,
+        default=300,
+        help="Minimum cleaned text length",
+    )
+    infer_parser.add_argument(
+        "--allowed-languages",
+        nargs="+",
+        default=["de"],
+        help="Allowed document languages for HTML cleaning",
+    )
+    infer_parser.add_argument(
+        "--location-reference",
+        default="data/reference/location_hints_reference.csv",
+        help="Path to local location hint reference CSV",
+    )
+    infer_parser.add_argument(
+        "--geoadmin-cache",
+        default="data/reference/geoadmin_search_cache.jsonl",
+        help="Path to GeoAdmin search cache JSONL",
+    )
+    infer_parser.add_argument(
+        "--geoadmin-max-queries",
+        type=int,
+        default=3,
+        help="Maximum GeoAdmin queries per lead",
+    )
+
     run_parser = subparsers.add_parser(
         "run",
         help="Run scoped operational pipeline",
@@ -421,6 +518,50 @@ def main() -> None:
             print(f"leads_with_geoadmin_locations_csv={metadata['paths']['leads_with_geoadmin_locations_csv']}")
         print(f"metadata={metadata['paths']['metadata']}")
         print(f"log={metadata['paths']['log']}")
+    elif args.command == "infer":
+        result = run_operational_pipeline(
+            config_dir=Path(args.config_dir),
+            run_id=args.run_id,
+            output_root=Path(args.output_root),
+            html_root=Path(args.html_root),
+            source_registry=args.source_registry,
+            canton_id=args.canton_id,
+            filter_config_path=Path("config/filter.yaml"),
+            scoring_config_path=Path("config/scoring.yaml"),
+            lead_threshold=args.lead_threshold,
+            tfidf_threshold=args.tfidf_threshold,
+            candidate_selection_mode="score_or_tfidf",
+            preview_length=args.preview_length,
+            min_text_length=args.min_text_length,
+            allowed_languages=args.allowed_languages,
+            timeout_seconds=args.timeout_seconds,
+            enable_location_hinting=True,
+            enable_geoadmin_enrichment=args.enable_geoadmin_enrichment,
+            location_reference_path=Path(args.location_reference),
+            geoadmin_cache_path=Path(args.geoadmin_cache),
+            geoadmin_max_queries=args.geoadmin_max_queries,
+            tfidf_model_artifact_dir=Path(args.tfidf_model_artifact),
+        )
+
+        metadata = result["metadata"]
+
+        print("preset=standard_inference")
+        print(f"run_id={metadata['run_id']}")
+        print(f"status={metadata['status']}")
+        print(f"run_dir={metadata['paths']['run_dir']}")
+        print(f"scored_with_tfidf={metadata['paths']['scored_with_tfidf']}")
+        print(f"leads_jsonl={metadata['paths']['leads_jsonl']}")
+        print(f"leads_csv={metadata['paths']['leads_csv']}")
+        print(f"leads_with_locations_jsonl={metadata['paths']['leads_with_locations_jsonl']}")
+        print(f"leads_with_locations_csv={metadata['paths']['leads_with_locations_csv']}")
+
+        if args.enable_geoadmin_enrichment:
+            print(f"leads_with_geoadmin_locations_jsonl={metadata['paths']['leads_with_geoadmin_locations_jsonl']}")
+            print(f"leads_with_geoadmin_locations_csv={metadata['paths']['leads_with_geoadmin_locations_csv']}")
+
+        print(f"metadata={metadata['paths']['metadata']}")
+        print(f"log={metadata['paths']['log']}")
+
     elif args.command == "validate-registry":
         result = run_registry_validation(
             config_dir=Path(args.config_dir),
