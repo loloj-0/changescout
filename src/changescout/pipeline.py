@@ -15,6 +15,7 @@ from changescout.discovery import discover_urls_from_source, write_discovery_jso
 from changescout.filtering import run_filtering
 from changescout.html_cleaning import process_crawl_records
 from changescout.leads import run_lead_generation
+from changescout.candidate_selection import run_candidate_selection
 from changescout.lead_enrichment import (
     run_geoadmin_lead_location_enrichment,
     run_local_lead_location_hinting,
@@ -350,6 +351,8 @@ def run_operational_pipeline(
     filter_config_path: Path = Path("config/filter.yaml"),
     scoring_config_path: Path = Path("config/scoring.yaml"),
     lead_threshold: float = 0.10,
+    tfidf_threshold: float = 0.5,
+    candidate_selection_mode: str = "score_only",
     preview_length: int = 500,
     min_text_length: int = 300,
     allowed_languages: Optional[list[str]] = None,
@@ -445,15 +448,34 @@ def run_operational_pipeline(
                 artifact_dir=tfidf_model_artifact_dir,
             )
 
-        lead_generation_report = run_lead_generation(
-            scored_path=paths.scored_path,
-            classifier_predictions_path=None,
-            output_jsonl_path=paths.leads_jsonl_path,
-            output_csv_path=paths.leads_csv_path,
-            report_output_path=paths.lead_generation_report_path,
-            threshold=lead_threshold,
-            preview_length=preview_length,
-        )
+        lead_input_path = paths.scored_path
+
+        if candidate_selection_mode == "score_or_tfidf":
+            if tfidf_model_artifact_dir is None:
+                raise ValueError("score_or_tfidf requires --tfidf-model-artifact")
+            lead_input_path = paths.scored_with_tfidf_path
+
+        if candidate_selection_mode == "score_only":
+            lead_generation_report = run_lead_generation(
+                scored_path=paths.scored_path,
+                classifier_predictions_path=None,
+                output_jsonl_path=paths.leads_jsonl_path,
+                output_csv_path=paths.leads_csv_path,
+                report_output_path=paths.lead_generation_report_path,
+                threshold=lead_threshold,
+                preview_length=preview_length,
+            )
+        else:
+            lead_generation_report = run_candidate_selection(
+                input_jsonl_path=lead_input_path,
+                output_jsonl_path=paths.leads_jsonl_path,
+                output_csv_path=paths.leads_csv_path,
+                report_output_path=paths.lead_generation_report_path,
+                mode=candidate_selection_mode,
+                score_threshold=lead_threshold,
+                tfidf_threshold=tfidf_threshold,
+                preview_length=preview_length,
+            )
 
         location_hinting_report: Dict[str, Any] | None = None
         geoadmin_location_hinting_report: Dict[str, Any] | None = None

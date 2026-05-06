@@ -281,6 +281,18 @@ def main() -> None:
         help="Thematic score threshold for lead generation",
     )
     run_parser.add_argument(
+        "--tfidf-threshold",
+        type=float,
+        default=0.5,
+        help="TF IDF actionable probability threshold for hybrid candidate selection",
+    )
+    run_parser.add_argument(
+        "--candidate-selection-mode",
+        choices=["score_only", "score_or_tfidf"],
+        default="score_only",
+        help="Candidate selection mode for operational lead generation",
+    )
+    run_parser.add_argument(
         "--preview-length",
         type=int,
         default=500,
@@ -349,6 +361,8 @@ def main() -> None:
             filter_config_path=Path(args.filter_config),
             scoring_config_path=Path(args.scoring_config),
             lead_threshold=args.lead_threshold,
+            tfidf_threshold=args.tfidf_threshold,
+            candidate_selection_mode=args.candidate_selection_mode,
             preview_length=args.preview_length,
             min_text_length=args.min_text_length,
             allowed_languages=args.allowed_languages,

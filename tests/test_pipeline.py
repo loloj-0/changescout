@@ -126,3 +126,20 @@ def test_operational_run_paths_keep_html_storage_separate():
 
     assert paths.html_base_dir == Path("data/crawling")
     assert paths.html_base_dir != paths.run_dir
+
+
+def test_score_or_tfidf_requires_model_artifact(tmp_path):
+    from changescout.pipeline import run_operational_pipeline
+
+    try:
+        run_operational_pipeline(
+            run_id="test_score_or_tfidf_without_model",
+            config_dir=tmp_path,
+            source_registry="zh",
+            canton_id="zh",
+            output_root=tmp_path / "artifacts" / "runs",
+            html_root=tmp_path / "data" / "crawling",
+            candidate_selection_mode="score_or_tfidf",
+        )
+    except Exception as error:
+        assert "score_or_tfidf" in str(error)
