@@ -372,6 +372,34 @@ The reviewer note and audit warning are generated in German.
 
 The evidence snippet should stay in the original source wording.
 
+
+### Build evaluation report package
+
+```bash
+PYTHONPATH=src python scripts/build_evaluation_report_package.py
+```
+
+This step consolidates the current evaluation artifacts into a report ready package.
+
+It does not run new models.
+
+It reads stored evaluation artifacts and rewrites reproducible summary outputs under:
+
+`data/annotation/evaluation/report_package/`
+
+The package contains:
+
+* dataset summary
+* aligned method comparison
+* local LLM comparison
+* hybrid lead selection summary
+* explainability summary
+* limitations
+* recommended setup
+* artifact index
+
+Detailed confusion matrices, threshold reports, qualitative error analysis, and false negative examples remain in the source evaluation artifact folders and are referenced from the package.
+
 ### Run baseline lead generation
 
 ```bash
@@ -663,6 +691,45 @@ Current top 50 result:
 `data/annotation/evaluation/llm_explainability_generated/explainability_manual_review_notes.md`
 
 Manual inspection notes for the generated explanations.
+
+
+### Evaluation report package outputs
+
+`data/annotation/evaluation/report_package/evaluation_report_package.md`
+
+Consolidated report ready summary of dataset splits, method comparisons, hybrid lead selection, explainability results, limitations, and recommended setup.
+
+`data/annotation/evaluation/report_package/dataset_summary.csv`
+
+Summary of the frozen evaluation datasets and train test splits.
+
+`data/annotation/evaluation/report_package/method_comparison_aligned.csv`
+
+Aligned method comparison on the frozen triage test records.
+
+`data/annotation/evaluation/report_package/local_llm_comparison.csv`
+
+Compact comparison of all evaluated local LLM runs.
+
+`data/annotation/evaluation/report_package/hybrid_summary.csv`
+
+Preferred lead selection modes by review depth.
+
+`data/annotation/evaluation/report_package/explainability_summary.csv`
+
+Compact metrics for the generated LLM explanation layer.
+
+`data/annotation/evaluation/report_package/artifact_index.md`
+
+Index of source artifacts used to build the report package.
+
+`data/annotation/evaluation/report_package/limitations.md`
+
+Concise limitations text for reporting.
+
+`data/annotation/evaluation/report_package/recommended_setup.md`
+
+Concise recommended setup text for reporting.
 
 ### Snapshot output
 
@@ -1018,6 +1085,7 @@ Raw HTML files:
 16. Aligned method comparison
 17. Hybrid lead selection evaluation
 18. LLM explainability output evaluation
+19. Evaluation report package construction
 
 ## Current discovery behavior
 
@@ -1281,6 +1349,7 @@ Additional limitations:
 * GeoAdmin API labels and object types are used heuristically and are not treated as a stable authoritative enum
 * GeoAdmin enrichment depends on online API availability unless cached responses already exist
 * generalization to new cantons or source types is not guaranteed
+* the evaluation report package summarizes existing artifacts and does not replace the underlying detailed reports
 
 ## Project structure
 

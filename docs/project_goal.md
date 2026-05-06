@@ -284,6 +284,41 @@ Some failures are caused by weak extracted source text.
 
 The explanation layer is therefore useful as auditable review support, but every explanation with weak evidence, non exact source match, or `no_geometry_evidence` remains flagged for manual checking.
 
+
+## Current evaluation report package
+
+The current MVP evaluation is consolidated into a reproducible report package under:
+
+`data/annotation/evaluation/report_package/`
+
+The package summarizes:
+
+1. frozen evaluation dataset splits
+2. aligned method comparison
+3. local LLM comparison
+4. hybrid lead selection results
+5. explainability results
+6. limitations
+7. recommended setup
+8. references to exact source artifacts
+
+The package is generated with:
+
+`python scripts/build_evaluation_report_package.py`
+
+It does not run new models.
+
+It reads stored evaluation artifacts and produces report ready summary files.
+
+Detailed confusion matrices, threshold reports, qualitative error analysis, and false negative examples remain in the source evaluation folders and are referenced through the package artifact index.
+
+The current recommendation remains:
+
+1. use `score_or_tfidf` for high recall candidate selection
+2. use a production feasible local LLM such as Qwen2.5 7B for explanation and review support
+3. do not use LLM `not_relevant` predictions as hard exclusion signals
+4. keep the final decision with human reviewers
+
 ## Production interpretation
 
 A productive ChangeScout workflow should remain human in the loop.
@@ -334,6 +369,8 @@ ChangeScout is successful if it reduces the amount of irrelevant source material
 The preferred outcome is a reliable review queue, not a fully automated relevance decision.
 
 The current results support this framing.
+
+The evaluation report package provides the current report ready summary of these results and references the exact source artifacts used for the comparison.
 
 On task specific binary splits, TF IDF Logistic Regression is the strongest learned non LLM baseline.
 
