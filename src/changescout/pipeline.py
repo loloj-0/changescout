@@ -22,6 +22,7 @@ from changescout.lead_enrichment import (
 )
 from changescout.models import DiscoveredUrlRecord
 from changescout.scoring import run_scoring, score_documents
+from changescout.tfidf_model import apply_tfidf_actionable_artifact
 
 LOGGER = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class OperationalRunPaths:
     filtered_path: Path
     filtered_excluded_path: Path
     scored_path: Path
+    scored_with_tfidf_path: Path
     leads_jsonl_path: Path
     leads_csv_path: Path
     leads_with_locations_jsonl_path: Path
@@ -53,6 +55,7 @@ class OperationalRunPaths:
     cleaning_report_path: Path
     filter_report_path: Path
     scoring_report_path: Path
+    tfidf_inference_report_path: Path
     lead_generation_report_path: Path
     location_hinting_report_path: Path
     geoadmin_location_hinting_report_path: Path
@@ -92,6 +95,7 @@ def build_operational_run_paths(
         filtered_path=run_dir / "filtered.jsonl",
         filtered_excluded_path=run_dir / "filtered_excluded.jsonl",
         scored_path=run_dir / "scored.jsonl",
+        scored_with_tfidf_path=run_dir / "scored_with_tfidf.jsonl",
         leads_jsonl_path=run_dir / "leads.jsonl",
         leads_csv_path=run_dir / "leads.csv",
         leads_with_locations_jsonl_path=run_dir / "leads_with_locations.jsonl",
@@ -103,6 +107,7 @@ def build_operational_run_paths(
         cleaning_report_path=reports_dir / "cleaning_report.json",
         filter_report_path=reports_dir / "filter_report.json",
         scoring_report_path=reports_dir / "scoring_report.json",
+        tfidf_inference_report_path=reports_dir / "tfidf_inference_report.json",
         lead_generation_report_path=reports_dir / "lead_generation_report.json",
         location_hinting_report_path=reports_dir / "location_hinting_report.json",
         geoadmin_location_hinting_report_path=reports_dir / "geoadmin_location_hinting_report.json",
@@ -240,6 +245,7 @@ def write_run_metadata(
             "filtered": str(paths.filtered_path),
             "filtered_excluded": str(paths.filtered_excluded_path),
             "scored": str(paths.scored_path),
+            "scored_with_tfidf": str(paths.scored_with_tfidf_path),
             "leads_jsonl": str(paths.leads_jsonl_path),
             "leads_csv": str(paths.leads_csv_path),
             "leads_with_locations_jsonl": str(paths.leads_with_locations_jsonl_path),
@@ -256,6 +262,7 @@ def write_run_metadata(
             "cleaning": str(paths.cleaning_report_path),
             "filter": str(paths.filter_report_path),
             "scoring": str(paths.scoring_report_path),
+            "tfidf_inference": str(paths.tfidf_inference_report_path),
             "lead_generation": str(paths.lead_generation_report_path),
             "local_location_hinting": str(paths.location_hinting_report_path),
             "geoadmin_location_hinting": str(paths.geoadmin_location_hinting_report_path),
@@ -352,6 +359,7 @@ def run_operational_pipeline(
     location_reference_path: Path = Path("data/reference/location_hints_reference.csv"),
     geoadmin_cache_path: Path = Path("data/reference/geoadmin_search_cache.jsonl"),
     geoadmin_max_queries: int = 3,
+    tfidf_model_artifact_dir: Optional[Path] = None,
 ) -> Dict[str, Any]:
     if allowed_languages is None:
         allowed_languages = ["de"]
@@ -427,6 +435,16 @@ def run_operational_pipeline(
             report_output_path=paths.scoring_report_path,
         )
 
+        tfidf_inference_report: Dict[str, Any] | None = None
+
+        if tfidf_model_artifact_dir is not None:
+            tfidf_inference_report = apply_tfidf_actionable_artifact(
+                input_jsonl_path=paths.scored_path,
+                output_jsonl_path=paths.scored_with_tfidf_path,
+                report_output_path=paths.tfidf_inference_report_path,
+                artifact_dir=tfidf_model_artifact_dir,
+            )
+
         lead_generation_report = run_lead_generation(
             scored_path=paths.scored_path,
             classifier_predictions_path=None,
@@ -486,6 +504,7 @@ def run_operational_pipeline(
             "cleaning_report": cleaning_report,
             "filter_report": filter_report,
             "scoring_report": scoring_report,
+            "tfidf_inference_report": tfidf_inference_report,
             "lead_generation_report": lead_generation_report,
             "location_hinting_report": location_hinting_report,
             "geoadmin_location_hinting_report": geoadmin_location_hinting_report,

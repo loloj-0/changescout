@@ -330,6 +330,11 @@ def main() -> None:
         default=3,
         help="Maximum GeoAdmin queries per lead",
     )
+    run_parser.add_argument(
+        "--tfidf-model-artifact",
+        default=None,
+        help="Optional TF IDF actionable model artifact directory",
+    )
 
     args = parser.parse_args()
 
@@ -353,11 +358,14 @@ def main() -> None:
             location_reference_path=Path(args.location_reference),
             geoadmin_cache_path=Path(args.geoadmin_cache),
             geoadmin_max_queries=args.geoadmin_max_queries,
+            tfidf_model_artifact_dir=Path(args.tfidf_model_artifact) if args.tfidf_model_artifact else None,
         )
         metadata = result["metadata"]
         print(f"run_id={metadata['run_id']}")
         print(f"status={metadata['status']}")
         print(f"run_dir={metadata['paths']['run_dir']}")
+        if args.tfidf_model_artifact:
+            print(f"scored_with_tfidf={metadata['paths']['scored_with_tfidf']}")
         print(f"leads_jsonl={metadata['paths']['leads_jsonl']}")
         print(f"leads_csv={metadata['paths']['leads_csv']}")
         print(f"leads_with_locations_jsonl={metadata['paths']['leads_with_locations_jsonl']}")

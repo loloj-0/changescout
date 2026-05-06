@@ -68,6 +68,7 @@ def test_build_operational_run_paths_are_run_scoped():
     assert paths.filtered_path == Path("artifacts/runs/issue24_test/filtered.jsonl")
     assert paths.filtered_excluded_path == Path("artifacts/runs/issue24_test/filtered_excluded.jsonl")
     assert paths.scored_path == Path("artifacts/runs/issue24_test/scored.jsonl")
+    assert paths.scored_with_tfidf_path == Path("artifacts/runs/issue24_test/scored_with_tfidf.jsonl")
     assert paths.leads_jsonl_path == Path("artifacts/runs/issue24_test/leads.jsonl")
     assert paths.leads_csv_path == Path("artifacts/runs/issue24_test/leads.csv")
     assert paths.leads_with_locations_jsonl_path == Path("artifacts/runs/issue24_test/leads_with_locations.jsonl")
@@ -104,6 +105,7 @@ def test_operational_run_paths_do_not_point_to_evaluation_outputs():
         paths.cleaning_report_path,
         paths.filter_report_path,
         paths.scoring_report_path,
+        paths.tfidf_inference_report_path,
         paths.lead_generation_report_path,
         paths.location_hinting_report_path,
         paths.geoadmin_location_hinting_report_path,
