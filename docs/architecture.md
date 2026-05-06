@@ -180,6 +180,21 @@ The override is recorded in the run scope snapshot.
 
 It does not modify the configuration files on disk.
 
+### Candidate selection modes
+
+Operational lead generation supports two selection modes.
+
+| Mode | Input | Meaning |
+|---|---|---|
+| `score_only` | `scored.jsonl` | Select leads with `thematic_score >= lead_threshold`. |
+| `score_or_tfidf` | `scored_with_tfidf.jsonl` | Select leads if `thematic_score >= lead_threshold` or `tfidf_actionable_probability >= tfidf_threshold`. |
+
+`score_only` is the default mode and preserves the deterministic baseline behavior.
+
+`score_or_tfidf` requires an explicitly provided TF IDF model artifact.
+
+LLM predictions are not used as hard exclusion signals.
+
 ### Run scoped layout
 
 Operational outputs are written under:
@@ -198,20 +213,32 @@ artifacts/runs/<run_id>/
   filtered.jsonl
   filtered_excluded.jsonl
   scored.jsonl
+  scored_with_tfidf.jsonl
   leads.jsonl
   leads.csv
+  leads_with_locations.jsonl
+  leads_with_locations.csv
+  leads_with_geoadmin_locations.jsonl
+  leads_with_geoadmin_locations.csv
+  monitoring_summary.json
+  monitoring_summary.md
   reports/
     discovery_report.json
     crawl_report.json
     cleaning_report.json
     filter_report.json
     scoring_report.json
+    tfidf_inference_report.json
     lead_generation_report.json
+    location_hinting_report.json
+    geoadmin_location_hinting_report.json
   metadata/
     run_metadata.json
   logs/
     run.log
 ```
+
+Some files are optional and are written only when the corresponding feature is enabled.
 
 Raw HTML remains stored under:
 
@@ -228,12 +255,16 @@ The operational pipeline currently runs:
 5. clean crawled HTML into normalized documents
 6. apply conservative hard filtering
 7. compute thematic scores
-8. generate baseline leads
-9. write run metadata and stage reports
+8. optionally apply TF IDF actionable inference
+9. select leads with `score_only` or `score_or_tfidf`
+10. enrich selected leads with local location hints
+11. optionally enrich selected leads with GeoAdmin hints
+12. write run metadata and stage reports
+13. optionally build a scoped monitoring summary
 
 The stage sequence reuses the existing stage implementations.
 
-The orchestration layer does not duplicate scoring, filtering, crawling, or lead generation logic.
+The orchestration layer does not duplicate scoring, filtering, crawling, enrichment, or candidate selection logic.
 
 ### Separation from evaluation
 
@@ -275,12 +306,28 @@ The metadata contains:
 
 The metadata allows a completed run to be inspected without relying on implicit file naming conventions.
 
+### Monitoring summary
+
+A scoped monitoring summary can be generated with:
+
+```bash
+PYTHONPATH=src python scripts/build_monitoring_summary.py --run-id <run_id>
+```
+
+It writes:
+
+* `artifacts/runs/<run_id>/monitoring_summary.json`
+* `artifacts/runs/<run_id>/monitoring_summary.md`
+
+The summary reads scoped run metadata and scoped stage reports.
+
+Missing reports generate warnings instead of crashes.
+
 ### Acceptance status
 
-The current implementation has been validated with at least two source registries.
+The current implementation has been validated with multiple registries.
 
 This confirms that the core pipeline is no longer tied to manually wired canton specific artifact sets for operational runs.
-
 
 ## Discovery Architecture
 

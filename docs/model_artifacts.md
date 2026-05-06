@@ -66,6 +66,6 @@ TF IDF probability is a learned review signal.
 
 It is not a confirmed TLM update.
 
-Hybrid candidate selection is implemented separately.
+Hybrid candidate selection uses the probability only as a lead selection signal.
 
 LLM outputs remain review support and are not hard exclusion signals.

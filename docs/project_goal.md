@@ -323,7 +323,7 @@ The current recommendation remains:
 
 The current operational implementation supports scoped registry based runs.
 
-A run can execute the deterministic pipeline for a selected source registry and writes all operational outputs under:
+A run can execute the pipeline for a selected source registry and writes all operational outputs under:
 
 `artifacts/runs/<run_id>/`
 
@@ -335,8 +335,12 @@ The operational run currently covers:
 4. HTML cleaning
 5. hard filtering
 6. thematic scoring
-7. baseline lead generation
-8. run metadata and stage reports
+7. optional TF IDF actionable inference
+8. candidate selection with `score_only` or `score_or_tfidf`
+9. local lead location hinting
+10. optional GeoAdmin lead enrichment
+11. run metadata and stage reports
+12. scoped monitoring summary generation through `scripts/build_monitoring_summary.py`
 
 This implementation is intentionally separate from the frozen evaluation workflow.
 
@@ -344,7 +348,9 @@ Operational runs do not overwrite `data/annotation/evaluation/`.
 
 The original MVP reproduction script remains available separately as `scripts/run.sh`.
 
-The operational pipeline has been validated on at least two registries.
+The operational pipeline has been validated on curated Zürich project pages and on a noisier Solothurn media registry.
+
+The Solothurn media validation selected 29 leads from 323 scored records with `score_or_tfidf`, showing that the operational hybrid selector does not trivially select all documents on broader source surfaces.
 
 This supports the project goal of moving from manually wired artifact sets toward deterministic registry scoped monitoring runs.
 
@@ -355,12 +361,14 @@ A productive ChangeScout workflow should remain human in the loop.
 
 A likely workflow is:
 
-1. run monitoring pipeline
+1. run the scoped operational monitoring pipeline
 2. generate scored candidates
-3. prioritize leads
-4. attach context and optional location hints
-5. let domain experts review the highest ranked leads
-6. decide manually whether TLM follow up is required
+3. optionally add TF IDF actionable probability
+4. select review leads with `score_only` or `score_or_tfidf`
+5. attach local and optional GeoAdmin location hints
+6. optionally generate LLM explanations in a later review support step
+7. let domain experts review the highest ranked leads
+8. decide manually whether TLM follow up is required
 
 The system should support expert review.
 
@@ -415,5 +423,9 @@ The deterministic score baseline remains useful because it is transparent and do
 Local LLMs are currently more useful as review support components than as standalone lead detectors.
 
 The preferred production oriented design is therefore a hybrid workflow: high recall candidate selection by score and TF IDF, followed by LLM based evidence generation, explanation output, and optional priority support.
+
+The operational part of this design is now implemented through explicit `score_only` and `score_or_tfidf` candidate selection modes.
+
+The TF IDF model is packaged as a reproducible operational artifact and must be loaded explicitly.
 
 The explanation output should improve review usability, but it should remain audit flagged and should not be treated as an authoritative justification layer.
