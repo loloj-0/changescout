@@ -522,3 +522,62 @@ def test_parse_geoadmin_location_hints_filters_aggregate_results():
     assert len(hints) == 1
     assert hints[0]["name"] == "Gebiet Schwarze Lütschine (BE) - Lütschental"
     assert hints[0]["object_type"] == "Gebiet"
+
+def test_infer_canton_from_source_id_supports_ar_prefix():
+    from changescout import geoadmin
+
+    assert geoadmin.infer_canton_from_source_id("ar_medienmitteilungen") == "AR"
+
+
+def test_build_title_query_candidates_prioritizes_title_tokens():
+    from changescout import geoadmin
+
+    candidates = geoadmin.build_title_query_candidates(
+        "Umbau Bushaltestelle Sportzentrum Herisau genehmigt"
+    )
+
+    folded = [candidate.casefold() for candidate in candidates]
+
+    assert "herisau" in folded[:5]
+
+
+def test_filter_geoadmin_hints_discards_weak_single_token_wrong_canton():
+    from changescout import geoadmin
+
+    hints = [
+        {
+            "name": "Flurname swisstopo Waldplangg (UR) - Göschenen",
+            "detail": "waldplangg goeschenen",
+            "query": "waldplan",
+            "x": 1167869.375,
+            "y": 2682077.25,
+        }
+    ]
+
+    filtered = geoadmin.filter_geoadmin_hints_by_confidence(
+        hints,
+        preferred_canton="AR",
+    )
+
+    assert filtered == []
+
+
+def test_filter_geoadmin_hints_keeps_weak_single_token_preferred_canton():
+    from changescout import geoadmin
+
+    hints = [
+        {
+            "name": "Herisau (AR)",
+            "detail": "herisau _ar_",
+            "query": "herisau",
+            "x": 1250000,
+            "y": 2700000,
+        }
+    ]
+
+    filtered = geoadmin.filter_geoadmin_hints_by_confidence(
+        hints,
+        preferred_canton="AR",
+    )
+
+    assert filtered == hints

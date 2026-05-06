@@ -1,0 +1,11 @@
+version: 1
+
+sources:
+  - source_id: "ar_medienmitteilungen"
+    name: "Kanton Appenzell Ausserrhoden Medienmitteilungen"
+    base_url: "https://ar.ch/schnellzugriff/medienmitteilungen-der-kantonalen-verwaltung/"
+    crawl_type: "html_pattern"
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - "/schnellzugriff/medienmitteilungen-der-kantonalen-verwaltung/detail/news/"

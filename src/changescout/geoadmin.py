@@ -332,21 +332,41 @@ def build_title_fragments(title: str) -> List[str]:
     return cleaned_fragments
 
 
+def normalize_title_token_for_query(original_word: str, token: str) -> str:
+    if original_word.isupper() and len(original_word) > 1:
+        return original_word
+
+    return token.casefold()
+
+
 def build_title_query_candidates(title: str) -> List[str]:
     normalized_title = normalize_query_text(title)
 
     if not normalized_title:
         return []
 
-    candidates = []
+    token_candidates = []
+    fragment_candidates = []
 
     for fragment in build_title_fragments(title):
-        if is_useful_query_candidate(fragment):
-            candidates.append(fragment)
+        words = normalize_query_text(fragment).split()
+        token_map = {
+            raw_tokens(word)[0]: word
+            for word in words
+            if raw_tokens(word)
+        }
 
         for token in tokenize_query(fragment):
             if len(token) >= 4:
-                candidates.append(token)
+                original_word = token_map.get(token.casefold(), token)
+                token_candidates.append(
+                    normalize_title_token_for_query(original_word, token)
+                )
+
+        if is_useful_query_candidate(fragment):
+            fragment_candidates.append(fragment)
+
+    candidates = token_candidates + fragment_candidates
 
     cleaned_candidates = []
     seen = set()
@@ -365,7 +385,6 @@ def build_title_query_candidates(title: str) -> List[str]:
         cleaned_candidates.append(candidate)
 
     return cleaned_candidates[:MAX_QUERY_CANDIDATES]
-
 
 def extract_named_text_candidates(
     text: Any,
@@ -493,8 +512,30 @@ def infer_canton_from_source_id(source_id: Any) -> str:
 
     canton_prefixes = {
         "ag_": "AG",
+        "ai_": "AI",
+        "ar_": "AR",
         "be_": "BE",
+        "bl_": "BL",
+        "bs_": "BS",
+        "fr_": "FR",
+        "ge_": "GE",
+        "gl_": "GL",
+        "gr_": "GR",
+        "ju_": "JU",
+        "lu_": "LU",
+        "ne_": "NE",
+        "nw_": "NW",
+        "ow_": "OW",
         "sg_": "SG",
+        "sh_": "SH",
+        "so_": "SO",
+        "sz_": "SZ",
+        "tg_": "TG",
+        "ti_": "TI",
+        "ur_": "UR",
+        "vd_": "VD",
+        "vs_": "VS",
+        "zg_": "ZG",
         "zh_": "ZH",
     }
 
@@ -520,6 +561,35 @@ def hint_matches_preferred_canton(
     ).casefold()
 
     return f"({preferred_canton.casefold()})" in searchable
+
+
+def extract_canton_markers_from_hint(hint: Dict[str, Any]) -> List[str]:
+    searchable = " ".join(
+        [
+            str(hint.get("name", "")),
+            str(hint.get("detail", "")),
+        ]
+    )
+
+    markers = re.findall(r"\(([A-Z]{2})\)", searchable)
+    markers.extend(re.findall(r"_([a-z]{2})_", searchable.casefold()))
+
+    return [marker.upper() for marker in markers]
+
+
+def hint_has_explicit_non_preferred_canton(
+    hint: Dict[str, Any],
+    preferred_canton: str,
+) -> bool:
+    if not preferred_canton:
+        return False
+
+    markers = extract_canton_markers_from_hint(hint)
+
+    if not markers:
+        return False
+
+    return preferred_canton.upper() not in markers
 
 
 def origin_priority(hint: Dict[str, Any]) -> int:
@@ -564,6 +634,35 @@ def sort_geoadmin_hints(
         ),
     )
 
+
+def is_weak_single_token_query(query_text: Any) -> bool:
+    tokens = tokenize_query(str(query_text or ""))
+    return len(tokens) == 1
+
+
+def filter_geoadmin_hints_by_confidence(
+    hints: List[Dict[str, Any]],
+    preferred_canton: str = "",
+) -> List[Dict[str, Any]]:
+    if not preferred_canton:
+        return hints
+
+    filtered = []
+
+    for hint in hints:
+        query_text = hint.get("query", "")
+
+        if is_weak_single_token_query(query_text) and hint_has_explicit_non_preferred_canton(
+            hint,
+            preferred_canton,
+        ):
+            continue
+
+        filtered.append(hint)
+
+    return filtered
+
+
 def select_best_geoadmin_location(
     hints: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
@@ -577,6 +676,7 @@ def select_best_geoadmin_location(
         return hint
 
     return {}
+
 
 def build_geoadmin_queries_for_lead(
     lead: Dict[str, Any],
@@ -856,7 +956,11 @@ def enrich_lead_with_geoadmin_hints(
         all_hints.extend(hints)
 
     preferred_canton = infer_canton_from_source_id(enriched.get("source_id"))
-    sorted_hints = sort_geoadmin_hints(all_hints, preferred_canton)
+    filtered_hints = filter_geoadmin_hints_by_confidence(
+        all_hints,
+        preferred_canton,
+    )
+    sorted_hints = sort_geoadmin_hints(filtered_hints, preferred_canton)
     best_location = select_best_geoadmin_location(sorted_hints)
 
     enriched["geoadmin_preferred_canton"] = preferred_canton
