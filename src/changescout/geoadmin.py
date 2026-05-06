@@ -53,9 +53,12 @@ GENERIC_QUERY_TOKENS = {
     "ausbau",
     "baustelle",
     "brücke",
+    "brücken",
     "bruecke",
+    "bruecken",
     "entwicklung",
     "ersatz",
+    "erneuerung",
     "geh",
     "instandsetzung",
     "kantonsstrasse",
@@ -87,7 +90,9 @@ GENERIC_QUERY_TOKENS = {
     "strassenprojekt",
     "tiefbau",
     "unterführung",
+    "über",
     "unterfuehrung",
+    "ueber",
     "ueberführung",
     "ueberfuehrung",
     "überführung",
@@ -151,6 +156,14 @@ LOW_PRIORITY_OBJECT_TYPES = {
     "Gebäude",
     "Schul- und Hochschulareal",
 }
+
+UNHELPFUL_OBJECT_TYPES = {
+    "Grossregion",
+}
+
+MAX_GEOADMIN_LABEL_COMMAS = 8
+MAX_GEOADMIN_DETAIL_COMMAS = 20
+MAX_GEOADMIN_DETAIL_LENGTH = 1000
 
 
 @dataclass(frozen=True)
@@ -270,7 +283,7 @@ def result_matches_query(result: Dict[str, Any], query_text: str) -> bool:
     tokens = tokenize_query(query_text)
 
     if not tokens:
-        return True
+        return False
 
     searchable = " ".join(
         [
@@ -703,6 +716,42 @@ def get_geoadmin_response_with_cache(
     return record
 
 
+def is_unhelpful_geoadmin_result(
+    label: str,
+    object_type: str,
+    detail: str,
+) -> bool:
+    label_text = str(label or "").strip()
+    object_type_text = str(object_type or "").strip()
+    detail_text = str(detail or "").strip()
+
+    label_folded = label_text.casefold()
+    detail_folded = detail_text.casefold()
+
+    if object_type_text in UNHELPFUL_OBJECT_TYPES:
+        return True
+
+    if label_folded.startswith("grossregion "):
+        return True
+
+    if "grossregion " in label_folded:
+        return True
+
+    if label_text.count(",") >= MAX_GEOADMIN_LABEL_COMMAS:
+        return True
+
+    if detail_text.count(",") >= MAX_GEOADMIN_DETAIL_COMMAS:
+        return True
+
+    if len(detail_text) >= MAX_GEOADMIN_DETAIL_LENGTH:
+        return True
+
+    if "brückenangebot" in label_folded or "brueckenangebot" in detail_folded:
+        return True
+
+    return False
+
+
 def parse_geoadmin_location_hints(
     cache_record: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
@@ -741,6 +790,13 @@ def parse_geoadmin_location_hints(
         detail = strip_html(attrs.get("detail"))
 
         if not label:
+            continue
+
+        if is_unhelpful_geoadmin_result(
+            label=label,
+            object_type=object_type,
+            detail=detail,
+        ):
             continue
 
         dedupe_key = (

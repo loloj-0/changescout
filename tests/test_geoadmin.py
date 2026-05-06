@@ -470,3 +470,55 @@ def test_enrich_lead_with_geoadmin_hints(tmp_path: Path) -> None:
     assert enriched["geoadmin_best_location_x"] == 2760000
     assert enriched["geoadmin_best_location_y"] == 1260000
     assert enriched["geoadmin_best_location_origin"] == "gazetteer"
+def test_title_query_candidates_filter_generic_bridge_terms():
+    from changescout.geoadmin import build_title_query_candidates
+
+    candidates = build_title_query_candidates(
+        "Erneuerung Brücken über die schwarze Lütschine"
+    )
+
+    folded = [candidate.casefold() for candidate in candidates]
+
+    assert "brücken" not in folded
+    assert "bruecken" not in folded
+    assert "erneuerung" not in folded
+    assert any("lütschine" in candidate for candidate in folded)
+
+
+def test_parse_geoadmin_location_hints_filters_aggregate_results():
+    from changescout.geoadmin import parse_geoadmin_location_hints
+
+    cache_record = {
+        "ok": True,
+        "query": {
+            "search_text": "schwarze lütschine",
+        },
+        "response": {
+            "results": [
+                {
+                    "attrs": {
+                        "label": "<i>Grossregion</i> Grossregion Mittelland (BE) - Rothrist,Moosleerau,Winznau,Trimbach,Zug,Walchwil,Schübelbach,Olten,Suhr",
+                        "detail": ",".join([f"gemeinde_{index}" for index in range(50)]),
+                        "origin": "gazetteer",
+                        "x": 2600000,
+                        "y": 1200000,
+                    }
+                },
+                {
+                    "attrs": {
+                        "label": "<i>Gebiet</i> Schwarze Lütschine (BE) - Lütschental",
+                        "detail": "schwarze lütschine lütschental _be_",
+                        "origin": "gazetteer",
+                        "x": 2639000,
+                        "y": 1165000,
+                    }
+                },
+            ]
+        },
+    }
+
+    hints = parse_geoadmin_location_hints(cache_record)
+
+    assert len(hints) == 1
+    assert hints[0]["name"] == "Gebiet Schwarze Lütschine (BE) - Lütschental"
+    assert hints[0]["object_type"] == "Gebiet"
