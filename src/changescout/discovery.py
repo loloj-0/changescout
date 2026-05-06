@@ -6,7 +6,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Optional
-from urllib.parse import urljoin, urldefrag, urlparse
+from urllib.parse import parse_qsl, urlencode, urljoin, urldefrag, urlparse, urlunparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -94,6 +94,35 @@ def extract_links(html: str) -> list[str]:
     return links
 
 
+def canonicalize_url_for_deduplication(url: str) -> str:
+    parsed = urlparse(url)
+
+    query_pairs = [
+        (key, value)
+        for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+        if not key.lower().startswith("utm_")
+        and key.lower()
+        not in {
+            "fbclid",
+            "gclid",
+        }
+    ]
+
+    query = urlencode(query_pairs, doseq=True)
+    path = parsed.path.rstrip("/") or parsed.path
+
+    return urlunparse(
+        (
+            parsed.scheme.lower(),
+            parsed.netloc.lower(),
+            path,
+            "",
+            query,
+            "",
+        )
+    )
+
+
 def normalize_url(raw_link: str, base_url: str) -> Optional[str]:
     try:
         absolute_url = urljoin(base_url, raw_link)
@@ -158,9 +187,12 @@ def deduplicate_urls(
     unique: list[tuple[str, str]] = []
 
     for url, matched_pattern in matched_urls:
-        if url in seen:
+        dedupe_key = canonicalize_url_for_deduplication(url)
+
+        if dedupe_key in seen:
             continue
-        seen.add(url)
+
+        seen.add(dedupe_key)
         unique.append((url, matched_pattern))
 
     return unique

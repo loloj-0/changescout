@@ -190,3 +190,31 @@ def test_discover_urls_from_source_end_to_end_with_mocked_fetch() -> None:
 
     assert records[1].url == "https://www.zh.ch/de/tiefbau/projekt-b"
     assert records[1].matched_pattern == "/tiefbau/"
+
+def test_canonicalize_url_for_deduplication_removes_fragment_trailing_slash_and_tracking():
+    from changescout.discovery import canonicalize_url_for_deduplication
+
+    url = "HTTPS://Example.Test/path/project/?utm_source=x&foo=bar#section"
+
+    assert (
+        canonicalize_url_for_deduplication(url)
+        == "https://example.test/path/project?foo=bar"
+    )
+
+
+def test_deduplicate_urls_uses_canonical_url():
+    from changescout.discovery import deduplicate_urls
+
+    matched_urls = [
+        ("https://example.test/project/", "/project"),
+        ("https://example.test/project", "/project"),
+        ("https://example.test/project?utm_source=test", "/project"),
+        ("https://example.test/project?foo=bar", "/project"),
+    ]
+
+    unique = deduplicate_urls(matched_urls)
+
+    assert unique == [
+        ("https://example.test/project/", "/project"),
+        ("https://example.test/project?foo=bar", "/project"),
+    ]
