@@ -1111,6 +1111,7 @@ Current evaluated local LLM runs on the triage test split:
 | Qwen2.5 7B Instruct | direct | 0.750 | 0.765 | 0.657 |
 | Llama 3.1 8B Instruct | hierarchical | 0.667 | 0.706 | 0.586 |
 | Qwen2.5 14B Instruct | hierarchical | 0.214 | 0.838 | 0.571 |
+| Qwen2.5 14B Instruct | direct | 0.214 | 0.811 | 0.529 |
 
 Aligned method comparison on the same triage test records:
 
@@ -1119,6 +1120,7 @@ Aligned method comparison on the same triage test records:
 | strict_binary | thematic_score | 0.957 | 0.880 | 0.917 | strongest confirmed relevance baseline on aligned records |
 | actionable_binary | Qwen2.5 14B hierarchical | 0.969 | 0.738 | 0.838 | highest actionable F1, but lower recall than TF IDF and score |
 | actionable_binary | TF IDF Logistic Regression | 0.771 | 0.881 | 0.822 | better recall for review queue coverage |
+| actionable_binary | Qwen2.5 14B direct | 0.938 | 0.714 | 0.811 | regular direct prompt comparison, lower than 14B hierarchical |
 | actionable_binary | thematic_score | 0.750 | 0.857 | 0.800 | transparent high recall deterministic baseline |
 
 Findings:
@@ -1128,6 +1130,7 @@ Findings:
 * Llama 3.1 8B performed below Qwen2.5 7B on this task
 * Qwen2.5 14B improved actionable lead detection by assigning more positive cases to `needs_review`
 * Qwen2.5 14B often degraded `confirmed_relevant` cases to `needs_review`, which hurts strict confirmed relevance
+* Qwen2.5 14B direct was evaluated as part of the regular prompt comparison and did not improve over Qwen2.5 14B hierarchical
 * on the aligned triage test split, Qwen2.5 14B achieved the highest actionable F1 among evaluated methods, but with lower actionable recall than TF IDF Logistic Regression and thematic_score
 * on the aligned triage test split, thematic_score achieved the strongest strict binary F1
 * the main LLM triage errors are `needs_review` mapped to `not_relevant`, `confirmed_relevant` mapped to `needs_review`, and `confirmed_relevant` mapped to `not_relevant`
@@ -1165,7 +1168,7 @@ Findings:
 
 * small review queues can benefit from LLM based prioritization
 * broader high recall review queues benefit most from combining thematic_score and TF IDF probability
-* Qwen2.5 14B is useful as an upper bound signal, but it is not the preferred production default
+* Qwen2.5 14B variants are useful as upper bound signals, but they are not the preferred production default
 * Qwen2.5 7B variants are more production oriented and remain useful for evidence generation, triage notes, and optional priority support
 * LLM `not_relevant` predictions should not be used as hard exclusion signals
 * the recommended current strategy is `score_or_tfidf` candidate selection plus LLM based evidence and review support
@@ -1266,7 +1269,8 @@ Additional limitations:
 * the current scoring approach is keyword and pattern based and tuned to the MVP source mix
 * the task specific binary split and aligned triage split produce different method rankings and must not be mixed without explanation
 * on the aligned triage test split, thematic_score is strongest for strict confirmed relevance by F1
-* on the aligned triage test split, Qwen2.5 14B has the highest actionable F1 but lower actionable recall than TF IDF Logistic Regression and thematic_score
+* on the aligned triage test split, Qwen2.5 14B hierarchical has the highest actionable F1 but lower actionable recall than TF IDF Logistic Regression and thematic_score
+* Qwen2.5 14B direct does not change the recommended hybrid strategy
 * lead generation currently uses `thematic_score >= 0.10` as a recall oriented inclusion rule in the original MVP reproduction run
 * local LLMs were evaluated zero shot and should not be interpreted as fine tuned domain models
 * local LLMs are currently not stable enough for standalone three class triage

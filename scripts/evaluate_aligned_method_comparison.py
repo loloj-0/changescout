@@ -35,6 +35,7 @@ LLM_PREDICTION_PATHS = {
     "Qwen2.5 7B direct": "data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/direct/llm_triage_predictions.jsonl",
     "Llama 3.1 8B hierarchical": "data/annotation/evaluation/local_llm/meta-llama__Llama-3.1-8B-Instruct/hierarchical/llm_triage_predictions.jsonl",
     "Qwen2.5 14B hierarchical": "data/annotation/evaluation/local_llm/Qwen__Qwen2.5-14B-Instruct/hierarchical/llm_triage_predictions.jsonl",
+    "Qwen2.5 14B direct": "data/annotation/evaluation/local_llm/Qwen__Qwen2.5-14B-Instruct/direct/llm_triage_predictions.jsonl",
 }
 
 

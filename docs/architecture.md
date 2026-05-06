@@ -1277,7 +1277,7 @@ Current local LLM results are split sensitive.
 
 On task specific binary splits, TF IDF Logistic Regression is the strongest learned baseline.
 
-On the aligned triage test split, thematic_score achieves the strongest strict binary F1, while Qwen2.5 14B hierarchical achieves the strongest actionable F1 but with lower actionable recall than TF IDF Logistic Regression and thematic_score.
+On the aligned triage test split, thematic_score achieves the strongest strict binary F1, while Qwen2.5 14B hierarchical achieves the strongest actionable F1 but with lower actionable recall than TF IDF Logistic Regression and thematic_score. Qwen2.5 14B direct was evaluated as part of the regular prompt comparison and did not improve over Qwen2.5 14B hierarchical.
 
 No evaluated local zero shot LLM is stable enough as a standalone three class triage classifier.
 
@@ -1369,6 +1369,7 @@ The current local LLM evaluation includes:
 | Qwen2.5 7B Instruct | hierarchical |
 | Llama 3.1 8B Instruct | hierarchical |
 | Qwen2.5 14B Instruct | hierarchical |
+| Qwen2.5 14B Instruct | direct |
 
 All models are loaded locally through Hugging Face Transformers.
 
@@ -1381,7 +1382,8 @@ No API based LLM calls are used.
 | Qwen2.5 7B Instruct | hierarchical | 1.000 | 0.640 | 0.780 | 1.000 | 0.548 | 0.708 | 0.671 |
 | Qwen2.5 7B Instruct | direct | 1.000 | 0.600 | 0.750 | 1.000 | 0.619 | 0.765 | 0.657 |
 | Llama 3.1 8B Instruct | hierarchical | 0.929 | 0.520 | 0.667 | 0.923 | 0.571 | 0.706 | 0.586 |
-| Qwen2.5 14B Instruct | hierarchical | 1.000 | 0.120 | 0.214 | 0.969 | 0.738 | 0.838 | 0.571 |
+| Qwen2.5 14B Instruct | hierarchical |
+| Qwen2.5 14B Instruct | direct | 1.000 | 0.120 | 0.214 | 0.969 | 0.738 | 0.838 | 0.571 |
 
 ### Findings
 
@@ -1400,7 +1402,9 @@ The most important observed error patterns are:
 
 Qwen2.5 14B improves actionable lead detection compared with smaller local LLMs because many confirmed_relevant cases are at least retained as needs_review.
 
-However, this behavior makes it unsuitable for strict confirmed relevance classification.
+Qwen2.5 14B direct is included as part of the regular direct versus hierarchical prompt comparison. It did not improve over Qwen2.5 14B hierarchical and showed lower actionable F1 and lower triage accuracy.
+
+However, this behavior makes 14B variants unsuitable for strict confirmed relevance classification.
 
 ### Error analysis finding
 
@@ -1496,9 +1500,9 @@ This boundary follows directly from the observed LLM false negative behavior.
 
 ### Current result
 
-Hybrid lead selection was evaluated across Qwen2.5 14B hierarchical, Qwen2.5 7B direct, and Qwen2.5 7B hierarchical LLM outputs.
+Hybrid lead selection was evaluated across Qwen2.5 14B hierarchical, Qwen2.5 14B direct, Qwen2.5 7B direct, and Qwen2.5 7B hierarchical LLM outputs.
 
-Qwen2.5 14B is treated as an upper bound signal because it is computationally heavier and required CPU offload in the current environment.
+Qwen2.5 14B variants are treated as upper bound signals because they are computationally heavier and required CPU offload in the current environment.
 
 Qwen2.5 7B variants are treated as more production oriented local LLM signals.
 
@@ -1521,7 +1525,7 @@ The recommended production oriented strategy is therefore:
 
 1. use `score_or_tfidf` as the high recall candidate selection layer
 2. use a production feasible local LLM such as Qwen2.5 7B for evidence generation, triage notes, and optional priority support
-3. use Qwen2.5 14B only as an upper bound evaluation signal, not as the default production model
+3. use Qwen2.5 14B variants only as upper bound evaluation signals, not as default production models
 
 ### False negative profile
 

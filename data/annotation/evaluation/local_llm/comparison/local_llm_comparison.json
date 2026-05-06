@@ -1,6 +1,28 @@
 [
   {
     "model_id": "Qwen/Qwen2.5-14B-Instruct",
+    "prompt_variant": "direct",
+    "records": 70,
+    "parse_success_rate": 1.0,
+    "strict_precision": 1.0,
+    "strict_recall": 0.12,
+    "strict_f1": 0.21428571428571427,
+    "strict_tp": 3,
+    "strict_fp": 0,
+    "strict_tn": 28,
+    "strict_fn": 22,
+    "actionable_precision": 0.9375,
+    "actionable_recall": 0.7142857142857143,
+    "actionable_f1": 0.8108108108108109,
+    "actionable_tp": 30,
+    "actionable_fp": 2,
+    "actionable_tn": 26,
+    "actionable_fn": 12,
+    "triage_accuracy": 0.5285714285714286,
+    "report_path": "data/annotation/evaluation/local_llm/Qwen__Qwen2.5-14B-Instruct/direct/llm_triage_evaluation_report.json"
+  },
+  {
+    "model_id": "Qwen/Qwen2.5-14B-Instruct",
     "prompt_variant": "hierarchical",
     "records": 70,
     "parse_success_rate": 1.0,

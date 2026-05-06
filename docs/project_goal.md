@@ -153,6 +153,7 @@ The same structured model outputs were mapped to strict binary relevance, action
 | Qwen2.5 7B Instruct | direct | 1.000 | 0.600 | 0.750 | 1.000 | 0.619 | 0.765 | 0.657 |
 | Llama 3.1 8B Instruct | hierarchical | 0.929 | 0.520 | 0.667 | 0.923 | 0.571 | 0.706 | 0.586 |
 | Qwen2.5 14B Instruct | hierarchical | 1.000 | 0.120 | 0.214 | 0.969 | 0.738 | 0.838 | 0.571 |
+| Qwen2.5 14B Instruct | direct | 1.000 | 0.120 | 0.214 | 0.938 | 0.714 | 0.811 | 0.529 |
 
 The tested local LLMs produced stable structured output.
 
@@ -163,6 +164,8 @@ The main pattern is high precision and lower recall.
 Qwen2.5 7B is very conservative and misses many actionable cases.
 
 Qwen2.5 14B improves actionable lead detection by assigning more cases to needs_review, but it often degrades confirmed_relevant cases to needs_review.
+
+Qwen2.5 14B direct is part of the regular local LLM prompt comparison. It did not improve over Qwen2.5 14B hierarchical. It showed lower actionable F1 and lower triage accuracy while retaining the same weak strict F1.
 
 This makes local LLMs less suitable as standalone lead discovery models.
 
@@ -190,7 +193,7 @@ The evaluated modes include:
 5. `hybrid_weighted`
 6. `hybrid_recall_guard`
 
-The comparison was run with Qwen2.5 14B hierarchical as an upper bound LLM signal and Qwen2.5 7B variants as more production oriented LLM signals.
+The comparison was run with Qwen2.5 14B hierarchical and Qwen2.5 14B direct as upper bound LLM signals and Qwen2.5 7B variants as more production oriented LLM signals.
 
 Main results by review depth:
 
@@ -205,7 +208,7 @@ The recommended current hybrid strategy is:
 
 1. use `score_or_tfidf` as the high recall candidate selection layer
 2. use a production feasible local LLM such as Qwen2.5 7B for evidence generation, triage notes, and optional priority support
-3. treat Qwen2.5 14B as an upper bound evaluation signal, not as the default production model
+3. treat Qwen2.5 14B variants as upper bound evaluation signals, not as default production models
 
 The high recall gain at broader review depth mainly comes from combining the deterministic thematic score and TF IDF probability.
 
@@ -335,6 +338,8 @@ The current results support this framing.
 On task specific binary splits, TF IDF Logistic Regression is the strongest learned non LLM baseline.
 
 On the aligned triage test split, thematic_score is strongest for strict confirmed relevance by F1.
+
+Qwen2.5 14B direct is included as part of the regular direct versus hierarchical prompt comparison and does not change the model selection or hybrid strategy findings.
 
 For actionable lead selection at broader review depth, the strongest current strategy is the `score_or_tfidf` union.
 
