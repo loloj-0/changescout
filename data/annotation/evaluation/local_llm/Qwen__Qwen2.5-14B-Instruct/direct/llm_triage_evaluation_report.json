@@ -1,0 +1,172 @@
+{
+  "model_id": "Qwen/Qwen2.5-14B-Instruct",
+  "prompt_variant": "direct",
+  "records": 70,
+  "parse_success_count": 70,
+  "parse_success_rate": 1.0,
+  "strict_binary": {
+    "records": 53,
+    "positives": 25,
+    "negatives": 28,
+    "tp": 3,
+    "fp": 0,
+    "tn": 28,
+    "fn": 22,
+    "precision": 1.0,
+    "recall": 0.12,
+    "f1": 0.21428571428571427,
+    "accuracy": 0.5849056603773585
+  },
+  "actionable_binary": {
+    "records": 70,
+    "positives": 42,
+    "negatives": 28,
+    "tp": 30,
+    "fp": 2,
+    "tn": 26,
+    "fn": 12,
+    "precision": 0.9375,
+    "recall": 0.7142857142857143,
+    "f1": 0.8108108108108109,
+    "accuracy": 0.8
+  },
+  "triage_3class": {
+    "labels": [
+      "confirmed_relevant",
+      "needs_review",
+      "not_relevant",
+      "invalid"
+    ],
+    "confusion_matrix": [
+      [
+        3,
+        19,
+        3,
+        0
+      ],
+      [
+        0,
+        8,
+        9,
+        0
+      ],
+      [
+        0,
+        2,
+        26,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "classification_report": {
+      "confirmed_relevant": {
+        "precision": 1.0,
+        "recall": 0.12,
+        "f1-score": 0.21428571428571427,
+        "support": 25.0
+      },
+      "needs_review": {
+        "precision": 0.27586206896551724,
+        "recall": 0.47058823529411764,
+        "f1-score": 0.34782608695652173,
+        "support": 17.0
+      },
+      "not_relevant": {
+        "precision": 0.6842105263157895,
+        "recall": 0.9285714285714286,
+        "f1-score": 0.7878787878787878,
+        "support": 28.0
+      },
+      "invalid": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.5285714285714286,
+      "macro avg": {
+        "precision": 0.4900181488203267,
+        "recall": 0.37978991596638656,
+        "f1-score": 0.337497647280256,
+        "support": 70.0
+      },
+      "weighted avg": {
+        "precision": 0.6978221415607986,
+        "recall": 0.5285714285714286,
+        "f1-score": 0.47615417708585406,
+        "support": 70.0
+      }
+    },
+    "accuracy": 0.5285714285714286
+  },
+  "baselines": {
+    "score_baseline": {
+      "strict_binary": {
+        "dataset": "strict_binary",
+        "split": "test",
+        "selected_threshold": 0.25,
+        "records": 53,
+        "positives": 25,
+        "negatives": 28,
+        "tp": 19,
+        "fp": 3,
+        "tn": 25,
+        "fn": 6,
+        "precision": 0.8636363636363636,
+        "recall": 0.76,
+        "f1": 0.8085106382978724,
+        "accuracy": 0.8301886792452831
+      },
+      "actionable_binary": {
+        "dataset": "actionable_binary",
+        "split": "test",
+        "selected_threshold": 0.05,
+        "records": 70,
+        "positives": 42,
+        "negatives": 28,
+        "tp": 37,
+        "fp": 11,
+        "tn": 17,
+        "fn": 5,
+        "precision": 0.7708333333333334,
+        "recall": 0.8809523809523809,
+        "f1": 0.8222222222222222,
+        "accuracy": 0.7714285714285715
+      }
+    },
+    "classical_text_classifier": {
+      "strict_binary": {
+        "records": 53,
+        "positive_count": 25,
+        "negative_count": 28,
+        "tp": 23,
+        "fp": 4,
+        "tn": 24,
+        "fn": 2,
+        "precision": 0.8518518518518519,
+        "recall": 0.92,
+        "f1": 0.8846153846153846,
+        "accuracy": 0.8867924528301887
+      },
+      "actionable_binary": {
+        "records": 70,
+        "positive_count": 42,
+        "negative_count": 28,
+        "tp": 39,
+        "fp": 9,
+        "tn": 19,
+        "fn": 3,
+        "precision": 0.8125,
+        "recall": 0.9285714285714286,
+        "f1": 0.8666666666666667,
+        "accuracy": 0.8285714285714286
+      }
+    }
+  },
+  "prediction_path": "data/annotation/evaluation/local_llm/Qwen__Qwen2.5-14B-Instruct/direct/llm_triage_predictions.jsonl"
+}
