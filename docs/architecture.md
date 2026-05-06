@@ -152,6 +152,136 @@ Each execution of the pipeline must persist a snapshot of the resolved scope and
 
 This ensures that every run can be traced back to the exact configuration used.
 
+## Operational Run Orchestration
+
+### Responsibility
+
+The operational run orchestration coordinates the deterministic monitoring stages for one selected source registry.
+
+It is responsible for run scoped execution and artifact layout.
+
+It is not responsible for evaluation dataset construction, model comparison, LLM evaluation, or report package generation.
+
+### Entry point
+
+The operational entry point is:
+
+```bash
+PYTHONPATH=src python -m changescout.cli run \
+  --config-dir config \
+  --source-registry zh \
+  --canton-id zh \
+  --run-id run_001
+```
+
+The `source_registry` and `canton_id` arguments may override the default values from `config/scope.yaml` for the current run.
+
+The override is recorded in the run scope snapshot.
+
+It does not modify the configuration files on disk.
+
+### Run scoped layout
+
+Operational outputs are written under:
+
+`artifacts/runs/<run_id>/`
+
+The expected layout is:
+
+```text
+artifacts/runs/<run_id>/
+  scope_snapshot.json
+  discovery.jsonl
+  crawl.jsonl
+  cleaned.jsonl
+  excluded.jsonl
+  filtered.jsonl
+  filtered_excluded.jsonl
+  scored.jsonl
+  leads.jsonl
+  leads.csv
+  reports/
+    discovery_report.json
+    crawl_report.json
+    cleaning_report.json
+    filter_report.json
+    scoring_report.json
+    lead_generation_report.json
+  metadata/
+    run_metadata.json
+  logs/
+    run.log
+```
+
+Raw HTML remains stored under:
+
+`data/crawling/<run_id>/<source_id>/<content_hash>.html`
+
+### Stage sequence
+
+The operational pipeline currently runs:
+
+1. resolve scope and active sources
+2. write scope snapshot
+3. discover URLs from active `html_pattern` sources
+4. crawl discovered URLs
+5. clean crawled HTML into normalized documents
+6. apply conservative hard filtering
+7. compute thematic scores
+8. generate baseline leads
+9. write run metadata and stage reports
+
+The stage sequence reuses the existing stage implementations.
+
+The orchestration layer does not duplicate scoring, filtering, crawling, or lead generation logic.
+
+### Separation from evaluation
+
+Operational runs must not write to:
+
+`data/annotation/evaluation/`
+
+Frozen annotation datasets and evaluation artifacts remain separate from operational monitoring.
+
+This separation prevents production or inference runs from overwriting benchmark datasets, method comparisons, hybrid lead selection reports, or LLM explainability evaluation outputs.
+
+### Separation from MVP reproduction
+
+`scripts/run.sh` remains the MVP reproduction entry point.
+
+It reproduces the historical baseline workflow from selected existing artifacts.
+
+It may reference existing canton specific artifact names because its purpose is reproduction.
+
+The operational pipeline must not depend on those hardcoded artifact names.
+
+### Metadata
+
+Each operational run writes:
+
+`artifacts/runs/<run_id>/metadata/run_metadata.json`
+
+The metadata contains:
+
+* run id
+* status
+* timestamps
+* git commit
+* git status
+* resolved scope
+* stage output paths
+* report paths
+* log path
+
+The metadata allows a completed run to be inspected without relying on implicit file naming conventions.
+
+### Acceptance status
+
+The current implementation has been validated with at least two source registries.
+
+This confirms that the core pipeline is no longer tied to manually wired canton specific artifact sets for operational runs.
+
+
 ## Discovery Architecture
 
 ### Responsibility
@@ -729,11 +859,19 @@ These exclusions are not semantic relevance decisions.
 
 ### Persistence
 
-HTML cleaning writes:
+HTML cleaning writes cleaned documents, excluded documents, and a cleaning report.
+
+When the step is run standalone, the default paths are:
 
 * `artifacts/cleaned.jsonl`
 * `artifacts/excluded.jsonl`
 * `artifacts/html_cleaning_report.json`
+
+When the step is run through the scoped operational pipeline, the outputs are written under:
+
+* `artifacts/runs/<run_id>/cleaned.jsonl`
+* `artifacts/runs/<run_id>/excluded.jsonl`
+* `artifacts/runs/<run_id>/reports/cleaning_report.json`
 
 Generated artefacts are not versioned in Git.
 

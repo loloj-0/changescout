@@ -99,6 +99,72 @@ Torch is intentionally not part of the base `requirements.txt` because CUDA whee
 PYTHONPATH=src python -m changescout.cli snapshot --config-dir config --snapshot-dir artifacts
 ```
 
+### Run scoped operational pipeline
+
+The scoped operational pipeline is the preferred entry point for regular registry based monitoring runs.
+
+It runs discovery, crawling, HTML cleaning, hard filtering, thematic scoring, and baseline lead generation for one selected source registry.
+
+Outputs are written to a run scoped directory and do not overwrite frozen evaluation artifacts.
+
+```bash
+PYTHONPATH=src python -m changescout.cli run \
+  --config-dir config \
+  --source-registry zh \
+  --canton-id zh \
+  --run-id run_001 \
+  --output-root artifacts/runs \
+  --html-root data/crawling \
+  --lead-threshold 0.10 \
+  --timeout-seconds 10
+```
+
+A second registry can be run with the same pipeline by changing the registry and run id.
+
+```bash
+PYTHONPATH=src python -m changescout.cli run \
+  --config-dir config \
+  --source-registry sg \
+  --canton-id sg \
+  --run-id run_002 \
+  --output-root artifacts/runs \
+  --html-root data/crawling \
+  --lead-threshold 0.10 \
+  --timeout-seconds 10
+```
+
+The scoped run writes:
+
+```text
+artifacts/runs/<run_id>/
+  scope_snapshot.json
+  discovery.jsonl
+  crawl.jsonl
+  cleaned.jsonl
+  excluded.jsonl
+  filtered.jsonl
+  filtered_excluded.jsonl
+  scored.jsonl
+  leads.jsonl
+  leads.csv
+  reports/
+    discovery_report.json
+    crawl_report.json
+    cleaning_report.json
+    filter_report.json
+    scoring_report.json
+    lead_generation_report.json
+  metadata/
+    run_metadata.json
+  logs/
+    run.log
+```
+
+This operational run layout is separate from `data/annotation/evaluation/`.
+
+Frozen annotation datasets, evaluation splits, model comparisons, hybrid lead selection reports, and LLM explainability evaluation outputs are not overwritten by operational runs.
+
+
 ### Run discovery
 
 ```bash
@@ -498,6 +564,91 @@ RUN_ID=my_run_id ENABLE_GEOADMIN_ENRICHMENT=1 bash scripts/run.sh
 GeoAdmin enrichment writes additional location hint outputs and best available coordinate candidates.
 
 These coordinates are review aids only and are not verified project geometries.
+
+## Operational run outputs
+
+Scoped operational runs write generated monitoring outputs under:
+
+`artifacts/runs/<run_id>/`
+
+This directory contains the resolved scope snapshot, stage outputs, stage reports, run metadata, and a run log.
+
+Operational runs are registry scoped.
+
+They are intended for current monitoring and lead generation.
+
+They do not write to `data/annotation/evaluation/` and do not modify frozen evaluation datasets.
+
+The currently implemented operational stage sequence is:
+
+1. resolve scope and source registry
+2. write scope snapshot
+3. discover candidate URLs
+4. crawl discovered pages
+5. clean HTML into normalized documents
+6. apply conservative hard filtering
+7. compute deterministic thematic scores
+8. generate baseline leads from scored documents
+9. write run metadata and reports
+
+This operational pipeline is intentionally separate from `scripts/run.sh`.
+
+`scripts/run.sh` remains the MVP reproduction entry point for the historical baseline and evaluation related artifact regeneration.
+
+### Scoped operational run output
+
+`artifacts/runs/<run_id>/scope_snapshot.json`
+
+Contains the resolved runtime scope and active sources.
+
+`artifacts/runs/<run_id>/discovery.jsonl`
+
+Contains discovered candidate URLs for the selected registry.
+
+`artifacts/runs/<run_id>/crawl.jsonl`
+
+Contains crawl records for discovered URLs.
+
+`artifacts/runs/<run_id>/cleaned.jsonl`
+
+Contains normalized text documents.
+
+`artifacts/runs/<run_id>/excluded.jsonl`
+
+Contains documents excluded during HTML cleaning.
+
+`artifacts/runs/<run_id>/filtered.jsonl`
+
+Contains documents that passed hard filtering.
+
+`artifacts/runs/<run_id>/filtered_excluded.jsonl`
+
+Contains documents excluded by hard filtering.
+
+`artifacts/runs/<run_id>/scored.jsonl`
+
+Contains scored documents.
+
+`artifacts/runs/<run_id>/leads.jsonl`
+
+Contains generated review leads.
+
+`artifacts/runs/<run_id>/leads.csv`
+
+Contains generated review leads in tabular form.
+
+`artifacts/runs/<run_id>/reports/`
+
+Contains stage level reports.
+
+`artifacts/runs/<run_id>/metadata/run_metadata.json`
+
+Contains run status, git state, scope, output paths, and report paths.
+
+`artifacts/runs/<run_id>/logs/run.log`
+
+Contains the operational run log.
+
 
 ## Output
 
@@ -1350,6 +1501,25 @@ Additional limitations:
 * GeoAdmin enrichment depends on online API availability unless cached responses already exist
 * generalization to new cantons or source types is not guaranteed
 * the evaluation report package summarizes existing artifacts and does not replace the underlying detailed reports
+
+## Script inventory
+
+The repository contains operational code, MVP reproduction helpers, annotation tools, and evaluation scripts.
+
+The intended responsibilities of scripts are documented in:
+
+`docs/script_inventory.md`
+
+The current operational entry point is:
+
+`PYTHONPATH=src python -m changescout.cli run`
+
+The historical MVP reproduction entry point remains:
+
+`bash scripts/run.sh`
+
+These two workflows should not be mixed.
+
 
 ## Project structure
 

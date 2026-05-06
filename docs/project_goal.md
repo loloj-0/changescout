@@ -319,6 +319,36 @@ The current recommendation remains:
 3. do not use LLM `not_relevant` predictions as hard exclusion signals
 4. keep the final decision with human reviewers
 
+## Current operational implementation
+
+The current operational implementation supports scoped registry based runs.
+
+A run can execute the deterministic pipeline for a selected source registry and writes all operational outputs under:
+
+`artifacts/runs/<run_id>/`
+
+The operational run currently covers:
+
+1. source registry resolution
+2. discovery
+3. crawling
+4. HTML cleaning
+5. hard filtering
+6. thematic scoring
+7. baseline lead generation
+8. run metadata and stage reports
+
+This implementation is intentionally separate from the frozen evaluation workflow.
+
+Operational runs do not overwrite `data/annotation/evaluation/`.
+
+The original MVP reproduction script remains available separately as `scripts/run.sh`.
+
+The operational pipeline has been validated on at least two registries.
+
+This supports the project goal of moving from manually wired artifact sets toward deterministic registry scoped monitoring runs.
+
+
 ## Production interpretation
 
 A productive ChangeScout workflow should remain human in the loop.
