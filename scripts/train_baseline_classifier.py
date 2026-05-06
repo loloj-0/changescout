@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+"""
+Legacy reproduction helper.
+
+Do not use for new evaluation work.
+
+This script is kept temporarily because scripts/run.sh still depends on it.
+Current evaluation should use the frozen dataset workflow and the newer evaluation scripts.
+"""
+
 from pathlib import Path
 import json
 
