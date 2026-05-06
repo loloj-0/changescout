@@ -1,0 +1,9 @@
+metric,value
+records,50.0
+parse_success_rate,1.0
+missing_evidence_snippet_count,0.0
+evidence_snippet_found_in_source_count,45.0
+requires_manual_explanation_check_count,19.0
+evidence_type_confirmed_geometry,22.0
+evidence_type_plausible_review_signal,14.0
+evidence_type_no_geometry_evidence,14.0

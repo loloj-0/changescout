@@ -1,0 +1,4 @@
+dataset,records,train_records,test_records,train_confirmed_relevant,train_needs_review,train_not_relevant,test_confirmed_relevant,test_needs_review,test_not_relevant,all_confirmed_relevant,all_needs_review,all_not_relevant
+strict_binary,264,211,53,99,0,112,25,0,28,124,0,140
+actionable_binary,348,278,70,103,63,112,21,21,28,124,84,140
+triage_3class,348,278,70,99,67,112,25,17,28,124,84,140
