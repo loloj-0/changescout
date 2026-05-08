@@ -768,3 +768,7 @@ Generated evaluation results belong under:
 `results/evaluation/`
 
 Operational inference must not overwrite frozen evaluation datasets or curated evaluation results.
+
+## Demo Runbook
+
+For a compact reproducible demo run, see `docs/demo_runbook.md`.

@@ -1,0 +1,13 @@
+sources:
+  - source_id: fr_road_project_pages
+    name: Kanton Freiburg Strassenprojektseiten
+    base_url: https://www.fr.ch/de/rimu/tba/artikel
+    crawl_type: html_pattern
+    crawl_frequency_hours: 168
+    active: true
+    include_patterns:
+      - /de/raum-planung-und-bau/strassen/neue-strassenverbindung-marly-matran
+      - /de/raum-planung-und-bau/strassen/poyabruecke-verkehr
+      - /de/raum-planung-und-bau/strassen/die-poyabruecke-die-kosten
+      - /de/raum-planung-und-bau/strassen/programms-fuer-den-bau-der-kantonsstrassen-und-der-kantonalen-velowege
+      - /de/raum-planung-und-bau/strassen/baustelleninfo
