@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import requests
 
-from changescout.geoadmin import (
+from changescout.enrichment.geoadmin import (
     GeoAdminQuery,
     build_geoadmin_queries_for_lead,
     build_text_query_candidates,
@@ -405,7 +405,7 @@ def test_get_geoadmin_response_with_cache_writes_and_reuses_cache(tmp_path: Path
     mock_response.raise_for_status.return_value = None
     mock_response.json.return_value = {"results": []}
 
-    with patch("changescout.geoadmin.requests.get", return_value=mock_response) as mock_get:
+    with patch("changescout.enrichment.geoadmin.requests.get", return_value=mock_response) as mock_get:
         first = get_geoadmin_response_with_cache(query, cache_path)
         second = get_geoadmin_response_with_cache(query, cache_path)
 
@@ -420,7 +420,7 @@ def test_get_geoadmin_response_with_cache_handles_request_failure(tmp_path: Path
     query = GeoAdminQuery(search_text="Suhr")
 
     with patch(
-        "changescout.geoadmin.requests.get",
+        "changescout.enrichment.geoadmin.requests.get",
         side_effect=requests.Timeout("timeout"),
     ):
         result = get_geoadmin_response_with_cache(query, cache_path)
@@ -453,7 +453,7 @@ def test_enrich_lead_with_geoadmin_hints(tmp_path: Path) -> None:
         ]
     }
 
-    with patch("changescout.geoadmin.requests.get", return_value=mock_response):
+    with patch("changescout.enrichment.geoadmin.requests.get", return_value=mock_response):
         enriched = enrich_lead_with_geoadmin_hints(
             lead=lead,
             cache_path=cache_path,
@@ -471,7 +471,7 @@ def test_enrich_lead_with_geoadmin_hints(tmp_path: Path) -> None:
     assert enriched["geoadmin_best_location_y"] == 1260000
     assert enriched["geoadmin_best_location_origin"] == "gazetteer"
 def test_title_query_candidates_filter_generic_bridge_terms():
-    from changescout.geoadmin import build_title_query_candidates
+    from changescout.enrichment.geoadmin import build_title_query_candidates
 
     candidates = build_title_query_candidates(
         "Erneuerung Brücken über die schwarze Lütschine"
@@ -486,7 +486,7 @@ def test_title_query_candidates_filter_generic_bridge_terms():
 
 
 def test_parse_geoadmin_location_hints_filters_aggregate_results():
-    from changescout.geoadmin import parse_geoadmin_location_hints
+    from changescout.enrichment.geoadmin import parse_geoadmin_location_hints
 
     cache_record = {
         "ok": True,
@@ -524,13 +524,13 @@ def test_parse_geoadmin_location_hints_filters_aggregate_results():
     assert hints[0]["object_type"] == "Gebiet"
 
 def test_infer_canton_from_source_id_supports_ar_prefix():
-    from changescout import geoadmin
+    from changescout.enrichment import geoadmin
 
     assert geoadmin.infer_canton_from_source_id("ar_medienmitteilungen") == "AR"
 
 
 def test_build_title_query_candidates_prioritizes_title_tokens():
-    from changescout import geoadmin
+    from changescout.enrichment import geoadmin
 
     candidates = geoadmin.build_title_query_candidates(
         "Umbau Bushaltestelle Sportzentrum Herisau genehmigt"
@@ -542,7 +542,7 @@ def test_build_title_query_candidates_prioritizes_title_tokens():
 
 
 def test_filter_geoadmin_hints_discards_weak_single_token_wrong_canton():
-    from changescout import geoadmin
+    from changescout.enrichment import geoadmin
 
     hints = [
         {
@@ -563,7 +563,7 @@ def test_filter_geoadmin_hints_discards_weak_single_token_wrong_canton():
 
 
 def test_filter_geoadmin_hints_keeps_weak_single_token_preferred_canton():
-    from changescout import geoadmin
+    from changescout.enrichment import geoadmin
 
     hints = [
         {

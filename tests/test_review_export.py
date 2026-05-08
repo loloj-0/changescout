@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from changescout.review_export import run_review_export
+from changescout.review.review_export import run_review_export
 
 
 def write_jsonl(path: Path, records: list[dict]) -> None:

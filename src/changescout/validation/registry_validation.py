@@ -9,7 +9,7 @@ import json
 import yaml
 
 from changescout.config import load_source_registry
-from changescout.discovery import discover_urls_from_source, write_discovery_jsonl
+from changescout.ingestion.discovery import discover_urls_from_source, write_discovery_jsonl
 
 
 SUPPORTED_CRAWL_TYPES = {"html_pattern"}

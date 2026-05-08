@@ -12,7 +12,7 @@ Current evaluation should use the frozen dataset workflow and the newer evaluati
 from pathlib import Path
 import json
 
-from changescout.classification import run_baseline_classification
+from changescout.ml.classification import run_baseline_classification
 
 
 ANNOTATION_PATH = Path("data/annotation/labeled/annotation_full_reviewed.csv")

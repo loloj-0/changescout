@@ -1,4 +1,4 @@
-from changescout.decision import classify_document
+from changescout.ranking.decision import classify_document
 
 
 def test_decision_include():

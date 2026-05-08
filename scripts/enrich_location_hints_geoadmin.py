@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from changescout.lead_enrichment import run_geoadmin_lead_location_enrichment
+from changescout.enrichment.lead_enrichment import run_geoadmin_lead_location_enrichment
 
 
 def main() -> None:

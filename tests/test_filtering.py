@@ -1,4 +1,4 @@
-from changescout.filtering import apply_hard_filter
+from changescout.ingestion.filtering import apply_hard_filter
 
 
 def test_title_blacklist_excludes_document():

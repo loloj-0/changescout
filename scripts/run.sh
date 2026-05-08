@@ -164,7 +164,7 @@ echo
 echo "Step 3: Clean AG and SG HTML"
 
 PYTHONPATH=src python - <<'PY'
-from changescout.html_cleaning import process_crawl_records
+from changescout.ingestion.html_cleaning import process_crawl_records
 
 jobs = [
     {

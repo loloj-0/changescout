@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from changescout.leads import (
+from changescout.review.leads import (
     build_lead_generation_report,
     enrich_with_classifier_predictions,
     generate_leads,

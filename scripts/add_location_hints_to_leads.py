@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from changescout.lead_enrichment import run_local_lead_location_hinting
+from changescout.enrichment.lead_enrichment import run_local_lead_location_hinting
 
 
 def main() -> None:

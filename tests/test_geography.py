@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from changescout.geography import (
+from changescout.enrichment.geography import (
     build_location_hinting_report,
     enrich_records_with_location_hints,
     find_location_hints_for_document,

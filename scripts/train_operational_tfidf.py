@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from changescout.tfidf_model import train_tfidf_actionable_artifact
+from changescout.ml.tfidf_model import train_tfidf_actionable_artifact
 
 
 def main() -> None:

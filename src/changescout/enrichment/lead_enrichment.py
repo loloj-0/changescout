@@ -6,8 +6,8 @@ import json
 
 import pandas as pd
 
-from changescout.geoadmin import enrich_lead_with_geoadmin_hints
-from changescout.geography import run_location_hinting
+from changescout.enrichment.geoadmin import enrich_lead_with_geoadmin_hints
+from changescout.enrichment.geography import run_location_hinting
 
 
 def load_jsonl(path: Path) -> List[Dict[str, Any]]:

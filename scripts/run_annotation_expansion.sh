@@ -67,7 +67,7 @@ PY
     --run-id "${RUN_ID}_${REGISTRY}"
 
   PYTHONPATH=src python - <<PY
-from changescout.html_cleaning import process_crawl_records
+from changescout.ingestion.html_cleaning import process_crawl_records
 
 report = process_crawl_records(
     input_path="${REGISTRY_OUTPUT_DIR}/crawl.jsonl",

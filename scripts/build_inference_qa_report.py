@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from changescout.inference_qa import run_inference_qa
+from changescout.review.inference_qa import run_inference_qa
 
 
 def main() -> None:

@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from changescout.review_export import run_review_export
+from changescout.review.review_export import run_review_export
 
 
 def main() -> None:

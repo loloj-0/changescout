@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from changescout.inference_qa import build_inference_qa_report, run_inference_qa
+from changescout.review.inference_qa import build_inference_qa_report, run_inference_qa
 
 
 def write_json(path: Path, data: dict) -> None:

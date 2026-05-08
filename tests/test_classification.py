@@ -3,7 +3,7 @@ import json
 
 import pandas as pd
 
-from changescout.classification import (
+from changescout.ml.classification import (
     build_evaluable_dataset,
     compute_binary_metrics,
     create_train_test_split,

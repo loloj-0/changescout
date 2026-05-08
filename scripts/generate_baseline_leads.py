@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import json
 
-from changescout.leads import run_lead_generation
+from changescout.review.leads import run_lead_generation
 
 
 SCORED_PATH = Path("artifacts/scored_annotation_pool.jsonl")

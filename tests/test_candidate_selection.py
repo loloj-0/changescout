@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from changescout.candidate_selection import run_candidate_selection
+from changescout.ranking.candidate_selection import run_candidate_selection
 
 
 def write_jsonl(path: Path, records: list[dict]) -> None:

@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from changescout.llm_explainability import DEFAULT_MODEL_ID, run_scoped_llm_explainability
+from changescout.ml.llm_explainability import DEFAULT_MODEL_ID, run_scoped_llm_explainability
 
 
 def main() -> None:

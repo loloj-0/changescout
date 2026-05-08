@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from changescout.lead_enrichment import (
+from changescout.enrichment.lead_enrichment import (
     build_geoadmin_report,
     flatten_geoadmin_hints,
     run_local_lead_location_hinting,
