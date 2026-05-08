@@ -344,9 +344,9 @@ The operational run currently covers:
 
 This implementation is intentionally separate from the frozen evaluation workflow.
 
-Operational runs do not overwrite `data/annotation/evaluation/`.
+Operational runs do not overwrite frozen evaluation datasets under `data/annotation/evaluation/` or generated evaluation results under `results/evaluation/`.
 
-The original MVP reproduction script remains available separately as `scripts/operational/run.sh`.
+The historical MVP reproduction script remains available separately as `scripts/operational/run.sh`, with legacy helpers under `scripts/legacy/`.
 
 The operational pipeline has been validated on curated Zürich project pages and on a noisier Solothurn media registry.
 

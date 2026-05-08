@@ -268,13 +268,15 @@ The orchestration layer does not duplicate scoring, filtering, crawling, enrichm
 
 ### Separation from evaluation
 
-Operational runs must not write to:
+Operational runs must not write to frozen evaluation datasets under:
 
 `data/annotation/evaluation/`
 
-Frozen annotation datasets and evaluation artifacts remain separate from operational monitoring.
+Operational runs must also not write to curated evaluation result artifacts under:
 
-This separation prevents production or inference runs from overwriting benchmark datasets, method comparisons, hybrid lead selection reports, or LLM explainability evaluation outputs.
+`results/evaluation/`
+
+Frozen annotation datasets, benchmark splits, method comparisons, hybrid lead selection reports, and LLM explainability evaluation outputs remain separate from operational monitoring.
 
 ### Separation from MVP reproduction
 
@@ -1290,7 +1292,7 @@ It summarizes frozen dataset splits, aligned method comparisons, local LLM runs,
 
 It does not replace the source reports.
 
-Detailed confusion matrices, threshold reports, qualitative error analysis, and false negative examples remain in the original evaluation artifact folders and are referenced through `artifact_index.md`.
+Detailed confusion matrices, threshold reports, qualitative error analysis, and false negative examples remain in the source evaluation result folders under `results/evaluation/` and are referenced through `artifact_index.md`.
 
 ## Baseline Classification Architecture
 
@@ -1960,7 +1962,7 @@ The report package is a derived summary.
 
 It does not replace the source reports.
 
-Detailed confusion matrices, threshold selection reports, qualitative error analysis, and false negative examples remain in the original evaluation artifact folders.
+Detailed confusion matrices, threshold selection reports, qualitative error analysis, and false negative examples remain in the source evaluation result folders under `results/evaluation/`.
 
 The package references these source artifacts through `artifact_index.md`.
 
@@ -2087,7 +2089,7 @@ Final validation remains a manual or downstream process.
 
 ### Output
 
-The baseline lead generation script writes:
+The legacy baseline lead generation script writes:
 
 1. `artifacts/leads.jsonl`
 2. `artifacts/leads.csv`

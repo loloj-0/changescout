@@ -68,6 +68,10 @@ Operational runs do not write to:
 
 `data/annotation/evaluation/`
 
+or:
+
+`results/evaluation/`
+
 The historical MVP reproduction workflow remains separate:
 
 `bash scripts/operational/run.sh`
@@ -78,25 +82,32 @@ Do not mix the scoped operational inference workflow with the frozen evaluation 
 
 ```text
 src/changescout/
-  application modules
-
-config/
-  scope, filter, scoring, source registries
-
-docs/
-  architecture, project goal, runbooks, inventories
+  ingestion/      discovery, crawling, cleaning, filtering
+  ranking/        scoring, candidate selection, decision logic
+  enrichment/     geography, local hints, GeoAdmin enrichment
+  ml/             TF IDF, classification, LLM explainability
+  review/         leads, review export, inference QA
+  annotation/     annotation helpers
+  validation/     registry validation and snapshots
 
 scripts/
-  operational wrappers, evaluation scripts, report builders
-
-tests/
-  automated tests
-
-artifacts/
-  generated run outputs
+  operational/    scoped run helpers and review exports
+  annotation/     annotation dataset construction and expansion
+  evaluation/     evaluation and result package builders
+  ml/             model training and LLM experiment scripts
+  legacy/         historical MVP reproduction helpers
 
 data/
-  annotation data, crawling data, model artifacts, reference files
+  annotation/labeled/      curated labeled datasets
+  annotation/evaluation/  frozen evaluation datasets
+  models/                 tracked operational model artifacts
+  reference/              stable reference files
+
+results/
+  evaluation/     generated evaluation results and report package
+
+artifacts/
+  generated operational run outputs, ignored by Git
 ```
 
 ## Environment setup
@@ -411,14 +422,15 @@ The target is actionable binary:
 * positive: `confirmed_relevant`, `needs_review`
 * negative: `not_relevant`
 
-The artifact contains:
+The tracked operational artifact contains:
 
 ```text
 data/models/tfidf_actionable/tfidf_actionable_v1/
   model.joblib
   metadata.json
-  test_predictions.csv
 ```
+
+`test_predictions.csv` may be generated during training for audit purposes, but it is ignored by Git by default.
 
 Operational runs load the artifact explicitly.
 
@@ -488,7 +500,11 @@ Crawling:
 ## HTML cleaning only
 
 ```bash
-PYTHONPATH=src python -m changescout.html_cleaning
+PYTHONPATH=src python -m changescout.cli run \
+  --config-dir config \
+  --source-registry <registry> \
+  --canton-id <canton> \
+  --run-id <run_id>
 ```
 
 HTML cleaning:
@@ -565,9 +581,13 @@ API failure does not invalidate lead generation.
 
 ## Evaluation workflow
 
-Evaluation outputs are frozen under:
+Frozen evaluation datasets are stored under:
 
 `data/annotation/evaluation/`
+
+Generated evaluation results are stored under:
+
+`results/evaluation/`
 
 The expanded annotation dataset contains 348 manually reviewed sources.
 
@@ -739,8 +759,12 @@ GeoAdmin cache is local generated data:
 
 `data/reference/geoadmin_search_cache.jsonl`
 
-Frozen evaluation data belongs under:
+Frozen evaluation datasets belong under:
 
 `data/annotation/evaluation/`
 
-Operational inference must not overwrite frozen evaluation artifacts.
+Generated evaluation results belong under:
+
+`results/evaluation/`
+
+Operational inference must not overwrite frozen evaluation datasets or curated evaluation results.

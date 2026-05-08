@@ -318,13 +318,14 @@ Check whether it exists:
 find data/models/tfidf_actionable/tfidf_actionable_v1 -maxdepth 1 -type f | sort
 ```
 
-Expected files:
+Expected tracked files:
 
 ```text
 model.joblib
 metadata.json
-test_predictions.csv
 ```
+
+`test_predictions.csv` may exist after training, but it is ignored by Git and is not required for operational inference.
 
 If missing, train it:
 
@@ -789,9 +790,13 @@ rm -rf artifacts/runs/xx_hybrid_001 data/crawling/xx_hybrid_001
 rm -rf artifacts/runs/xx_hybrid_geoadmin_001 data/crawling/xx_hybrid_geoadmin_001
 ```
 
-Do not delete frozen evaluation artifacts under:
+Do not delete frozen evaluation datasets under:
 
 `data/annotation/evaluation/`
+
+Do not delete curated evaluation result artifacts under:
+
+`results/evaluation/`
 
 ## 18. Commit a new source registry
 
