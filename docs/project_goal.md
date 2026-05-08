@@ -304,7 +304,7 @@ The package summarizes:
 
 The package is generated with:
 
-`python scripts/build_evaluation_report_package.py`
+`python scripts/evaluation/build_evaluation_report_package.py`
 
 It does not run new models.
 
@@ -340,13 +340,13 @@ The operational run currently covers:
 9. local lead location hinting
 10. optional GeoAdmin lead enrichment
 11. run metadata and stage reports
-12. scoped monitoring summary generation through `scripts/build_monitoring_summary.py`
+12. scoped monitoring summary generation through `scripts/operational/build_monitoring_summary.py`
 
 This implementation is intentionally separate from the frozen evaluation workflow.
 
 Operational runs do not overwrite `data/annotation/evaluation/`.
 
-The original MVP reproduction script remains available separately as `scripts/run.sh`.
+The original MVP reproduction script remains available separately as `scripts/operational/run.sh`.
 
 The operational pipeline has been validated on curated Zürich project pages and on a noisier Solothurn media registry.
 

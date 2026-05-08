@@ -295,28 +295,28 @@ PY
 echo
 echo "Step 8: Run scoring evaluation"
 
-PYTHONPATH=src python scripts/evaluate_scoring_against_annotations.py
+PYTHONPATH=src python scripts/evaluation/evaluate_scoring_against_annotations.py
 
 echo
 echo "Step 9: Run baseline classifier"
 
-PYTHONPATH=src python scripts/train_baseline_classifier.py
+PYTHONPATH=src python scripts/ml/train_baseline_classifier.py
 
 echo
 echo "Step 10: Generate baseline leads"
 
-PYTHONPATH=src python scripts/generate_baseline_leads.py
+PYTHONPATH=src python scripts/operational/generate_baseline_leads.py
 
 echo
 echo "Step 11: Add local location hints to baseline leads"
 
-PYTHONPATH=src python scripts/add_location_hints_to_leads.py
+PYTHONPATH=src python scripts/operational/add_location_hints_to_leads.py
 
 echo
 echo "Step 12: Optionally enrich location hints with GeoAdmin Search API"
 
 if [[ "${ENABLE_GEOADMIN_ENRICHMENT:-0}" == "1" ]]; then
-  PYTHONPATH=src python scripts/enrich_location_hints_geoadmin.py
+  PYTHONPATH=src python scripts/operational/enrich_location_hints_geoadmin.py
 else
   echo "Skipping GeoAdmin enrichment. Set ENABLE_GEOADMIN_ENRICHMENT=1 to enable."
 
@@ -397,7 +397,7 @@ echo
 echo "Step 14: Build monitoring summary"
 
 write_run_metadata "success"
-PYTHONPATH=src python scripts/build_monitoring_summary.py
+PYTHONPATH=src python scripts/operational/build_monitoring_summary.py
 write_run_metadata "success"
 
 echo

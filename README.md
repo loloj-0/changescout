@@ -70,7 +70,7 @@ Operational runs do not write to:
 
 The historical MVP reproduction workflow remains separate:
 
-`bash scripts/run.sh`
+`bash scripts/operational/run.sh`
 
 Do not mix the scoped operational inference workflow with the frozen evaluation and reproduction workflow.
 
@@ -309,7 +309,7 @@ PYTHONPATH=src python -m changescout.cli run \
 After a scoped run, build a reviewer facing export package.
 
 ```bash
-PYTHONPATH=src python scripts/build_review_export.py \
+PYTHONPATH=src python scripts/operational/build_review_export.py \
   --run-dir artifacts/runs/be_hybrid_geoadmin_001 \
   --top-n 30
 ```
@@ -335,7 +335,7 @@ The export deduplicates repeated leads by canonical URL and preserves duplicate 
 ## Build scoped monitoring summary
 
 ```bash
-PYTHONPATH=src python scripts/build_monitoring_summary.py \
+PYTHONPATH=src python scripts/operational/build_monitoring_summary.py \
   --run-id be_hybrid_geoadmin_001
 ```
 
@@ -400,7 +400,7 @@ Some files are optional and exist only when the corresponding stage is enabled.
 ## Train operational TF IDF model artifact
 
 ```bash
-PYTHONPATH=src python scripts/train_operational_tfidf.py \
+PYTHONPATH=src python scripts/ml/train_operational_tfidf.py \
   --dataset data/annotation/evaluation/triage_3class_dataset.csv \
   --output-dir data/models/tfidf_actionable/tfidf_actionable_v1 \
   --model-version tfidf_actionable_v1
@@ -431,7 +431,7 @@ See:
 ## Standalone TF IDF inference
 
 ```bash
-PYTHONPATH=src python scripts/run_tfidf_inference.py \
+PYTHONPATH=src python scripts/operational/run_tfidf_inference.py \
   --input artifacts/runs/<run_id>/scored.jsonl \
   --output artifacts/runs/<run_id>/scored_with_tfidf.jsonl \
   --report-output artifacts/runs/<run_id>/reports/tfidf_inference_report.json \
@@ -539,7 +539,7 @@ Scoring:
 ### Local location hinting
 
 ```bash
-PYTHONPATH=src python scripts/add_location_hints_to_leads.py \
+PYTHONPATH=src python scripts/operational/add_location_hints_to_leads.py \
   --input artifacts/runs/<run_id>/leads.jsonl \
   --reference data/reference/location_hints_reference.csv \
   --output-jsonl artifacts/runs/<run_id>/leads_with_locations.jsonl \
@@ -550,7 +550,7 @@ PYTHONPATH=src python scripts/add_location_hints_to_leads.py \
 ### GeoAdmin enrichment
 
 ```bash
-PYTHONPATH=src python scripts/enrich_location_hints_geoadmin.py \
+PYTHONPATH=src python scripts/operational/enrich_location_hints_geoadmin.py \
   --input artifacts/runs/<run_id>/leads_with_locations.jsonl \
   --output-jsonl artifacts/runs/<run_id>/leads_with_geoadmin_locations.jsonl \
   --output-csv artifacts/runs/<run_id>/leads_with_geoadmin_locations.csv \
@@ -582,52 +582,52 @@ Generated evaluation datasets:
 Build evaluation datasets:
 
 ```bash
-PYTHONPATH=src python scripts/build_evaluation_datasets.py
+PYTHONPATH=src python scripts/evaluation/build_evaluation_datasets.py
 ```
 
 Evaluate deterministic score baseline:
 
 ```bash
-PYTHONPATH=src python scripts/evaluate_score_baseline.py
+PYTHONPATH=src python scripts/evaluation/evaluate_score_baseline.py
 ```
 
 Evaluate classical TF IDF baseline:
 
 ```bash
-PYTHONPATH=src python scripts/evaluate_classical_text_classifier.py
+PYTHONPATH=src python scripts/evaluation/evaluate_classical_text_classifier.py
 ```
 
 Run local LLM triage evaluation:
 
 ```bash
-PYTHONPATH=src python scripts/run_local_llm_triage.py \
+PYTHONPATH=src python scripts/ml/run_local_llm_triage.py \
   --model-id Qwen/Qwen2.5-7B-Instruct \
   --prompt-variant hierarchical
 
-PYTHONPATH=src python scripts/evaluate_local_llm_triage.py \
+PYTHONPATH=src python scripts/evaluation/evaluate_local_llm_triage.py \
   --predictions data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/hierarchical/llm_triage_predictions.jsonl
 ```
 
 Evaluate aligned method comparison:
 
 ```bash
-PYTHONPATH=src python scripts/evaluate_aligned_method_comparison.py
+PYTHONPATH=src python scripts/evaluation/evaluate_aligned_method_comparison.py
 ```
 
 Evaluate hybrid lead selection:
 
 ```bash
-PYTHONPATH=src python scripts/evaluate_hybrid_lead_selection.py \
+PYTHONPATH=src python scripts/evaluation/evaluate_hybrid_lead_selection.py \
   --llm-predictions data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/direct/llm_triage_predictions.jsonl \
   --output-dir data/annotation/evaluation/hybrid_lead_selection_qwen7b_direct
 
-PYTHONPATH=src python scripts/compare_hybrid_lead_selection_runs.py
+PYTHONPATH=src python scripts/evaluation/compare_hybrid_lead_selection_runs.py
 ```
 
 Build report package:
 
 ```bash
-PYTHONPATH=src python scripts/build_evaluation_report_package.py
+PYTHONPATH=src python scripts/evaluation/build_evaluation_report_package.py
 ```
 
 The report package is written to:
@@ -714,7 +714,7 @@ PYTHONPATH=src python -m changescout.cli run
 Historical MVP reproduction entry point:
 
 ```bash
-bash scripts/run.sh
+bash scripts/operational/run.sh
 ```
 
 ## Tests
