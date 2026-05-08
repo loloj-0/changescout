@@ -305,7 +305,7 @@ PYTHONPATH=src python scripts/ml/train_baseline_classifier.py
 echo
 echo "Step 10: Generate baseline leads"
 
-PYTHONPATH=src python scripts/operational/generate_baseline_leads.py
+PYTHONPATH=src python scripts/legacy/generate_baseline_leads.py
 
 echo
 echo "Step 11: Add local location hints to baseline leads"

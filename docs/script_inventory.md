@@ -34,7 +34,7 @@ They are not generic operational runners.
 | Script | Role | Notes |
 |---|---|---|
 | `scripts/operational/run.sh` | Historical MVP baseline reproduction | Combines existing ZH and BE artifacts with rerun AG and SG processing |
-| `scripts/operational/generate_baseline_leads.py` | Generate baseline leads from `artifacts/scored_annotation_pool.jsonl` | Reproduction helper |
+| `scripts/legacy/generate_baseline_leads.py` | Historical MVP baseline lead generation from `artifacts/scored_annotation_pool.jsonl` | Legacy reproduction helper. Optionally uses old baseline classifier predictions if present. Not part of the scoped operational pipeline. |
 | `scripts/operational/add_location_hints_to_leads.py` | Add local location hints to global baseline leads | Reproduction helper and candidate for scoped operational reuse |
 | `scripts/operational/enrich_location_hints_geoadmin.py` | Add optional GeoAdmin hints to global location enriched leads | Reproduction helper and candidate for scoped operational reuse |
 | `scripts/operational/build_monitoring_summary.py` | Build monitoring summary from run metadata and reports | Needs adaptation for scoped operational metadata layout |
