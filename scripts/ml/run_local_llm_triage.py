@@ -408,7 +408,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default="data/annotation/evaluation/local_llm",
+        default="results/evaluation/local_llm",
         help="Output root directory.",
     )
     parser.add_argument(

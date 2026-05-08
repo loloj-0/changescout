@@ -260,11 +260,11 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default="data/annotation/evaluation/classical_text_classifier",
+        default="results/evaluation/classical_text_classifier",
     )
     parser.add_argument(
         "--score-baseline-report",
-        default="data/annotation/evaluation/score_baseline/score_baseline_report.json",
+        default="results/evaluation/score_baseline/score_baseline_report.json",
     )
 
     args = parser.parse_args()

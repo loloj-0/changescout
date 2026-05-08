@@ -98,7 +98,7 @@ def evaluate_triage(df: pd.DataFrame) -> dict[str, Any]:
 def load_baseline_reports() -> dict[str, Any]:
     baselines: dict[str, Any] = {}
 
-    score_path = Path("data/annotation/evaluation/score_baseline/score_baseline_report.json")
+    score_path = Path("results/evaluation/score_baseline/score_baseline_report.json")
     if score_path.exists():
         score = json.loads(score_path.read_text(encoding="utf-8"))
         baselines["score_baseline"] = {
@@ -106,7 +106,7 @@ def load_baseline_reports() -> dict[str, Any]:
             for row in score.get("selected_threshold_test_metrics", [])
         }
 
-    clf_path = Path("data/annotation/evaluation/classical_text_classifier/classical_text_classifier_metrics.json")
+    clf_path = Path("results/evaluation/classical_text_classifier/classical_text_classifier_metrics.json")
     if clf_path.exists():
         clf = json.loads(clf_path.read_text(encoding="utf-8"))
         baselines["classical_text_classifier"] = clf.get("classifier_metrics", {})

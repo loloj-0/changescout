@@ -100,11 +100,11 @@ def main() -> None:
     )
     parser.add_argument(
         "--input-root",
-        default="data/annotation/evaluation/local_llm",
+        default="results/evaluation/local_llm",
     )
     parser.add_argument(
         "--output-dir",
-        default="data/annotation/evaluation/local_llm/comparison",
+        default="results/evaluation/local_llm/comparison",
     )
 
     args = parser.parse_args()

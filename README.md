@@ -605,7 +605,7 @@ PYTHONPATH=src python scripts/ml/run_local_llm_triage.py \
   --prompt-variant hierarchical
 
 PYTHONPATH=src python scripts/evaluation/evaluate_local_llm_triage.py \
-  --predictions data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/hierarchical/llm_triage_predictions.jsonl
+  --predictions results/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/hierarchical/llm_triage_predictions.jsonl
 ```
 
 Evaluate aligned method comparison:
@@ -618,8 +618,8 @@ Evaluate hybrid lead selection:
 
 ```bash
 PYTHONPATH=src python scripts/evaluation/evaluate_hybrid_lead_selection.py \
-  --llm-predictions data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/direct/llm_triage_predictions.jsonl \
-  --output-dir data/annotation/evaluation/hybrid_lead_selection_qwen7b_direct
+  --llm-predictions results/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/direct/llm_triage_predictions.jsonl \
+  --output-dir results/evaluation/hybrid_lead_selection_qwen7b_direct
 
 PYTHONPATH=src python scripts/evaluation/compare_hybrid_lead_selection_runs.py
 ```
@@ -632,7 +632,7 @@ PYTHONPATH=src python scripts/evaluation/build_evaluation_report_package.py
 
 The report package is written to:
 
-`data/annotation/evaluation/report_package/`
+`results/evaluation/report_package/`
 
 ## Current method findings
 

@@ -7,24 +7,24 @@ from typing import Any
 import pandas as pd
 
 
-OUTPUT_DIR = Path("data/annotation/evaluation/report_package")
+OUTPUT_DIR = Path("results/evaluation/report_package")
 
 PATHS = {
     "triage_dataset": Path("data/annotation/evaluation/triage_3class_dataset.csv"),
     "strict_dataset": Path("data/annotation/evaluation/strict_binary_dataset.csv"),
     "actionable_dataset": Path("data/annotation/evaluation/actionable_binary_dataset.csv"),
-    "aligned_comparison": Path("data/annotation/evaluation/aligned_method_comparison/aligned_method_comparison.csv"),
-    "local_llm_comparison": Path("data/annotation/evaluation/local_llm/comparison/local_llm_comparison.csv"),
-    "hybrid_comparison": Path("data/annotation/evaluation/hybrid_lead_selection_comparison/hybrid_lead_selection_comparison.csv"),
-    "explainability_report": Path("data/annotation/evaluation/llm_explainability_generated/llm_explainability_generated_report.json"),
-    "explainability_notes": Path("data/annotation/evaluation/llm_explainability_generated/explainability_manual_review_notes.md"),
-    "score_report": Path("data/annotation/evaluation/score_baseline/score_baseline_report.md"),
-    "classifier_report": Path("data/annotation/evaluation/classical_text_classifier/classical_text_classifier_report.md"),
-    "local_llm_report": Path("data/annotation/evaluation/local_llm/comparison/local_llm_comparison.md"),
-    "aligned_report": Path("data/annotation/evaluation/aligned_method_comparison/aligned_method_comparison.md"),
-    "hybrid_report": Path("data/annotation/evaluation/hybrid_lead_selection_comparison/hybrid_lead_selection_comparison.md"),
-    "llm_error_analysis": Path("data/annotation/evaluation/local_llm/error_analysis/llm_triage_error_analysis.md"),
-    "score_or_tfidf_false_negatives": Path("data/annotation/evaluation/hybrid_lead_selection_comparison/score_or_tfidf_top50_false_negatives.md"),
+    "aligned_comparison": Path("results/evaluation/aligned_method_comparison/aligned_method_comparison.csv"),
+    "local_llm_comparison": Path("results/evaluation/local_llm/comparison/local_llm_comparison.csv"),
+    "hybrid_comparison": Path("results/evaluation/hybrid_lead_selection_comparison/hybrid_lead_selection_comparison.csv"),
+    "explainability_report": Path("results/evaluation/llm_explainability_generated/llm_explainability_generated_report.json"),
+    "explainability_notes": Path("results/evaluation/llm_explainability_generated/explainability_manual_review_notes.md"),
+    "score_report": Path("results/evaluation/score_baseline/score_baseline_report.md"),
+    "classifier_report": Path("results/evaluation/classical_text_classifier/classical_text_classifier_report.md"),
+    "local_llm_report": Path("results/evaluation/local_llm/comparison/local_llm_comparison.md"),
+    "aligned_report": Path("results/evaluation/aligned_method_comparison/aligned_method_comparison.md"),
+    "hybrid_report": Path("results/evaluation/hybrid_lead_selection_comparison/hybrid_lead_selection_comparison.md"),
+    "llm_error_analysis": Path("results/evaluation/local_llm/error_analysis/llm_triage_error_analysis.md"),
+    "score_or_tfidf_false_negatives": Path("results/evaluation/hybrid_lead_selection_comparison/score_or_tfidf_top50_false_negatives.md"),
 }
 
 
@@ -403,12 +403,12 @@ def build_summary_md(
         "",
         "Key detailed reports:",
         "",
-        "* `data/annotation/evaluation/aligned_method_comparison/aligned_method_comparison.md`",
-        "* `data/annotation/evaluation/local_llm/comparison/local_llm_comparison.md`",
-        "* `data/annotation/evaluation/hybrid_lead_selection_comparison/hybrid_lead_selection_comparison.md`",
-        "* `data/annotation/evaluation/local_llm/error_analysis/llm_triage_error_analysis.md`",
-        "* `data/annotation/evaluation/hybrid_lead_selection_comparison/score_or_tfidf_top50_false_negatives.md`",
-        "* `data/annotation/evaluation/llm_explainability_generated/explainability_manual_review_notes.md`",
+        "* `results/evaluation/aligned_method_comparison/aligned_method_comparison.md`",
+        "* `results/evaluation/local_llm/comparison/local_llm_comparison.md`",
+        "* `results/evaluation/hybrid_lead_selection_comparison/hybrid_lead_selection_comparison.md`",
+        "* `results/evaluation/local_llm/error_analysis/llm_triage_error_analysis.md`",
+        "* `results/evaluation/hybrid_lead_selection_comparison/score_or_tfidf_top50_false_negatives.md`",
+        "* `results/evaluation/llm_explainability_generated/explainability_manual_review_notes.md`",
         "",
     ]
 

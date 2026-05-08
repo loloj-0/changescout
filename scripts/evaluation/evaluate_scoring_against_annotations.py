@@ -14,7 +14,7 @@ import pandas as pd
 
 ANNOTATION_PATH = Path("data/annotation/labeled/annotation_full_reviewed.csv")
 SCORED_PATH = Path("artifacts/scored_annotation_pool.jsonl")
-OUTPUT_DIR = Path("data/annotation/evaluation")
+OUTPUT_DIR = Path("results/evaluation/legacy")
 
 
 def load_jsonl(path: Path) -> pd.DataFrame:

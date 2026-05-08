@@ -5,13 +5,13 @@ import pandas as pd
 
 
 RUNS = {
-    "qwen14b_hierarchical": Path("data/annotation/evaluation/hybrid_lead_selection/hybrid_lead_selection_metrics.csv"),
-    "qwen14b_direct": Path("data/annotation/evaluation/hybrid_lead_selection_qwen14b_direct/hybrid_lead_selection_metrics.csv"),
-    "qwen7b_hierarchical": Path("data/annotation/evaluation/hybrid_lead_selection_qwen7b_hierarchical/hybrid_lead_selection_metrics.csv"),
-    "qwen7b_direct": Path("data/annotation/evaluation/hybrid_lead_selection_qwen7b_direct/hybrid_lead_selection_metrics.csv"),
+    "qwen14b_hierarchical": Path("results/evaluation/hybrid_lead_selection/hybrid_lead_selection_metrics.csv"),
+    "qwen14b_direct": Path("results/evaluation/hybrid_lead_selection_qwen14b_direct/hybrid_lead_selection_metrics.csv"),
+    "qwen7b_hierarchical": Path("results/evaluation/hybrid_lead_selection_qwen7b_hierarchical/hybrid_lead_selection_metrics.csv"),
+    "qwen7b_direct": Path("results/evaluation/hybrid_lead_selection_qwen7b_direct/hybrid_lead_selection_metrics.csv"),
 }
 
-OUTPUT_DIR = Path("data/annotation/evaluation/hybrid_lead_selection_comparison")
+OUTPUT_DIR = Path("results/evaluation/hybrid_lead_selection_comparison")
 
 
 def load_runs() -> pd.DataFrame:

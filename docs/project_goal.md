@@ -289,7 +289,7 @@ The explanation layer is therefore useful as auditable review support, but every
 
 The current MVP evaluation is consolidated into a reproducible report package under:
 
-`data/annotation/evaluation/report_package/`
+`results/evaluation/report_package/`
 
 The package summarizes:
 

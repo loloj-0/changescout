@@ -302,7 +302,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default="data/annotation/evaluation/score_baseline",
+        default="results/evaluation/score_baseline",
         help="Output directory.",
     )
 

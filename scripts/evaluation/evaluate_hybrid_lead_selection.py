@@ -9,9 +9,9 @@ import pandas as pd
 
 
 DEFAULT_TRIAGE_DATASET = Path("data/annotation/evaluation/triage_3class_dataset.csv")
-DEFAULT_TFIDF_PREDICTIONS = Path("data/annotation/evaluation/aligned_method_comparison/aligned_tfidf_predictions.csv")
-DEFAULT_LLM_PREDICTIONS = Path("data/annotation/evaluation/local_llm/Qwen__Qwen2.5-14B-Instruct/hierarchical/llm_triage_predictions.jsonl")
-DEFAULT_OUTPUT_DIR = Path("data/annotation/evaluation/hybrid_lead_selection")
+DEFAULT_TFIDF_PREDICTIONS = Path("results/evaluation/aligned_method_comparison/aligned_tfidf_predictions.csv")
+DEFAULT_LLM_PREDICTIONS = Path("results/evaluation/local_llm/Qwen__Qwen2.5-14B-Instruct/hierarchical/llm_triage_predictions.jsonl")
+DEFAULT_OUTPUT_DIR = Path("results/evaluation/hybrid_lead_selection")
 
 AT_N_VALUES = [10, 20, 50, 70]
 

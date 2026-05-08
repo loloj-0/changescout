@@ -7,7 +7,7 @@ from typing import Any
 import pandas as pd
 
 
-OUTPUT_DIR = Path("data/annotation/evaluation/method_comparison")
+OUTPUT_DIR = Path("results/evaluation/method_comparison")
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -45,7 +45,7 @@ def add_binary_row(
 
 
 def collect_score_baseline(rows: list[dict[str, Any]]) -> None:
-    path = Path("data/annotation/evaluation/score_baseline/score_baseline_report.json")
+    path = Path("results/evaluation/score_baseline/score_baseline_report.json")
     report = load_json(path)
 
     for metrics in report.get("selected_threshold_test_metrics", []):
@@ -59,7 +59,7 @@ def collect_score_baseline(rows: list[dict[str, Any]]) -> None:
 
 
 def collect_classical_classifier(rows: list[dict[str, Any]]) -> None:
-    path = Path("data/annotation/evaluation/classical_text_classifier/classical_text_classifier_metrics.json")
+    path = Path("results/evaluation/classical_text_classifier/classical_text_classifier_metrics.json")
     report = load_json(path)
 
     for dataset, metrics in report.get("classifier_metrics", {}).items():
@@ -84,7 +84,7 @@ def collect_classical_classifier(rows: list[dict[str, Any]]) -> None:
 
 
 def collect_llm_reports(rows: list[dict[str, Any]]) -> None:
-    root = Path("data/annotation/evaluation/local_llm")
+    root = Path("results/evaluation/local_llm")
 
     for path in sorted(root.glob("*/*/llm_triage_evaluation_report.json")):
         report = load_json(path)

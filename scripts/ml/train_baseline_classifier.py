@@ -17,7 +17,7 @@ from changescout.ml.classification import run_baseline_classification
 
 ANNOTATION_PATH = Path("data/annotation/labeled/annotation_full_reviewed.csv")
 SCORED_POOL_PATH = Path("artifacts/scored_annotation_pool.jsonl")
-OUTPUT_DIR = Path("data/annotation/evaluation")
+OUTPUT_DIR = Path("results/evaluation/legacy")
 
 TRAIN_OUTPUT_PATH = OUTPUT_DIR / "baseline_train.csv"
 TEST_OUTPUT_PATH = OUTPUT_DIR / "baseline_test.csv"

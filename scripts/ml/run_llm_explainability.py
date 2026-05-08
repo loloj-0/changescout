@@ -12,9 +12,9 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-DEFAULT_LEADS = Path("data/annotation/evaluation/hybrid_lead_selection_qwen7b_direct/hybrid_leads.csv")
-DEFAULT_RECORDS = Path("data/annotation/evaluation/hybrid_lead_selection_qwen7b_direct/hybrid_eval_records.csv")
-DEFAULT_OUTPUT_DIR = Path("data/annotation/evaluation/llm_explainability_generated")
+DEFAULT_LEADS = Path("results/evaluation/hybrid_lead_selection_qwen7b_direct/hybrid_leads.csv")
+DEFAULT_RECORDS = Path("results/evaluation/hybrid_lead_selection_qwen7b_direct/hybrid_eval_records.csv")
+DEFAULT_OUTPUT_DIR = Path("results/evaluation/llm_explainability_generated")
 
 VALID_EVIDENCE_TYPES = {
     "confirmed_geometry",
