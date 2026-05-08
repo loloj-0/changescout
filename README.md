@@ -68,9 +68,13 @@ Operational runs do not write to:
 
 `data/annotation/evaluation/`
 
+or:
+
+`results/evaluation/`
+
 The historical MVP reproduction workflow remains separate:
 
-`bash scripts/run.sh`
+`bash scripts/operational/run.sh`
 
 Do not mix the scoped operational inference workflow with the frozen evaluation and reproduction workflow.
 
@@ -78,25 +82,32 @@ Do not mix the scoped operational inference workflow with the frozen evaluation 
 
 ```text
 src/changescout/
-  application modules
-
-config/
-  scope, filter, scoring, source registries
-
-docs/
-  architecture, project goal, runbooks, inventories
+  ingestion/      discovery, crawling, cleaning, filtering
+  ranking/        scoring, candidate selection, decision logic
+  enrichment/     geography, local hints, GeoAdmin enrichment
+  ml/             TF IDF, classification, LLM explainability
+  review/         leads, review export, inference QA
+  annotation/     annotation helpers
+  validation/     registry validation and snapshots
 
 scripts/
-  operational wrappers, evaluation scripts, report builders
-
-tests/
-  automated tests
-
-artifacts/
-  generated run outputs
+  operational/    scoped run helpers and review exports
+  annotation/     annotation dataset construction and expansion
+  evaluation/     evaluation and result package builders
+  ml/             model training and LLM experiment scripts
+  legacy/         historical MVP reproduction helpers
 
 data/
-  annotation data, crawling data, model artifacts, reference files
+  annotation/labeled/      curated labeled datasets
+  annotation/evaluation/  frozen evaluation datasets
+  models/                 tracked operational model artifacts
+  reference/              stable reference files
+
+results/
+  evaluation/     generated evaluation results and report package
+
+artifacts/
+  generated operational run outputs, ignored by Git
 ```
 
 ## Environment setup
@@ -309,7 +320,7 @@ PYTHONPATH=src python -m changescout.cli run \
 After a scoped run, build a reviewer facing export package.
 
 ```bash
-PYTHONPATH=src python scripts/build_review_export.py \
+PYTHONPATH=src python scripts/operational/build_review_export.py \
   --run-dir artifacts/runs/be_hybrid_geoadmin_001 \
   --top-n 30
 ```
@@ -335,7 +346,7 @@ The export deduplicates repeated leads by canonical URL and preserves duplicate 
 ## Build scoped monitoring summary
 
 ```bash
-PYTHONPATH=src python scripts/build_monitoring_summary.py \
+PYTHONPATH=src python scripts/operational/build_monitoring_summary.py \
   --run-id be_hybrid_geoadmin_001
 ```
 
@@ -400,7 +411,7 @@ Some files are optional and exist only when the corresponding stage is enabled.
 ## Train operational TF IDF model artifact
 
 ```bash
-PYTHONPATH=src python scripts/train_operational_tfidf.py \
+PYTHONPATH=src python scripts/ml/train_operational_tfidf.py \
   --dataset data/annotation/evaluation/triage_3class_dataset.csv \
   --output-dir data/models/tfidf_actionable/tfidf_actionable_v1 \
   --model-version tfidf_actionable_v1
@@ -411,14 +422,15 @@ The target is actionable binary:
 * positive: `confirmed_relevant`, `needs_review`
 * negative: `not_relevant`
 
-The artifact contains:
+The tracked operational artifact contains:
 
 ```text
 data/models/tfidf_actionable/tfidf_actionable_v1/
   model.joblib
   metadata.json
-  test_predictions.csv
 ```
+
+`test_predictions.csv` may be generated during training for audit purposes, but it is ignored by Git by default.
 
 Operational runs load the artifact explicitly.
 
@@ -431,7 +443,7 @@ See:
 ## Standalone TF IDF inference
 
 ```bash
-PYTHONPATH=src python scripts/run_tfidf_inference.py \
+PYTHONPATH=src python scripts/operational/run_tfidf_inference.py \
   --input artifacts/runs/<run_id>/scored.jsonl \
   --output artifacts/runs/<run_id>/scored_with_tfidf.jsonl \
   --report-output artifacts/runs/<run_id>/reports/tfidf_inference_report.json \
@@ -488,7 +500,11 @@ Crawling:
 ## HTML cleaning only
 
 ```bash
-PYTHONPATH=src python -m changescout.html_cleaning
+PYTHONPATH=src python -m changescout.cli run \
+  --config-dir config \
+  --source-registry <registry> \
+  --canton-id <canton> \
+  --run-id <run_id>
 ```
 
 HTML cleaning:
@@ -539,7 +555,7 @@ Scoring:
 ### Local location hinting
 
 ```bash
-PYTHONPATH=src python scripts/add_location_hints_to_leads.py \
+PYTHONPATH=src python scripts/operational/add_location_hints_to_leads.py \
   --input artifacts/runs/<run_id>/leads.jsonl \
   --reference data/reference/location_hints_reference.csv \
   --output-jsonl artifacts/runs/<run_id>/leads_with_locations.jsonl \
@@ -550,7 +566,7 @@ PYTHONPATH=src python scripts/add_location_hints_to_leads.py \
 ### GeoAdmin enrichment
 
 ```bash
-PYTHONPATH=src python scripts/enrich_location_hints_geoadmin.py \
+PYTHONPATH=src python scripts/operational/enrich_location_hints_geoadmin.py \
   --input artifacts/runs/<run_id>/leads_with_locations.jsonl \
   --output-jsonl artifacts/runs/<run_id>/leads_with_geoadmin_locations.jsonl \
   --output-csv artifacts/runs/<run_id>/leads_with_geoadmin_locations.csv \
@@ -565,9 +581,13 @@ API failure does not invalidate lead generation.
 
 ## Evaluation workflow
 
-Evaluation outputs are frozen under:
+Frozen evaluation datasets are stored under:
 
 `data/annotation/evaluation/`
+
+Generated evaluation results are stored under:
+
+`results/evaluation/`
 
 The expanded annotation dataset contains 348 manually reviewed sources.
 
@@ -582,57 +602,57 @@ Generated evaluation datasets:
 Build evaluation datasets:
 
 ```bash
-PYTHONPATH=src python scripts/build_evaluation_datasets.py
+PYTHONPATH=src python scripts/evaluation/build_evaluation_datasets.py
 ```
 
 Evaluate deterministic score baseline:
 
 ```bash
-PYTHONPATH=src python scripts/evaluate_score_baseline.py
+PYTHONPATH=src python scripts/evaluation/evaluate_score_baseline.py
 ```
 
 Evaluate classical TF IDF baseline:
 
 ```bash
-PYTHONPATH=src python scripts/evaluate_classical_text_classifier.py
+PYTHONPATH=src python scripts/evaluation/evaluate_classical_text_classifier.py
 ```
 
 Run local LLM triage evaluation:
 
 ```bash
-PYTHONPATH=src python scripts/run_local_llm_triage.py \
+PYTHONPATH=src python scripts/ml/run_local_llm_triage.py \
   --model-id Qwen/Qwen2.5-7B-Instruct \
   --prompt-variant hierarchical
 
-PYTHONPATH=src python scripts/evaluate_local_llm_triage.py \
-  --predictions data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/hierarchical/llm_triage_predictions.jsonl
+PYTHONPATH=src python scripts/evaluation/evaluate_local_llm_triage.py \
+  --predictions results/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/hierarchical/llm_triage_predictions.jsonl
 ```
 
 Evaluate aligned method comparison:
 
 ```bash
-PYTHONPATH=src python scripts/evaluate_aligned_method_comparison.py
+PYTHONPATH=src python scripts/evaluation/evaluate_aligned_method_comparison.py
 ```
 
 Evaluate hybrid lead selection:
 
 ```bash
-PYTHONPATH=src python scripts/evaluate_hybrid_lead_selection.py \
-  --llm-predictions data/annotation/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/direct/llm_triage_predictions.jsonl \
-  --output-dir data/annotation/evaluation/hybrid_lead_selection_qwen7b_direct
+PYTHONPATH=src python scripts/evaluation/evaluate_hybrid_lead_selection.py \
+  --llm-predictions results/evaluation/local_llm/Qwen__Qwen2.5-7B-Instruct/direct/llm_triage_predictions.jsonl \
+  --output-dir results/evaluation/hybrid_lead_selection_qwen7b_direct
 
-PYTHONPATH=src python scripts/compare_hybrid_lead_selection_runs.py
+PYTHONPATH=src python scripts/evaluation/compare_hybrid_lead_selection_runs.py
 ```
 
 Build report package:
 
 ```bash
-PYTHONPATH=src python scripts/build_evaluation_report_package.py
+PYTHONPATH=src python scripts/evaluation/build_evaluation_report_package.py
 ```
 
 The report package is written to:
 
-`data/annotation/evaluation/report_package/`
+`results/evaluation/report_package/`
 
 ## Current method findings
 
@@ -714,7 +734,7 @@ PYTHONPATH=src python -m changescout.cli run
 Historical MVP reproduction entry point:
 
 ```bash
-bash scripts/run.sh
+bash scripts/operational/run.sh
 ```
 
 ## Tests
@@ -739,8 +759,12 @@ GeoAdmin cache is local generated data:
 
 `data/reference/geoadmin_search_cache.jsonl`
 
-Frozen evaluation data belongs under:
+Frozen evaluation datasets belong under:
 
 `data/annotation/evaluation/`
 
-Operational inference must not overwrite frozen evaluation artifacts.
+Generated evaluation results belong under:
+
+`results/evaluation/`
+
+Operational inference must not overwrite frozen evaluation datasets or curated evaluation results.

@@ -289,7 +289,7 @@ The explanation layer is therefore useful as auditable review support, but every
 
 The current MVP evaluation is consolidated into a reproducible report package under:
 
-`data/annotation/evaluation/report_package/`
+`results/evaluation/report_package/`
 
 The package summarizes:
 
@@ -304,7 +304,7 @@ The package summarizes:
 
 The package is generated with:
 
-`python scripts/build_evaluation_report_package.py`
+`python scripts/evaluation/build_evaluation_report_package.py`
 
 It does not run new models.
 
@@ -340,13 +340,13 @@ The operational run currently covers:
 9. local lead location hinting
 10. optional GeoAdmin lead enrichment
 11. run metadata and stage reports
-12. scoped monitoring summary generation through `scripts/build_monitoring_summary.py`
+12. scoped monitoring summary generation through `scripts/operational/build_monitoring_summary.py`
 
 This implementation is intentionally separate from the frozen evaluation workflow.
 
-Operational runs do not overwrite `data/annotation/evaluation/`.
+Operational runs do not overwrite frozen evaluation datasets under `data/annotation/evaluation/` or generated evaluation results under `results/evaluation/`.
 
-The original MVP reproduction script remains available separately as `scripts/run.sh`.
+The historical MVP reproduction script remains available separately as `scripts/operational/run.sh`, with legacy helpers under `scripts/legacy/`.
 
 The operational pipeline has been validated on curated Zürich project pages and on a noisier Solothurn media registry.
 

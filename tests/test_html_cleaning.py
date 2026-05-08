@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from changescout.html_cleaning import extract_title
+from changescout.ingestion.html_cleaning import extract_title
 
 
 def test_extract_title_ignores_javascript_notice_and_uses_html_title():

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from changescout.registry_validation import validate_registry_file
+from changescout.validation.registry_validation import validate_registry_file
 
 
 def write_registry(config_dir: Path, name: str, content: str) -> None:

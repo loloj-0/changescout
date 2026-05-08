@@ -1,4 +1,4 @@
-from changescout.scoring import score_document, score_documents
+from changescout.ranking.scoring import score_document, score_documents
 
 
 def base_config(pattern_scoring=None, retrieval_enabled=False):

@@ -5,13 +5,13 @@ import logging
 from pathlib import Path
 
 from changescout.config import resolve_active_sources
-from changescout.crawling import run_crawling
-from changescout.discovery import discover_urls_from_source, write_discovery_jsonl
-from changescout.filtering import run_filtering
-from changescout.scoring import run_scoring
-from changescout.snapshot import write_snapshot
+from changescout.ingestion.crawling import run_crawling
+from changescout.ingestion.discovery import discover_urls_from_source, write_discovery_jsonl
+from changescout.ingestion.filtering import run_filtering
+from changescout.ranking.scoring import run_scoring
+from changescout.validation.snapshot import write_snapshot
 from changescout.pipeline import run_operational_pipeline
-from changescout.registry_validation import run_registry_validation
+from changescout.validation.registry_validation import run_registry_validation
 
 LOGGER = logging.getLogger(__name__)
 

@@ -21,11 +21,14 @@ The target is:
 
 `data/models/tfidf_actionable/<model_version>/`
 
-Expected files:
+Tracked expected files:
 
 * `model.joblib`
 * `metadata.json`
-* `test_predictions.csv`
+
+## Optional training output
+
+Training may also write `test_predictions.csv` next to the artifact. This file is useful for local audit and debugging, but it is not required for operational inference and is ignored by Git by default.
 
 ## Required metadata
 

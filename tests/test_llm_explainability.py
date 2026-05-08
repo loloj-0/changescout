@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from changescout.llm_explainability import (
+from changescout.ml.llm_explainability import (
     build_prompt,
     extract_json,
     prepare_explainability_records,

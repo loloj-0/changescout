@@ -1,0 +1,6 @@
+name,hint_type,canton,source,priority
+Suhr,municipality,AG,bfs_municipalities,100
+Aarau,municipality,AG,bfs_municipalities,100
+Buchs,municipality,AG,bfs_municipalities,100
+St. Gallen,municipality,SG,bfs_municipalities,100
+Neerach,municipality,ZH,bfs_municipalities,100

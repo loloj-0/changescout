@@ -9,21 +9,21 @@ import logging
 import subprocess
 
 from changescout.config import ScopeConfig, load_scope, load_source_registry
-from changescout.crawling import run_crawling
-from changescout.decision import classify_document
-from changescout.discovery import discover_urls_from_source, write_discovery_jsonl
-from changescout.filtering import run_filtering
-from changescout.html_cleaning import process_crawl_records
-from changescout.leads import run_lead_generation
-from changescout.candidate_selection import run_candidate_selection
-from changescout.lead_enrichment import (
+from changescout.ingestion.crawling import run_crawling
+from changescout.ranking.decision import classify_document
+from changescout.ingestion.discovery import discover_urls_from_source, write_discovery_jsonl
+from changescout.ingestion.filtering import run_filtering
+from changescout.ingestion.html_cleaning import process_crawl_records
+from changescout.review.leads import run_lead_generation
+from changescout.ranking.candidate_selection import run_candidate_selection
+from changescout.enrichment.lead_enrichment import (
     run_geoadmin_lead_location_enrichment,
     run_local_lead_location_hinting,
     write_geoadmin_failure_report,
 )
 from changescout.models import DiscoveredUrlRecord
-from changescout.scoring import run_scoring, score_documents
-from changescout.tfidf_model import apply_tfidf_actionable_artifact
+from changescout.ranking.scoring import run_scoring, score_documents
+from changescout.ml.tfidf_model import apply_tfidf_actionable_artifact
 
 LOGGER = logging.getLogger(__name__)
 

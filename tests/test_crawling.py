@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from changescout.crawling import (
+from changescout.ingestion.crawling import (
     FetchResult,
     build_error_crawl_record,
     build_success_crawl_record,
@@ -144,7 +144,7 @@ def test_run_crawling_integration(tmp_path: Path) -> None:
             text="<html>mocked page</html>",
         )
 
-    with patch("changescout.crawling.fetch_page", side_effect=fake_fetch_page):
+    with patch("changescout.ingestion.crawling.fetch_page", side_effect=fake_fetch_page):
         records = run_crawling(
             discovery_input_path=discovery_input_path,
             output_jsonl_path=output_jsonl_path,

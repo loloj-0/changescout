@@ -1,14 +1,40 @@
 .venv/
+.env
+
 __pycache__/
 *.pyc
-.env
+.pytest_cache/
+.ruff_cache/
 .ipynb_checkpoints/
 
 docs/current_issue.md
 
-data/
-
 artifacts/
+
+data/crawling/
+data/raw/
+data/tmp/
+data/interim/
+
+data/annotation/candidates/
+data/annotation/annotation_dataset.jsonl
+data/annotation/annotation_full.xlsx
+data/annotation/annotation_full_after_project_export_check.xlsx
+data/annotation/labeled/annotation_dataset_v1.jsonl
+data/annotation/labeled/annotation_dataset_v1_fixed.jsonl
+
+data/annotation/evaluation/annotation_dataset_v1_scored_decided.jsonl
+data/annotation/evaluation/baseline_*
+data/annotation/evaluation/*false_negative*
+data/annotation/evaluation/false_negatives_*
+data/annotation/evaluation/high_false_positives_*
+data/annotation/evaluation/low_true_positives_*
+data/annotation/evaluation/review_cases.csv
+data/annotation/evaluation/scoring_annotation_joined.csv
+data/annotation/evaluation/threshold_report.csv
+
+data/reference/geoadmin_search_cache.jsonl
+data/models/**/test_predictions.csv
 
 *.egg-info/
 build/

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from changescout.discovery import (
+from changescout.ingestion.discovery import (
     build_discovery_records,
     decode_response_text,
     deduplicate_urls,
@@ -164,7 +164,7 @@ def test_discover_urls_from_source_end_to_end_with_mocked_fetch() -> None:
     mock_response.url = source.base_url
     mock_response.raise_for_status.return_value = None
 
-    with patch("changescout.discovery.requests.get", return_value=mock_response) as mock_get:
+    with patch("changescout.ingestion.discovery.requests.get", return_value=mock_response) as mock_get:
         records = discover_urls_from_source(
             source=source,
             timeout=5,
@@ -192,7 +192,7 @@ def test_discover_urls_from_source_end_to_end_with_mocked_fetch() -> None:
     assert records[1].matched_pattern == "/tiefbau/"
 
 def test_canonicalize_url_for_deduplication_removes_fragment_trailing_slash_and_tracking():
-    from changescout.discovery import canonicalize_url_for_deduplication
+    from changescout.ingestion.discovery import canonicalize_url_for_deduplication
 
     url = "HTTPS://Example.Test/path/project/?utm_source=x&foo=bar#section"
 
@@ -203,7 +203,7 @@ def test_canonicalize_url_for_deduplication_removes_fragment_trailing_slash_and_
 
 
 def test_deduplicate_urls_uses_canonical_url():
-    from changescout.discovery import deduplicate_urls
+    from changescout.ingestion.discovery import deduplicate_urls
 
     matched_urls = [
         ("https://example.test/project/", "/project"),

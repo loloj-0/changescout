@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from changescout.tfidf_model import (
+from changescout.ml.tfidf_model import (
     apply_tfidf_actionable_artifact,
     train_tfidf_actionable_artifact,
 )

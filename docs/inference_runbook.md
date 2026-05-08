@@ -318,18 +318,19 @@ Check whether it exists:
 find data/models/tfidf_actionable/tfidf_actionable_v1 -maxdepth 1 -type f | sort
 ```
 
-Expected files:
+Expected tracked files:
 
 ```text
 model.joblib
 metadata.json
-test_predictions.csv
 ```
+
+`test_predictions.csv` may exist after training, but it is ignored by Git and is not required for operational inference.
 
 If missing, train it:
 
 ```bash
-PYTHONPATH=src python scripts/train_operational_tfidf.py \
+PYTHONPATH=src python scripts/ml/train_operational_tfidf.py \
   --dataset data/annotation/evaluation/triage_3class_dataset.csv \
   --output-dir data/models/tfidf_actionable/tfidf_actionable_v1 \
   --model-version tfidf_actionable_v1
@@ -515,7 +516,7 @@ PY
 Build the reviewer facing package.
 
 ```bash
-PYTHONPATH=src python scripts/build_review_export.py \
+PYTHONPATH=src python scripts/operational/build_review_export.py \
   --run-dir artifacts/runs/xx_hybrid_geoadmin_001 \
   --top-n 30
 ```
@@ -562,7 +563,7 @@ The LLM explains selected leads.
 It does not select or remove leads.
 
 ```bash
-PYTHONPATH=src python scripts/run_scoped_llm_explainability.py \
+PYTHONPATH=src python scripts/ml/run_scoped_llm_explainability.py \
   --run-dir artifacts/runs/xx_hybrid_geoadmin_001 \
   --model-id Qwen/Qwen2.5-7B-Instruct \
   --max-records 10
@@ -571,7 +572,7 @@ PYTHONPATH=src python scripts/run_scoped_llm_explainability.py \
 For a small demo run, limit the number of records:
 
 ```bash
-PYTHONPATH=src python scripts/run_scoped_llm_explainability.py \
+PYTHONPATH=src python scripts/ml/run_scoped_llm_explainability.py \
   --run-dir artifacts/runs/xx_hybrid_geoadmin_001 \
   --model-id Qwen/Qwen2.5-7B-Instruct \
   --max-records 3 \
@@ -590,7 +591,7 @@ artifacts/runs/<run_id>/reports/llm_explainability_report.md
 Then rebuild the review export:
 
 ```bash
-PYTHONPATH=src python scripts/build_review_export.py \
+PYTHONPATH=src python scripts/operational/build_review_export.py \
   --run-dir artifacts/runs/xx_hybrid_geoadmin_001 \
   --top-n 30
 ```
@@ -629,7 +630,7 @@ LLM outputs are never hard exclusion signals.
 After an inference run, build a lightweight QA report before manual review.
 
 ```bash
-PYTHONPATH=src python scripts/build_inference_qa_report.py \
+PYTHONPATH=src python scripts/operational/build_inference_qa_report.py \
   --run-dir artifacts/runs/xx_hybrid_geoadmin_001
 ```
 
@@ -661,7 +662,7 @@ It does not confirm TLM relevance.
 ## 14. Build monitoring summary
 
 ```bash
-PYTHONPATH=src python scripts/build_monitoring_summary.py \
+PYTHONPATH=src python scripts/operational/build_monitoring_summary.py \
   --run-id xx_hybrid_geoadmin_001
 ```
 
@@ -789,9 +790,13 @@ rm -rf artifacts/runs/xx_hybrid_001 data/crawling/xx_hybrid_001
 rm -rf artifacts/runs/xx_hybrid_geoadmin_001 data/crawling/xx_hybrid_geoadmin_001
 ```
 
-Do not delete frozen evaluation artifacts under:
+Do not delete frozen evaluation datasets under:
 
 `data/annotation/evaluation/`
+
+Do not delete curated evaluation result artifacts under:
+
+`results/evaluation/`
 
 ## 18. Commit a new source registry
 
@@ -817,11 +822,11 @@ PYTHONPATH=src python -m changescout.cli infer \
   --run-id be_infer_geoadmin_001 \
   --enable-geoadmin-enrichment
 
-PYTHONPATH=src python scripts/build_review_export.py \
+PYTHONPATH=src python scripts/operational/build_review_export.py \
   --run-dir artifacts/runs/be_infer_geoadmin_001 \
   --top-n 30
 
-PYTHONPATH=src python scripts/build_monitoring_summary.py \
+PYTHONPATH=src python scripts/operational/build_monitoring_summary.py \
   --run-id be_infer_geoadmin_001
 ```
 
@@ -844,11 +849,11 @@ PYTHONPATH=src python -m changescout.cli run \
   --enable-geoadmin-enrichment \
   --timeout-seconds 10
 
-PYTHONPATH=src python scripts/build_review_export.py \
+PYTHONPATH=src python scripts/operational/build_review_export.py \
   --run-dir artifacts/runs/be_hybrid_geoadmin_001 \
   --top-n 30
 
-PYTHONPATH=src python scripts/build_monitoring_summary.py \
+PYTHONPATH=src python scripts/operational/build_monitoring_summary.py \
   --run-id be_hybrid_geoadmin_001
 ```
 
@@ -895,7 +900,7 @@ PYTHONPATH=src python -m changescout.cli run \
   --enable-geoadmin-enrichment \
   --timeout-seconds 10
 
-PYTHONPATH=src python scripts/build_review_export.py \
+PYTHONPATH=src python scripts/operational/build_review_export.py \
   --run-dir artifacts/runs/xx_hybrid_geoadmin_001 \
   --top-n 30
 ```
