@@ -39,3 +39,6 @@ data/models/**/test_predictions.csv
 *.egg-info/
 build/
 dist/
+
+data/annotation/labeled/*_reviewed.xlsx
+data/annotation/labeled/annotation_dataset_duplicate_*.csv

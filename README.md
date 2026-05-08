@@ -772,3 +772,8 @@ Operational inference must not overwrite frozen evaluation datasets or curated e
 ## Demo Runbook
 
 For a compact reproducible demo run, see `docs/demo_runbook.md`.
+
+
+## Labeled dataset
+
+The canonical labeled dataset is `data/annotation/labeled/annotation_dataset_expanded.csv`. It contains 348 manually reviewed records from multiple cantons. `annotation_dataset_expanded.jsonl` is the equivalent machine readable copy.
