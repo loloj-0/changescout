@@ -1,5 +1,8 @@
 # ChangeScout
 
+**Final CAS NLP project report:** [Joss_Lorenz_ChangeScout_CAS_NLP_Final_Project_Report.pdf](report/Joss_Lorenz_ChangeScout_CAS_NLP_Final_Project_Report.pdf)
+
+
 ChangeScout is a deterministic lead prioritization and review support pipeline for potential TLM relevant changes from official canton level web sources.
 
 ChangeScout is not an automatic TLM update system.
